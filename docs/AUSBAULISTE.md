@@ -12,6 +12,11 @@ Stand: 17.07.2026 (Abschluss Design-Runde).
 
 ## 1. Hub-Suchfeld
 
+**Status: umgesetzt (18.07.2026).** Suchfeld in der Hub-Kopfzeile,
+clientseitig über Badge/Titel/Untertitel inkl. Unterpositionen,
+akzent-/gross-kleinschreibungs-unabhängig; Kategorien ohne Treffer
+ausgeblendet, Zähler «3 von 22», Drag während Suche deaktiviert.
+
 **Was:** Suchfeld in der Hub-Toolbar («Dokument oder BKP-Nr. suchen…»),
 das die Dokumentliste über alle Kategorien filtert.
 

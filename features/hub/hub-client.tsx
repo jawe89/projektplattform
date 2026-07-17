@@ -61,6 +61,19 @@ function cardParts(doc: HubDoc, category: Category) {
 }
 
 /**
+ * Suchnormalisierung: klein schreiben und Akzente/Umlaut-Diakritika
+ * entfernen (NFD + Combining Marks), damit «Müller» auch über «Muller»
+ * gefunden wird. «Mueller» (ausgeschrieben) bleibt bewusst verschieden.
+ */
+function normalizeSearch(value: string): string {
+  return value
+    .toLowerCase()
+    .normalize('NFD')
+    // Combining Diacritical Marks U+0300–U+036F (literale Range)
+    .replace(/[̀-ͯ]/g, '');
+}
+
+/**
  * Dokumenten-Hub (M2): Kategorien-Abschnitte gemäss Rollen-Matrix,
  * Kartendarstellung (big/list), Unterpositionen, Modal, Drag-Sortierung,
  * Sticky Toolbar mit Speicherstatus, Toasts unten rechts.
@@ -96,7 +109,31 @@ export function HubClient({
   const [modal, setModal] = useState<ModalState | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const [dragId, setDragId] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
   const { toasts, showToast } = useToasts();
+
+  // Clientseitige Suche (reine Ansicht): Treffer über Badge/Kürzel, Titel
+  // und Untertitel aller geladenen Dokumente – RLS hat bereits auf die
+  // Sichtbarkeit der Rolle gefiltert. null = keine aktive Suche.
+  const searchTerm = normalizeSearch(search.trim());
+  const matchedIds = useMemo(() => {
+    if (!searchTerm) return null;
+    const categoryById = new Map(categories.map((c) => [c.id, c]));
+    const set = new Set<string>();
+    for (const doc of docs) {
+      const category = categoryById.get(doc.category_id);
+      if (!category) continue;
+      const parts = cardParts(doc, category);
+      if (
+        [parts.badge, parts.title, parts.sub].some(
+          (v) => v && normalizeSearch(v).includes(searchTerm),
+        )
+      ) {
+        set.add(doc.id);
+      }
+    }
+    return set;
+  }, [docs, categories, searchTerm]);
 
   const isEditor = useMemo(
     () => categories.some((c) => canUploadByCategory[c.id]),
@@ -144,6 +181,21 @@ export function HubClient({
 
   function isManuallySortable(category: Category): boolean {
     return (category.sort_mode ?? 'manual') === 'manual';
+  }
+
+  function hasMatchedChild(doc: HubDoc): boolean {
+    if (!matchedIds) return false;
+    return docs.some((d) => d.parent_id === doc.id && matchedIds.has(d.id));
+  }
+
+  /**
+   * Sichtbare Top-Dokumente einer Kategorie: ohne Suche alle, mit Suche
+   * nur Treffer (eigener Treffer oder Treffer in einer Unterposition).
+   */
+  function visibleDocsOf(category: Category): HubDoc[] {
+    const top = docsOf(category, null);
+    if (!matchedIds) return top;
+    return top.filter((d) => matchedIds.has(d.id) || hasMatchedChild(d));
   }
 
   function applyModal(result: ModalResult) {
@@ -325,8 +377,14 @@ export function HubClient({
   }
 
   function dragProps(doc: HubDoc, category: Category) {
-    // Drag-Sortierung nur bei manueller Sortierung (sonst automatisch nach Feld)
-    if (!canUploadByCategory[category.id] || !isManuallySortable(category)) {
+    // Drag-Sortierung nur bei manueller Sortierung (sonst automatisch nach
+    // Feld) und nie während aktiver Suche – in der gefilterten Ansicht wäre
+    // die Sortier-Semantik unklar.
+    if (
+      matchedIds ||
+      !canUploadByCategory[category.id] ||
+      !isManuallySortable(category)
+    ) {
       return {};
     }
     return {
@@ -343,8 +401,17 @@ export function HubClient({
   }
 
   function childList(parent: HubDoc, category: Category) {
-    const children = docsOf(category, parent.id);
-    const isOpen = expanded.has(parent.id);
+    // Suche: trifft nur eine Unterposition, wird die Liste auf die Treffer
+    // gefiltert und automatisch aufgeklappt (abgeleitet, ohne den
+    // expanded-State anzufassen – Suche ist reine Ansicht).
+    const allChildren = docsOf(category, parent.id);
+    const parentMatched = !matchedIds || matchedIds.has(parent.id);
+    const children = parentMatched
+      ? allChildren
+      : allChildren.filter((c) => matchedIds?.has(c.id));
+    const isOpen =
+      expanded.has(parent.id) ||
+      Boolean(matchedIds && !parentMatched && children.length > 0);
     if (!category.field_schema.allowChildren) return null;
     return (
       <div className="border-t border-line">
@@ -499,6 +566,12 @@ export function HubClient({
   const monogram = managementName?.trim().charAt(0).toUpperCase();
   const docCountLabel = (n: number) =>
     `${n} ${n === 1 ? texts.hub.docCountSuffixOne : texts.hub.docCountSuffix}`;
+  /** Zähler während der Suche: «3 von 22 Dokumente», sonst «22 Dokumente» */
+  const countLabel = (shown: number, total: number) =>
+    matchedIds
+      ? `${shown} ${texts.hub.countOf} ${docCountLabel(total)}`
+      : docCountLabel(total);
+  const anyResults = categories.some((c) => visibleDocsOf(c).length > 0);
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -571,9 +644,37 @@ export function HubClient({
                 ` · ${texts.landing.projectNoPrefix} ${projectNo}`}
             </p>
           </div>
-          <span className="hidden shrink-0 text-xs text-primary sm:block">
-            {docCountLabel(docs.length)}
-          </span>
+          <div className="flex shrink-0 items-center gap-3">
+            {/* Suchfeld (Design-Referenz-Anhalt): filtert beim Tippen,
+                Escape und ✕ leeren die Suche */}
+            <div className="relative">
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') setSearch('');
+                }}
+                placeholder={texts.hub.searchPlaceholder}
+                className="w-40 border border-line bg-white py-2 pr-7 pl-3 text-xs text-ink outline-none placeholder:text-primary/70 focus:border-accent sm:w-64 sm:text-[13px]"
+              />
+              {search && (
+                <button
+                  type="button"
+                  title={texts.hub.searchClear}
+                  onClick={() => setSearch('')}
+                  className="absolute top-1/2 right-2 -translate-y-1/2 text-xs text-primary hover:text-ink"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+            <span className="hidden shrink-0 text-xs text-primary lg:block">
+              {matchedIds
+                ? `${matchedIds.size} ${texts.hub.countOf} ${docCountLabel(docs.length)}`
+                : docCountLabel(docs.length)}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -603,18 +704,27 @@ export function HubClient({
               {module.label}
             </a>
           ))}
-          {categories.map((category) => (
-            <a
-              key={category.id}
-              href={`#${category.key}`}
-              className="display-title shrink-0 py-3.5 text-[13px] font-medium tracking-[0.14em] text-primary transition-colors hover:text-ink max-sm:border max-sm:border-line max-sm:bg-white max-sm:px-3 max-sm:py-1.5 max-sm:text-[11px] max-sm:tracking-[0.12em]"
-            >
-              {category.label}{' '}
-              <span className="font-normal text-primary">
-                {docsOf(category, null).length}
-              </span>
-            </a>
-          ))}
+          {categories.map((category) => {
+            // Suche: Kategorien ohne Treffer aus der Navigation ausblenden,
+            // Zähler als «3 von 22»
+            const total = docsOf(category, null).length;
+            const shown = visibleDocsOf(category).length;
+            if (matchedIds && shown === 0) return null;
+            return (
+              <a
+                key={category.id}
+                href={`#${category.key}`}
+                className="display-title shrink-0 py-3.5 text-[13px] font-medium tracking-[0.14em] text-primary transition-colors hover:text-ink max-sm:border max-sm:border-line max-sm:bg-white max-sm:px-3 max-sm:py-1.5 max-sm:text-[11px] max-sm:tracking-[0.12em]"
+              >
+                {category.label}{' '}
+                <span className="font-normal text-primary">
+                  {matchedIds
+                    ? `${shown} ${texts.hub.countOf} ${total}`
+                    : total}
+                </span>
+              </a>
+            );
+          })}
         </div>
       </nav>
 
@@ -659,9 +769,18 @@ export function HubClient({
           </section>
         )}
 
+        {/* Suche ohne Treffer: Hinweis statt leerer Seite */}
+        {matchedIds && !anyResults && (
+          <p className="text-sm text-primary">{texts.hub.searchNoResults}</p>
+        )}
+
         {categories.map((category) => {
-          const topDocs = docsOf(category, null);
+          const allTop = docsOf(category, null);
+          const topDocs = visibleDocsOf(category);
           const canUpload = canUploadByCategory[category.id];
+          // Suche: Kategorien ohne Treffer ausblenden (Modul-Karten oben
+          // bleiben unberührt sichtbar)
+          if (matchedIds && topDocs.length === 0) return null;
           return (
             <section
               key={category.id}
@@ -673,7 +792,7 @@ export function HubClient({
                   {category.label}
                 </h2>
                 <span className="text-[11px] text-primary sm:text-xs">
-                  {docCountLabel(topDocs.length)}
+                  {countLabel(topDocs.length, allTop.length)}
                 </span>
               </div>
 
