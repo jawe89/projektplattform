@@ -23,6 +23,18 @@ if (!supabaseUrl || !serviceRoleKey) {
   process.exit(1);
 }
 
+// Produktivschutz (seit Go-Live-Vorbereitung): Das Seed überschreibt Projekte,
+// Branding, Kategorien und legt example.com-Testbenutzer an – gegen die
+// Produktiv-Datenbank darf es nur noch ausdrücklich laufen.
+if (process.env.SEED_ALLOW_PROD !== '1') {
+  console.error(
+    'ABBRUCH: Das Seed-Skript überschreibt Produktivdaten (Projekte, Branding,\n' +
+      'Kategorien, Rollen-Matrix) und legt example.com-Testbenutzer an.\n' +
+      'Ausführung nur ausdrücklich mit:  SEED_ALLOW_PROD=1 npm run seed',
+  );
+  process.exit(1);
+}
+
 const supabase = createClient(supabaseUrl, serviceRoleKey, {
   auth: { autoRefreshToken: false, persistSession: false },
 });

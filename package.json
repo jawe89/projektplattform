@@ -10,6 +10,8 @@
     "seed": "tsx scripts/seed.ts",
     "import:wattwil": "tsx scripts/import-mcd-wattwil.ts",
     "migrate:wattwil": "tsx scripts/migrate-files-wattwil.ts",
+    "create:admin": "tsx scripts/create-admin.ts",
+    "cleanup:testusers": "tsx scripts/cleanup-test-users.ts",
     "test:rls": "tsx scripts/rls-test.ts"
   },
   "dependencies": {

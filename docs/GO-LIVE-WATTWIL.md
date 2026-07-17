@@ -79,6 +79,19 @@ Supabase-Dashboard → Authentication:
 - [ ] Test: Passwort-Reset für einen Testbenutzer anfordern und Mail-Empfang
       prüfen.
 
+## 3b. Echten Plattform-Admin anlegen, Testbenutzer entfernen
+
+- [ ] `npm run create:admin -- --email <deine-adresse> --invite`
+      (Invite-Mail über den eben konfigurierten SMTP) oder mit
+      `--password '…'` direkt ein starkes Passwort setzen.
+- [ ] **Login mit dem neuen Konto auf der Admin-Adresse testen.**
+- [ ] Erst danach: `npm run cleanup:testusers` – löscht alle
+      example.com-Testbenutzer (inkl. admin.plattform@example.com).
+      Das Skript verweigert die Ausführung, solange kein anderer
+      Plattform-Admin existiert (Aussperr-Schutz).
+- [ ] Ab jetzt gilt: `npm run seed` läuft nur noch mit `SEED_ALLOW_PROD=1`
+      (Produktivschutz) – im Normalfall nie mehr ausführen.
+
 ## 4. Domains in Vercel hinzufügen
 
 - [ ] `admin.projektplattform.ch` → beim Registrar von `projektplattform.ch`:
