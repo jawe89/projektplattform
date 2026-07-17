@@ -30,6 +30,8 @@ import {
   kvMutKpi,
   offenRp,
   positionStatus,
+  sharePct,
+  shareTone,
   totals,
 } from '@/lib/bkk-calc';
 import { formatDate, formatRappen, parseChfToRappen } from '@/lib/format';
@@ -613,6 +615,9 @@ export function BkkClient({
     const sums = entrySums(calcRow.entries, opts);
     const status = positionStatus(calcRow.position, calcRow.entries, opts);
     const dPct = position.kv_mut_rp !== null ? deltaPct(kvm, base) : null;
+    // Zahlungs-Prozentwert (Anteil der Vertragssumme, wie die frühere
+    // «% v. Vertrag»-Spalte) als kleine Zweitzeile in der Zahlung-Zelle
+    const zahlPct = sharePct(sums.zahlungRp, sums.vertragRp);
     const isOpen = expanded.has(position.id);
 
     return (
@@ -711,8 +716,17 @@ export function BkkClient({
           <td className="border-b border-l border-line border-l-bkk-vert-bord bg-bkk-vert-tint px-3.5 py-2.5 text-right text-[12.5px] text-ink tabular-nums">
             {sums.vertragRp !== 0 ? formatRappen(sums.vertragRp) : '–'}
           </td>
-          <td className="border-r border-b border-l border-line border-r-bkk-zahl-bord border-l-bkk-zahl-bord bg-bkk-zahl-tint px-3.5 py-2.5 text-right text-[12.5px] text-primary-dark tabular-nums">
-            {sums.zahlungRp !== 0 ? formatRappen(sums.zahlungRp) : '–'}
+          <td className="border-r border-b border-l border-line border-r-bkk-zahl-bord border-l-bkk-zahl-bord bg-bkk-zahl-tint px-3.5 py-2.5 text-right">
+            <span className="text-[12.5px] text-primary-dark tabular-nums">
+              {sums.zahlungRp !== 0 ? formatRappen(sums.zahlungRp) : '–'}
+            </span>
+            {zahlPct !== null && (
+              <span
+                className={`block text-[10px] font-semibold tabular-nums ${TONE_TEXT[shareTone(zahlPct)]}`}
+              >
+                {zahlPct.toFixed(1)} %
+              </span>
+            )}
           </td>
           <td className="border-b border-line bg-white px-3 py-2.5 align-top">
             <span className={`${PILL_BASE} ${STATUS_PILL[status]}`}>
@@ -771,8 +785,22 @@ export function BkkClient({
         <td className="border-b border-l border-line border-l-bkk-vert-bord bg-bkk-vert-head px-3.5 py-2 text-right text-[12.5px] font-semibold text-ink tabular-nums">
           {formatRappen(sub.vertragRp)}
         </td>
-        <td className="border-r border-b border-l border-line border-r-bkk-zahl-bord border-l-bkk-zahl-bord bg-bkk-zahl-head px-3.5 py-2 text-right text-[12.5px] font-semibold text-ink tabular-nums">
-          {formatRappen(sub.zahlungRp)}
+        <td className="border-r border-b border-l border-line border-r-bkk-zahl-bord border-l-bkk-zahl-bord bg-bkk-zahl-head px-3.5 py-2 text-right">
+          <span className="text-[12.5px] font-semibold text-ink tabular-nums">
+            {formatRappen(sub.zahlungRp)}
+          </span>
+          {(() => {
+            const pct = sharePct(sub.zahlungRp, sub.vertragRp);
+            return (
+              pct !== null && (
+                <span
+                  className={`block text-[10px] font-semibold tabular-nums ${TONE_TEXT[shareTone(pct)]}`}
+                >
+                  {pct.toFixed(1)} %
+                </span>
+              )
+            );
+          })()}
         </td>
         <td className="border-b border-line bg-white" />
         <td className="border-b border-line bg-white" />
@@ -1049,8 +1077,25 @@ export function BkkClient({
                     <td className="border-l border-l-bkk-vert-bord bg-bkk-vert-head px-3.5 py-3 text-right text-[13px] font-bold text-ink tabular-nums">
                       {formatRappen(grandTotals.vertragRp)}
                     </td>
-                    <td className="border-r border-l border-r-bkk-zahl-bord border-l-bkk-zahl-bord bg-bkk-zahl-head px-3.5 py-3 text-right text-[13px] font-bold text-ink tabular-nums">
-                      {formatRappen(grandTotals.zahlungRp)}
+                    <td className="border-r border-l border-r-bkk-zahl-bord border-l-bkk-zahl-bord bg-bkk-zahl-head px-3.5 py-3 text-right">
+                      <span className="text-[13px] font-bold text-ink tabular-nums">
+                        {formatRappen(grandTotals.zahlungRp)}
+                      </span>
+                      {(() => {
+                        const pct = sharePct(
+                          grandTotals.zahlungRp,
+                          grandTotals.vertragRp,
+                        );
+                        return (
+                          pct !== null && (
+                            <span
+                              className={`block text-[10px] font-bold tabular-nums ${TONE_TEXT[shareTone(pct)]}`}
+                            >
+                              {pct.toFixed(1)} %
+                            </span>
+                          )
+                        );
+                      })()}
                     </td>
                     <td className="bg-white" />
                     <td className="bg-white" />
