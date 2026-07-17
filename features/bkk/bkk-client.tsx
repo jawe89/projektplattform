@@ -737,10 +737,10 @@ export function BkkClient({
   }
 
   function subtotalRow(group: BkkGroup) {
-    // Zwischentotal über die sichtbaren Zeilen der Gruppe (wie Alt-Tool);
-    // ausgeblendete zählen nur ins Baseline-Gesamttotal.
-    const visible = positionsOf(group.id).filter((p) => !p.hidden);
-    const sub = groupSubtotals(visible.map(toCalcRow), opts);
+    // Zwischentotal mit identischer Zählregel wie das Gesamttotal
+    // (Fachblick-Korrektur): Baseline-Spalte inkl. ausgeblendeter
+    // Positionen, übrige Spalten nur sichtbare.
+    const sub = groupSubtotals(positionsOf(group.id).map(toCalcRow), opts);
     const dPct = deltaPct(sub.kvMutRp, sub.kvBaselineRp);
     return (
       <tr key={`${group.id}-subtotal`} className="text-sm font-medium">
@@ -965,10 +965,14 @@ export function BkkClient({
                 </thead>
                 <tbody>
                   {groups.map((group) => {
+                    // Gruppen mit Positionen immer rendern (auch wenn für die
+                    // Sehen-Rolle alle ausgeblendet sind) – das Zwischentotal
+                    // der Baseline-Spalte zählt sie, die Summenprobe muss in
+                    // jeder Rolle aufgehen.
+                    if (positionsOf(group.id).length === 0) return null;
                     const groupPositions = positionsOf(group.id).filter(
                       (p) => editing || !p.hidden,
                     );
-                    if (groupPositions.length === 0) return null;
                     return (
                       <Fragment key={group.id}>
                         <tr>

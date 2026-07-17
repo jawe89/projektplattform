@@ -211,7 +211,7 @@ describe('totals – Baseline-Total historisch fix, fehlende Baseline-Werte zäh
   });
 });
 
-describe('groupSubtotals', () => {
+describe('groupSubtotals – Zählregel pro Spalte identisch mit dem Gesamttotal', () => {
   it('Positionen ohne Baseline-Wert zählen 0 im Baseline-Zwischentotal', () => {
     const sub = groupSubtotals(
       [
@@ -232,6 +232,56 @@ describe('groupSubtotals', () => {
       vertragRp: 80_000_00,
       zahlungRp: 10_000_00,
     });
+  });
+
+  it('ausgeblendete Positionen zählen im Baseline-Zwischentotal, sonst nicht (Fachblick-Korrektur)', () => {
+    const sub = groupSubtotals(
+      [
+        {
+          position: position({ bkp: '112', kvBaselineRp: 20_000_00, hidden: true }),
+          entries: [vertrag(1_000_00)],
+        },
+      ],
+      exact,
+    );
+    assert.deepEqual(sub, {
+      kvBaselineRp: 20_000_00, // historisch fix – auch im Zwischentotal
+      kvMutRp: 0,
+      vertragRp: 0,
+      zahlungRp: 0,
+    });
+  });
+
+  it('Summenprobe: Zwischentotale addieren sich pro Spalte exakt zum Gesamttotal', () => {
+    const group1: BkkPositionWithEntries[] = [
+      {
+        // ausgeblendet: nur Baseline-Spalte
+        position: position({ bkp: '112', kvBaselineRp: 20_000_00, hidden: true }),
+        entries: [],
+      },
+    ];
+    const group2: BkkPositionWithEntries[] = [
+      {
+        position: position({ bkp: '211', kvBaselineRp: 100_000_00, kvMutRp: 120_000_00 }),
+        entries: [vertrag(110_000_00), zahlung(40_000_00)],
+      },
+      {
+        // nicht in der Baseline (Custom): Baseline 0, Rest über kv_mut
+        position: position({ bkp: '273.0', kvBaselineRp: null, kvMutRp: 65_000_00 }),
+        entries: [vertrag(60_000_00), zahlung(30_000_00)],
+      },
+    ];
+    const sub1 = groupSubtotals(group1, exact);
+    const sub2 = groupSubtotals(group2, exact);
+    const t = totals([...group1, ...group2], exact);
+    for (const key of ['kvBaselineRp', 'kvMutRp', 'vertragRp', 'zahlungRp'] as const) {
+      assert.equal(sub1[key] + sub2[key], t[key], key);
+    }
+    // Gesamttotal selbst unverändert (Alt-Tool-Parität für P2-M4)
+    assert.equal(t.kvBaselineRp, 120_000_00);
+    assert.equal(t.kvMutRp, 185_000_00);
+    assert.equal(t.vertragRp, 170_000_00);
+    assert.equal(t.zahlungRp, 70_000_00);
   });
 });
 

@@ -131,23 +131,21 @@ export interface BkkTotals {
 }
 
 /**
- * Zwischentotal einer Gruppe über die übergebenen (sichtbaren) Zeilen.
- * Positionen ohne Baseline-Wert zählen im Baseline-Total mit 0
- * (Alt-Tool: groupSubtotals, Customs ohne KV-orig.-Anteil).
+ * Zwischentotal einer Gruppe über ALLE Zeilen der Gruppe (inkl.
+ * ausgeblendeter) – Zählregel pro Spalte identisch mit dem Gesamttotal
+ * (Fachblick-Befund 17.07.2026, bewusste Abweichung vom Alt-Tool, das
+ * Zwischentotale nur über sichtbare Zeilen zählte – siehe
+ * docs/P2-DATENMODELL.md): Baseline inkl. ausgeblendeter Positionen,
+ * alle übrigen Spalten nur sichtbare. Damit addieren sich die
+ * Zwischentotale in jeder Spalte exakt zum Gesamttotal (Summenprobe in
+ * tests/bkk-calc.test.ts); das Gesamttotal selbst bleibt unverändert
+ * (Alt-Tool-Parität für P2-M4).
  */
 export function groupSubtotals(
   rows: BkkPositionWithEntries[],
   opts: BkkCalcOptions,
 ): BkkTotals {
-  const sub: BkkTotals = { kvBaselineRp: 0, kvMutRp: 0, vertragRp: 0, zahlungRp: 0 };
-  for (const { position, entries } of rows) {
-    sub.kvBaselineRp += baselineRp(position, opts);
-    sub.kvMutRp += effectiveKvMutRp(position, opts);
-    const sums = entrySums(entries, opts);
-    sub.vertragRp += sums.vertragRp;
-    sub.zahlungRp += sums.zahlungRp;
-  }
-  return sub;
+  return totals(rows, opts);
 }
 
 /**

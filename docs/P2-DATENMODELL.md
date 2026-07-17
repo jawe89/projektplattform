@@ -169,6 +169,17 @@ werden wie im Alt-Tool live berechnet; die Logik aus 1.2 ist 1:1 nach
   Custom-Positionen erhalten dort keinen Wert (Budget via `kv_mut_rp`).
 - **Ausbaupunkt (nicht v1)**: Baseline-Vergleich (zwei nebeneinander).
 
+**Abweichung vom Alt-Tool – Zwischentotale (Fachblick 17.07.2026):**
+Das Alt-Tool zählte Gruppen-Zwischentotale nur über die sichtbaren Zeilen –
+auch in der KV-orig.-Spalte, obwohl das Gesamttotal dort ausgeblendete
+Positionen mitzählt (graue Zeile über einem Zwischentotal von 0). Neu gilt
+die Zählregel **pro Spalte auf beiden Ebenen identisch**: Baseline-Spalte
+inklusive ausgeblendeter Positionen auch im Zwischentotal, alle übrigen
+Spalten weiterhin nur sichtbare. Summenprobe: Zwischentotale addieren sich
+in jeder Spalte exakt zum Gesamttotal (Unit-Test); die Gesamttotale selbst
+sind unverändert – die Rappen-Parität des P2-M4-Abgleichs ist nicht
+betroffen (sie prüft gegen die Alt-Tool-Totale).
+
 **Gruppen**: Beim Aktivieren des BKK-Moduls in einem Projekt ohne Gruppen
 werden die Schweizer BKP-Hauptgruppen als Standard angelegt (0 Grundstück,
 1 Vorbereitungsarbeiten, 2 Gebäude, 3 Betriebseinrichtungen, 4 Umgebung,
