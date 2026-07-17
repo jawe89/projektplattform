@@ -70,7 +70,7 @@ interface BkkClientProps {
 }
 
 /** Spaltenzahl der Tabelle (für colSpan der Gruppen-/Detailzeilen) */
-const COLS = 7;
+const COLS = 11;
 
 /* Status-Pillen und Ampeln mit den fixen Statusfarben der Design-Referenz –
    bewusst tenant-unabhängig, damit die Ampellogik in jedem Branding lesbar
@@ -607,6 +607,18 @@ export function BkkClient({
     );
   }
 
+  /** Schmale Prozentspalte innerhalb des jeweiligen Farbbereichs */
+  function pctCell(pct: number | null, extra: string, key?: string) {
+    return (
+      <td
+        key={key}
+        className={`border-b border-line px-2.5 py-2.5 text-right text-[11px] whitespace-nowrap tabular-nums ${TONE_TEXT[shareTone(pct)]} ${extra}`}
+      >
+        {pct !== null ? `${pct.toFixed(1)} %` : '–'}
+      </td>
+    );
+  }
+
   function positionRow(position: BkkPosition) {
     const calcRow = toCalcRow(position);
     const inBaseline = calcRow.position.kvBaselineRp !== null;
@@ -615,9 +627,11 @@ export function BkkClient({
     const sums = entrySums(calcRow.entries, opts);
     const status = positionStatus(calcRow.position, calcRow.entries, opts);
     const dPct = position.kv_mut_rp !== null ? deltaPct(kvm, base) : null;
-    // Zahlungs-Prozentwert (Anteil der Vertragssumme, wie die frühere
-    // «% v. Vertrag»-Spalte) als kleine Zweitzeile in der Zahlung-Zelle
-    const zahlPct = sharePct(sums.zahlungRp, sums.vertragRp);
+    // Prozentspalten: Bezugsgrösse ist das EFFEKTIVE KV (kv_mut ?? Baseline,
+    // effectiveKvMutRp) bzw. die Vertragssumme – wie im Alt-Tool
+    const vertragPctKv = sharePct(sums.vertragRp, kvm);
+    const zahlungPctKv = sharePct(sums.zahlungRp, kvm);
+    const zahlungPctVertrag = sharePct(sums.zahlungRp, sums.vertragRp);
     const isOpen = expanded.has(position.id);
 
     return (
@@ -705,29 +719,24 @@ export function BkkClient({
                 {formatRappen(kvm)}
               </span>
             )}
-            {dPct !== null && (
-              <span
-                className={`block text-[10px] font-semibold tabular-nums ${TONE_TEXT[deltaTone(dPct)]}`}
-              >
-                {formatPctSigned(dPct)}
-              </span>
-            )}
+          </td>
+          <td
+            className={`border-b border-line bg-bkk-mut-tint px-2.5 py-2.5 text-right text-[11px] whitespace-nowrap tabular-nums ${TONE_TEXT[deltaTone(dPct)]}`}
+          >
+            {dPct !== null ? formatPctSigned(dPct) : '–'}
           </td>
           <td className="border-b border-l border-line border-l-bkk-vert-bord bg-bkk-vert-tint px-3.5 py-2.5 text-right text-[12.5px] text-ink tabular-nums">
             {sums.vertragRp !== 0 ? formatRappen(sums.vertragRp) : '–'}
           </td>
-          <td className="border-r border-b border-l border-line border-r-bkk-zahl-bord border-l-bkk-zahl-bord bg-bkk-zahl-tint px-3.5 py-2.5 text-right">
-            <span className="text-[12.5px] text-primary-dark tabular-nums">
-              {sums.zahlungRp !== 0 ? formatRappen(sums.zahlungRp) : '–'}
-            </span>
-            {zahlPct !== null && (
-              <span
-                className={`block text-[10px] font-semibold tabular-nums ${TONE_TEXT[shareTone(zahlPct)]}`}
-              >
-                {zahlPct.toFixed(1)} %
-              </span>
-            )}
+          {pctCell(vertragPctKv, 'bg-bkk-vert-tint')}
+          <td className="border-b border-l border-line border-l-bkk-zahl-bord bg-bkk-zahl-tint px-3.5 py-2.5 text-right text-[12.5px] text-primary-dark tabular-nums">
+            {sums.zahlungRp !== 0 ? formatRappen(sums.zahlungRp) : '–'}
           </td>
+          {pctCell(zahlungPctKv, 'bg-bkk-zahl-tint')}
+          {pctCell(
+            zahlungPctVertrag,
+            'border-r border-r-bkk-zahl-bord bg-bkk-zahl-tint',
+          )}
           <td className="border-b border-line bg-white px-3 py-2.5 align-top">
             <span className={`${PILL_BASE} ${STATUS_PILL[status]}`}>
               {texts.bkk.status[status]}
@@ -770,38 +779,35 @@ export function BkkClient({
         <td className="border-b border-l border-line border-l-bkk-orig-bord bg-bkk-orig-head px-3.5 py-2 text-right text-[12.5px] font-semibold text-ink tabular-nums">
           {formatRappen(sub.kvBaselineRp)}
         </td>
-        <td className="border-b border-l border-line border-l-bkk-mut-bord bg-bkk-mut-head px-3.5 py-2 text-right">
-          <span className="text-[12.5px] font-semibold text-ink tabular-nums">
-            {formatRappen(sub.kvMutRp)}
-          </span>
-          {dPct !== null && (
-            <span
-              className={`block text-[10px] font-semibold tabular-nums ${TONE_TEXT[deltaTone(dPct)]}`}
-            >
-              {formatPctSigned(dPct)}
-            </span>
-          )}
+        <td className="border-b border-l border-line border-l-bkk-mut-bord bg-bkk-mut-head px-3.5 py-2 text-right text-[12.5px] font-semibold text-ink tabular-nums">
+          {formatRappen(sub.kvMutRp)}
+        </td>
+        <td
+          className={`border-b border-line bg-bkk-mut-head px-2.5 py-2 text-right text-[11px] font-semibold whitespace-nowrap tabular-nums ${TONE_TEXT[deltaTone(dPct)]}`}
+        >
+          {dPct !== null ? formatPctSigned(dPct) : '–'}
         </td>
         <td className="border-b border-l border-line border-l-bkk-vert-bord bg-bkk-vert-head px-3.5 py-2 text-right text-[12.5px] font-semibold text-ink tabular-nums">
           {formatRappen(sub.vertragRp)}
         </td>
-        <td className="border-r border-b border-l border-line border-r-bkk-zahl-bord border-l-bkk-zahl-bord bg-bkk-zahl-head px-3.5 py-2 text-right">
-          <span className="text-[12.5px] font-semibold text-ink tabular-nums">
-            {formatRappen(sub.zahlungRp)}
-          </span>
-          {(() => {
-            const pct = sharePct(sub.zahlungRp, sub.vertragRp);
-            return (
-              pct !== null && (
-                <span
-                  className={`block text-[10px] font-semibold tabular-nums ${TONE_TEXT[shareTone(pct)]}`}
-                >
-                  {pct.toFixed(1)} %
-                </span>
-              )
-            );
-          })()}
+        {pctCell(
+          sharePct(sub.vertragRp, sub.kvMutRp),
+          'bg-bkk-vert-head font-semibold',
+          'sub-v-pct',
+        )}
+        <td className="border-b border-l border-line border-l-bkk-zahl-bord bg-bkk-zahl-head px-3.5 py-2 text-right text-[12.5px] font-semibold text-ink tabular-nums">
+          {formatRappen(sub.zahlungRp)}
         </td>
+        {pctCell(
+          sharePct(sub.zahlungRp, sub.kvMutRp),
+          'bg-bkk-zahl-head font-semibold',
+          'sub-z-pct-kv',
+        )}
+        {pctCell(
+          sharePct(sub.zahlungRp, sub.vertragRp),
+          'border-r border-r-bkk-zahl-bord bg-bkk-zahl-head font-semibold',
+          'sub-z-pct-v',
+        )}
         <td className="border-b border-line bg-white" />
         <td className="border-b border-line bg-white" />
       </tr>
@@ -1003,7 +1009,7 @@ export function BkkClient({
             </p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[46rem] border-collapse text-sm">
+              <table className="w-full min-w-[62rem] border-collapse text-sm">
                 <thead>
                   <tr className="display-title text-[10px] font-medium sm:text-xs">
                     <th className="sticky left-0 z-10 min-w-44 border-r border-b border-line bg-white px-3 py-3 text-left tracking-[0.14em] text-primary-dark sm:min-w-56 sm:px-4 sm:tracking-[0.16em]">
@@ -1015,11 +1021,23 @@ export function BkkClient({
                     <th className="border-b border-l border-line border-l-bkk-mut-bord bg-bkk-mut-head px-3.5 py-3 text-right tracking-[0.12em] text-primary-dark sm:tracking-[0.14em]">
                       {texts.bkk.colMut}
                     </th>
+                    <th className="border-b border-line bg-bkk-mut-head px-2.5 py-3 text-right text-[9px] tracking-[0.1em] text-primary-dark sm:text-[10px] sm:tracking-[0.12em]">
+                      {texts.bkk.colDelta}
+                    </th>
                     <th className="border-b border-l border-line border-l-bkk-vert-bord bg-bkk-vert-head px-3.5 py-3 text-right tracking-[0.12em] text-primary-dark sm:tracking-[0.14em]">
                       {texts.bkk.colVertrag}
                     </th>
-                    <th className="border-r border-b border-l border-line border-r-bkk-zahl-bord border-l-bkk-zahl-bord bg-bkk-zahl-head px-3.5 py-3 text-right tracking-[0.12em] text-primary-dark sm:tracking-[0.14em]">
+                    <th className="border-b border-line bg-bkk-vert-head px-2.5 py-3 text-right text-[9px] tracking-[0.1em] text-primary-dark sm:text-[10px] sm:tracking-[0.12em]">
+                      {texts.bkk.colPctKv}
+                    </th>
+                    <th className="border-b border-l border-line border-l-bkk-zahl-bord bg-bkk-zahl-head px-3.5 py-3 text-right tracking-[0.12em] text-primary-dark sm:tracking-[0.14em]">
                       {texts.bkk.colZahlung}
+                    </th>
+                    <th className="border-b border-line bg-bkk-zahl-head px-2.5 py-3 text-right text-[9px] tracking-[0.1em] text-primary-dark sm:text-[10px] sm:tracking-[0.12em]">
+                      {texts.bkk.colPctKv}
+                    </th>
+                    <th className="border-r border-b border-line border-r-bkk-zahl-bord bg-bkk-zahl-head px-2.5 py-3 text-right text-[9px] tracking-[0.1em] text-primary-dark sm:text-[10px] sm:tracking-[0.12em]">
+                      {texts.bkk.colPctVertrag}
                     </th>
                     <th className="border-b border-line bg-white px-3 py-3 text-left tracking-[0.12em] text-primary-dark sm:tracking-[0.14em]">
                       {texts.bkk.colStatus}
@@ -1062,39 +1080,57 @@ export function BkkClient({
                     <td className="border-l border-l-bkk-orig-bord bg-bkk-orig-head px-3.5 py-3 text-right text-[13px] font-bold text-ink tabular-nums">
                       {formatRappen(grandTotals.kvBaselineRp)}
                     </td>
-                    <td className="border-l border-l-bkk-mut-bord bg-bkk-mut-head px-3.5 py-3 text-right">
-                      <span className="text-[13px] font-bold text-ink tabular-nums">
-                        {formatRappen(grandTotals.kvMutRp)}
-                      </span>
-                      {grandTotals.kvBaselineRp > 0 && (
-                        <span
-                          className={`block text-[10px] font-bold tabular-nums ${AMPEL_TEXT[kpiMut.ampel]}`}
-                        >
-                          {formatPctSigned(kpiMut.deltaPct)}
-                        </span>
-                      )}
+                    <td className="border-l border-l-bkk-mut-bord bg-bkk-mut-head px-3.5 py-3 text-right text-[13px] font-bold text-ink tabular-nums">
+                      {formatRappen(grandTotals.kvMutRp)}
+                    </td>
+                    <td
+                      className={`bg-bkk-mut-head px-2.5 py-3 text-right text-[11px] font-bold whitespace-nowrap tabular-nums ${
+                        grandTotals.kvBaselineRp > 0
+                          ? TONE_TEXT[deltaTone(kpiMut.deltaPct)]
+                          : 'text-primary'
+                      }`}
+                    >
+                      {grandTotals.kvBaselineRp > 0
+                        ? formatPctSigned(kpiMut.deltaPct)
+                        : '–'}
                     </td>
                     <td className="border-l border-l-bkk-vert-bord bg-bkk-vert-head px-3.5 py-3 text-right text-[13px] font-bold text-ink tabular-nums">
                       {formatRappen(grandTotals.vertragRp)}
                     </td>
-                    <td className="border-r border-l border-r-bkk-zahl-bord border-l-bkk-zahl-bord bg-bkk-zahl-head px-3.5 py-3 text-right">
-                      <span className="text-[13px] font-bold text-ink tabular-nums">
-                        {formatRappen(grandTotals.zahlungRp)}
-                      </span>
+                    <td
+                      className={`bg-bkk-vert-head px-2.5 py-3 text-right text-[11px] font-bold whitespace-nowrap tabular-nums ${TONE_TEXT[shareTone(sharePct(grandTotals.vertragRp, grandTotals.kvMutRp))]}`}
+                    >
+                      {(() => {
+                        const pct = sharePct(
+                          grandTotals.vertragRp,
+                          grandTotals.kvMutRp,
+                        );
+                        return pct !== null ? `${pct.toFixed(1)} %` : '–';
+                      })()}
+                    </td>
+                    <td className="border-l border-l-bkk-zahl-bord bg-bkk-zahl-head px-3.5 py-3 text-right text-[13px] font-bold text-ink tabular-nums">
+                      {formatRappen(grandTotals.zahlungRp)}
+                    </td>
+                    <td
+                      className={`bg-bkk-zahl-head px-2.5 py-3 text-right text-[11px] font-bold whitespace-nowrap tabular-nums ${TONE_TEXT[shareTone(sharePct(grandTotals.zahlungRp, grandTotals.kvMutRp))]}`}
+                    >
+                      {(() => {
+                        const pct = sharePct(
+                          grandTotals.zahlungRp,
+                          grandTotals.kvMutRp,
+                        );
+                        return pct !== null ? `${pct.toFixed(1)} %` : '–';
+                      })()}
+                    </td>
+                    <td
+                      className={`border-r border-r-bkk-zahl-bord bg-bkk-zahl-head px-2.5 py-3 text-right text-[11px] font-bold whitespace-nowrap tabular-nums ${TONE_TEXT[shareTone(sharePct(grandTotals.zahlungRp, grandTotals.vertragRp))]}`}
+                    >
                       {(() => {
                         const pct = sharePct(
                           grandTotals.zahlungRp,
                           grandTotals.vertragRp,
                         );
-                        return (
-                          pct !== null && (
-                            <span
-                              className={`block text-[10px] font-bold tabular-nums ${TONE_TEXT[shareTone(pct)]}`}
-                            >
-                              {pct.toFixed(1)} %
-                            </span>
-                          )
-                        );
+                        return pct !== null ? `${pct.toFixed(1)} %` : '–';
                       })()}
                     </td>
                     <td className="bg-white" />
