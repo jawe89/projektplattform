@@ -150,6 +150,11 @@ export function BenutzerVerwaltung({
           {state.success && (
             <p className="text-xs text-accent">{state.success}</p>
           )}
+          {state.warning && (
+            <p role="status" className="text-xs text-warn">
+              {state.warning}
+            </p>
+          )}
           {state.inviteLink && (
             <div className="border border-line bg-bg p-2">
               <p className="mb-1 text-xs text-primary-dark">

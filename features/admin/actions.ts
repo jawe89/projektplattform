@@ -188,6 +188,8 @@ export async function createProject(
 export interface InviteState {
   error?: string;
   success?: string;
+  /** Aktion erfolgreich, aber mit Einschränkung (z.B. keine Mail versendet) */
+  warning?: string;
   inviteLink?: string;
 }
 
@@ -209,30 +211,50 @@ export async function inviteUser(
   const admin = createAdminClient();
   let userId: string | null = null;
   let inviteLink: string | undefined;
+  let existingUser = false;
 
-  // 1. Versuch: Supabase-Invite-Mail
+  // Projektbezug für die Invite-Mail (Metadaten → Mailvorlage, siehe
+  // docs/SUPABASE-MAILVORLAGEN.md) und den Fallback-Link
+  const { data: project } = await ctx.supabase
+    .from('projects')
+    .select('name, slug, domain')
+    .eq('id', projectId)
+    .single();
+  const { data: branding } = await ctx.supabase
+    .from('project_branding')
+    .select('management_name')
+    .eq('project_id', projectId)
+    .maybeSingle();
+  const inviteData = {
+    project_name: project?.name ?? '',
+    management_name: branding?.management_name ?? '',
+    project_domain: project?.domain ?? '',
+  };
+
+  // 1. Versuch: Supabase-Invite-Mail (mit Projekt-Metadaten)
   const { data: invited, error: inviteError } =
-    await admin.auth.admin.inviteUserByEmail(email);
+    await admin.auth.admin.inviteUserByEmail(email, { data: inviteData });
   if (!inviteError) {
     userId = invited.user.id;
   } else {
     // 2. Versuch: Invite-Link generieren (kein Mailversand nötig) –
-    // deckt auch fehlendes SMTP oder bereits erstellte Konten ab.
+    // deckt fehlendes SMTP ab.
     const { data: linkData, error: linkError } =
-      await admin.auth.admin.generateLink({ type: 'invite', email });
+      await admin.auth.admin.generateLink({
+        type: 'invite',
+        email,
+        options: { data: inviteData },
+      });
     if (!linkError && linkData.user) {
       userId = linkData.user.id;
-      const { data: project } = await ctx.supabase
-        .from('projects')
-        .select('slug, domain')
-        .eq('id', projectId)
-        .single();
       const origin = project?.domain
         ? `https://${project.domain}`
         : `http://${project?.slug}.localhost:3000`;
       inviteLink = `${origin}/auth/confirm?token_hash=${linkData.properties.hashed_token}&type=invite&next=/passwort-neu`;
     } else {
-      // Konto existiert bereits → nur Mitgliedschaft anlegen
+      // Konto existiert bereits → nur Mitgliedschaft anlegen. Supabase
+      // verschickt in diesem Fall KEINE Mail – das wird dem Admin unten
+      // explizit zurückgemeldet (kein stilles Verhalten).
       const { data: list } = await admin.auth.admin.listUsers({
         page: 1,
         perPage: 1000,
@@ -242,6 +264,7 @@ export async function inviteUser(
       );
       if (!existing) return { error: texts.admin.benutzer.inviteError };
       userId = existing.id;
+      existingUser = true;
     }
   }
 
@@ -256,6 +279,9 @@ export async function inviteUser(
   );
   if (memberError) return { error: texts.admin.benutzer.inviteError };
 
+  if (existingUser) {
+    return { warning: texts.admin.benutzer.inviteExisting };
+  }
   return { success: texts.admin.benutzer.inviteSuccess, inviteLink };
 }
 
