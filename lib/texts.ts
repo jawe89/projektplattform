@@ -390,7 +390,7 @@ export const texts = {
       confirmDeactivate: 'Benutzer aus dem Projekt entfernen?',
       inviteSuccess: 'Einladung erstellt.',
       inviteExisting:
-        'Benutzer existierte bereits und wurde dem Projekt hinzugefügt – keine Einladungsmail versendet.',
+        'Benutzer existierte bereits und wurde dem Projekt hinzugefügt – der Benutzer meldet sich mit seinem bestehenden Passwort an bzw. nutzt ‹Passwort vergessen›. Keine Einladungsmail nötig.',
       inviteLinkLabel: 'Einladungslink (falls kein E-Mail-Versand konfiguriert ist)',
       inviteError: 'Einladung fehlgeschlagen.',
       noMembers: 'Noch keine Benutzer in diesem Projekt.',

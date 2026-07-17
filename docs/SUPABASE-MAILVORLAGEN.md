@@ -54,9 +54,11 @@ Supabase-Dashboard löschen und frisch einladen.
   eines anderen Projekts): Supabase verschickt **keine** Mail
   (`email_exists`); der Benutzer wird nur dem Projekt hinzugefügt. Das
   Admin-UI meldet das explizit («Benutzer existierte bereits und wurde dem
-  Projekt hinzugefügt – keine Einladungsmail versendet.»). Eine zusätzliche
-  Hinweis-Mail (z.B. via Resend) wäre ein späterer Ausbau, sobald ein
-  transaktionaler Mail-Provider eingerichtet ist.
+  Projekt hinzugefügt – der Benutzer meldet sich mit seinem bestehenden
+  Passwort an bzw. nutzt ‹Passwort vergessen›. Keine Einladungsmail
+  nötig.»). Eine zusätzliche Hinweis-Mail (z.B. via Resend) wäre ein
+  späterer Ausbau, sobald ein transaktionaler Mail-Provider eingerichtet
+  ist.
 
 ---
 
