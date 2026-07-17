@@ -74,9 +74,8 @@ Supabase-Dashboard → Authentication:
       eingebaute Supabase-Testversand ist stark limitiert und nicht für
       Produktion gedacht. Absender z.B. `plattform@bauinnovation.ch`.
 - [ ] **E-Mail-Vorlagen** («Reset Password», «Invite user») auf den
-      token_hash-Link umstellen (robusteste Variante, Route `/auth/confirm`):
-      `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery`
-      bzw. `…&type=invite&next=/passwort-neu`
+      token_hash-Link umstellen (robusteste Variante, Route `/auth/confirm`) –
+      fertige Snippets zum Einfügen: [SUPABASE-MAILVORLAGEN.md](SUPABASE-MAILVORLAGEN.md)
 - [ ] Test: Passwort-Reset für einen Testbenutzer anfordern und Mail-Empfang
       prüfen.
 
