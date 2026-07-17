@@ -69,6 +69,12 @@ export function KategorienEditor({
   );
   const [deletedIds, setDeletedIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
+  // Drag-Sortierung der Kategorien (gleiche Mechanik wie im Hub); der
+  // Drag startet nur am Handle, damit die Eingabefelder der Karte
+  // normal bedienbar bleiben.
+  const [dragId, setDragId] = useState<string | null>(null);
+  const [dragEnabledId, setDragEnabledId] = useState<string | null>(null);
+  const [overId, setOverId] = useState<string | null>(null);
   const { toasts, showToast } = useToasts();
 
   const inputClass =
@@ -100,6 +106,23 @@ export function KategorienEditor({
         return { ...item, fields };
       }),
     );
+  }
+
+  /** Drag-Sortierung: Quelle vor der Zielkarte einsortieren (wie Hub) */
+  function reorderCategory(targetId: string) {
+    if (!dragId || dragId === targetId) return;
+    setItems((current) => {
+      const source = current.find((c) => c.id === dragId);
+      if (!source) return current;
+      const rest = current.filter((c) => c.id !== dragId);
+      const targetIndex = rest.findIndex((c) => c.id === targetId);
+      if (targetIndex < 0) return current;
+      return [
+        ...rest.slice(0, targetIndex),
+        source,
+        ...rest.slice(targetIndex),
+      ];
+    });
   }
 
   function move<T>(list: T[], from: number, to: number): T[] {
@@ -198,8 +221,40 @@ export function KategorienEditor({
   return (
     <div className="flex flex-col gap-4">
       {items.map((category, index) => (
-        <div key={category.id} className="border border-line bg-white p-4">
+        <div
+          key={category.id}
+          draggable={dragEnabledId === category.id}
+          onDragStart={() => setDragId(category.id)}
+          onDragEnd={() => {
+            setDragId(null);
+            setDragEnabledId(null);
+            setOverId(null);
+          }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            if (dragId && dragId !== category.id) setOverId(category.id);
+          }}
+          onDragLeave={() =>
+            setOverId((current) => (current === category.id ? null : current))
+          }
+          onDrop={(e) => {
+            e.preventDefault();
+            reorderCategory(category.id);
+            setOverId(null);
+          }}
+          className={`border bg-white p-4 transition-opacity ${
+            dragId === category.id ? 'opacity-50' : ''
+          } ${overId === category.id ? 'border-accent' : 'border-line'}`}
+        >
           <div className="mb-3 flex flex-wrap items-end gap-3">
+            <span
+              title={texts.hub.dragHint}
+              onMouseDown={() => setDragEnabledId(category.id)}
+              onMouseUp={() => setDragEnabledId(null)}
+              className="cursor-grab touch-none pb-1.5 text-[15px] leading-none text-line select-none hover:text-primary"
+            >
+              ⠿
+            </span>
             <label className="flex flex-col gap-1">
               <span className="display-title text-[10px] font-medium tracking-[0.12em] text-primary-dark">
                 {texts.admin.kategorien.label}
@@ -315,22 +370,6 @@ export function KategorienEditor({
               <code>{category.isNew ? '(aus Bezeichnung)' : category.key}</code>
             </span>
             <span className="ml-auto flex gap-1">
-              <button
-                type="button"
-                title={texts.admin.kategorien.moveUp}
-                onClick={() => setItems((c) => move(c, index, index - 1))}
-                className="border border-line bg-white px-2 py-1 text-xs text-primary-dark hover:border-primary"
-              >
-                ↑
-              </button>
-              <button
-                type="button"
-                title={texts.admin.kategorien.moveDown}
-                onClick={() => setItems((c) => move(c, index, index + 1))}
-                className="border border-line bg-white px-2 py-1 text-xs text-primary-dark hover:border-primary"
-              >
-                ↓
-              </button>
               <button
                 type="button"
                 title={texts.common.delete}
