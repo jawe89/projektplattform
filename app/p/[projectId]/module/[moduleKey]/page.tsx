@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { LogoutButton } from '@/features/auth/logout-button';
 import { BkkClient } from '@/features/bkk/bkk-client';
+import { LvClient, type WerkvertragDoc } from '@/features/lv/lv-client';
 import { isModuleKey, MODULES } from '@/lib/modules';
 import { createClient } from '@/lib/supabase/server';
 import { getTenantData } from '@/lib/tenant';
@@ -12,6 +13,10 @@ import type {
   BkkGroup,
   BkkPosition,
   BkkPositionBaselineValue,
+  Category,
+  DocumentEntry,
+  LvUnit,
+  LvUnitStep,
   ProjectModule,
   RoleModuleAccess,
 } from '@/lib/types';
@@ -79,6 +84,69 @@ export default async function ModulePage({
   if (!canView) notFound();
 
   const tenant = await getTenantData(projectId);
+
+  if (moduleKey === 'leistungsverzeichnis') {
+    const [{ data: units }, { data: werkCategory }] = await Promise.all([
+      supabase
+        .from('lv_units')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('sort')
+        .returns<LvUnit[]>(),
+      supabase
+        .from('categories')
+        .select('*')
+        .eq('project_id', projectId)
+        .eq('key', 'werkvertraege')
+        .maybeSingle<Category>(),
+    ]);
+
+    const unitIds = (units ?? []).map((u) => u.id);
+    const { data: steps } = unitIds.length
+      ? await supabase
+          .from('lv_unit_steps')
+          .select('*')
+          .in('unit_id', unitIds)
+          .returns<LvUnitStep[]>()
+      : { data: [] as LvUnitStep[] };
+
+    // Hub-Dokumente der Kategorie Werkverträge als Auswahl für die
+    // Verknüpfung (Label schema-getrieben aus den ersten Feldwerten);
+    // RLS filtert auf die Sichtbarkeit der Kategorie für die eigene Rolle.
+    let werkvertragDocs: WerkvertragDoc[] = [];
+    if (werkCategory) {
+      const { data: docs } = await supabase
+        .from('documents')
+        .select('*')
+        .eq('category_id', werkCategory.id)
+        .order('sort')
+        .returns<DocumentEntry[]>();
+      const fields = werkCategory.field_schema.fields ?? [];
+      werkvertragDocs = (docs ?? []).map((doc) => ({
+        id: doc.id,
+        label:
+          fields
+            .map((f) => doc.data[f.key])
+            .filter(Boolean)
+            .slice(0, 2)
+            .join(' · ') || doc.id,
+        href:
+          doc.external_url ??
+          (doc.file_path ? `/api/download/${doc.id}` : ''),
+      }));
+    }
+
+    return (
+      <LvClient
+        projectId={projectId}
+        projectName={tenant?.project.name ?? ''}
+        canEdit={canEdit}
+        initialUnits={units ?? []}
+        initialSteps={steps ?? []}
+        werkvertragDocs={werkvertragDocs}
+      />
+    );
+  }
 
   if (moduleKey === 'baukostenkontrolle') {
     // RLS filtert zusätzlich (can_view_module); Reihenfolge: Gruppen nach

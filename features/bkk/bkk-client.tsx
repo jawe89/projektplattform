@@ -9,6 +9,7 @@ import {
   type BaselineModalResult,
 } from '@/features/bkk/baseline-modal';
 import { EntryModal, type EntryModalResult } from '@/features/bkk/entry-modal';
+import { GroupModal, type GroupModalResult } from '@/features/bkk/group-modal';
 import {
   PositionModal,
   type PositionModalResult,
@@ -176,6 +177,9 @@ export function BkkClient({
   } | null>(null);
   const [baselineModal, setBaselineModal] = useState(false);
   const [baselineBusy, setBaselineBusy] = useState(false);
+  const [groupModal, setGroupModal] = useState<{ group?: BkkGroup } | null>(
+    null,
+  );
   const { toasts, showToast } = useToasts();
 
   // In der Ansicht einer alten Baseline ist ALLES read-only
@@ -444,6 +448,58 @@ export function BkkClient({
     } else {
       showToast(texts.bkk.baselines.activatedToast);
       window.location.assign('/module/baukostenkontrolle');
+    }
+  }
+
+  // -------------------------------------------------------------------------
+  // Gruppenpflege (nur editing; direkte DB-Aktionen wie Baselines)
+
+  async function applyGroupModal(result: GroupModalResult) {
+    const editingGroup = groupModal?.group;
+    setGroupModal(null);
+    setBaselineBusy(true);
+    const supabase = createClient();
+
+    const { error } = editingGroup
+      ? await supabase
+          .from('bkk_groups')
+          .update({ name: result.name })
+          .eq('id', editingGroup.id)
+      : await supabase.from('bkk_groups').insert({
+          project_id: projectId,
+          digit: result.digit,
+          name: result.name,
+          sort: groups.length,
+        });
+
+    setBaselineBusy(false);
+    if (error) {
+      showToast(texts.bkk.groups.errorToast, 'error');
+    } else {
+      showToast(
+        editingGroup
+          ? texts.bkk.groups.updatedToast
+          : texts.bkk.groups.createdToast,
+      );
+      window.location.reload();
+    }
+  }
+
+  async function removeGroup(group: BkkGroup) {
+    if (positions.some((p) => p.group_id === group.id)) return;
+    if (!window.confirm(texts.bkk.groups.confirmDelete)) return;
+    setBaselineBusy(true);
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('bkk_groups')
+      .delete()
+      .eq('id', group.id);
+    setBaselineBusy(false);
+    if (error) {
+      showToast(texts.bkk.groups.errorToast, 'error');
+    } else {
+      showToast(texts.bkk.groups.deletedToast);
+      window.location.reload();
     }
   }
 
@@ -989,6 +1045,71 @@ export function BkkClient({
           </button>
         )}
 
+        {/* Gruppenpflege (nur Bearbeiten-Rolle): anlegen, umbenennen,
+            löschen nur ohne zugeordnete Positionen. */}
+        {canEdit && isActiveBaselineView && (
+          <section className="mt-8 border border-line bg-white">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-3">
+              <h2 className="display-title text-xs text-ink">
+                {texts.bkk.groups.title}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setGroupModal({})}
+                disabled={baselineBusy}
+                className="border border-dashed border-line px-3 py-1 text-xs text-primary hover:border-accent hover:text-accent disabled:opacity-50"
+              >
+                {texts.bkk.groups.add}
+              </button>
+            </div>
+            <ul>
+              {groups.map((group) => {
+                const count = positions.filter(
+                  (p) => p.group_id === group.id,
+                ).length;
+                return (
+                  <li
+                    key={group.id}
+                    className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-2 last:border-b-0"
+                  >
+                    <span className="min-w-0 flex-1 text-sm text-ink">
+                      <span className="font-medium">{group.digit}</span> —{' '}
+                      {group.name}{' '}
+                      <span className="text-xs text-primary">
+                        ({count} {texts.bkk.groups.positionsCount})
+                      </span>
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        title={texts.common.edit}
+                        onClick={() => setGroupModal({ group })}
+                        disabled={baselineBusy}
+                        className="border border-line bg-white px-2 py-0.5 text-[11px] text-primary-dark hover:border-primary disabled:opacity-50"
+                      >
+                        ✎
+                      </button>
+                      <button
+                        type="button"
+                        title={
+                          count > 0
+                            ? texts.bkk.groups.deleteBlocked
+                            : texts.common.delete
+                        }
+                        onClick={() => removeGroup(group)}
+                        disabled={count > 0 || baselineBusy}
+                        className="border border-line bg-white px-2 py-0.5 text-[11px] text-primary-dark hover:border-error hover:text-error disabled:opacity-40"
+                      >
+                        ✕
+                      </button>
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
+
         {/* Baseline-Verwaltung (nur Bearbeiten-Rolle, nur in der aktiven
             Ansicht). Baseline-Vergleich (zwei nebeneinander) ist Ausbaupunkt. */}
         {canEdit && isActiveBaselineView && (
@@ -1079,6 +1200,14 @@ export function BkkClient({
         <BaselineModal
           onApply={createBaseline}
           onClose={() => setBaselineModal(false)}
+        />
+      )}
+      {groupModal && (
+        <GroupModal
+          initial={groupModal.group}
+          takenDigits={groups.map((g) => g.digit)}
+          onApply={applyGroupModal}
+          onClose={() => setGroupModal(null)}
         />
       )}
       <ToastContainer toasts={toasts} />

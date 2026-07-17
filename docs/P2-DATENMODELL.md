@@ -169,6 +169,15 @@ werden wie im Alt-Tool live berechnet; die Logik aus 1.2 ist 1:1 nach
   Custom-Positionen erhalten dort keinen Wert (Budget via `kv_mut_rp`).
 - **Ausbaupunkt (nicht v1)**: Baseline-Vergleich (zwei nebeneinander).
 
+**Gruppen**: Beim Aktivieren des BKK-Moduls in einem Projekt ohne Gruppen
+werden die Schweizer BKP-Hauptgruppen als Standard angelegt (0 Grundstück,
+1 Vorbereitungsarbeiten, 2 Gebäude, 3 Betriebseinrichtungen, 4 Umgebung,
+5 Baunebenkosten, 9 Ausstattung – `BKK_DEFAULT_GROUPS` in `lib/modules.ts`);
+schlanke Gruppenpflege im Modul (anlegen, umbenennen; löschen nur ohne
+Positionen). **Der Import (P2-M4) gleicht über die Ziffer ab** – gleiche
+Ziffer = gleiche Gruppe (Name aus dem Alt-Tool gewinnt), fehlende Gruppen
+legt er an.
+
 ---
 
 ## 2. Verkehr-Leistungsverzeichnis (`verkehr-leistungsverzeichnis-mcd-wattwil_….html`)

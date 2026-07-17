@@ -170,6 +170,41 @@ export interface BkkPositionBaselineValue {
   kv_rp: number;
 }
 
+// Modul Verkehr-Leistungsverzeichnis (supabase/migrations/0009_lv_schema.sql)
+
+export interface LvUnit {
+  id: string;
+  project_id: string;
+  bkp: string;
+  /** Arbeitsgattung */
+  name: string;
+  is_custom: boolean;
+  hidden: boolean;
+  /** Werkvertrags-Dokument im Hub (optional) */
+  werkvertrag_document_id: string | null;
+  sort: number;
+}
+
+/** Workflow-Stand: nur ausgefüllte Schritte als Zeile (Datum und/oder Freitext) */
+export interface LvUnitStep {
+  unit_id: string;
+  step_key: string;
+  /** ISO-Datum (YYYY-MM-DD) oder null */
+  datum: string | null;
+  freitext: string | null;
+}
+
+/** Offerte je Einheit (neues Feature; Import lässt die Tabelle leer) */
+export interface LvOffer {
+  id: string;
+  project_id: string;
+  unit_id: string;
+  unternehmer: string;
+  betrag_rp: number | null;
+  datum: string | null;
+  document_id: string | null;
+}
+
 export type BkkEntryType = 'vertrag' | 'zahlung';
 
 export interface BkkEntry {

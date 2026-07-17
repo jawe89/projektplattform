@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { ToastContainer, useToasts } from '@/components/ui/toast';
-import { MODULES } from '@/lib/modules';
+import { BKK_DEFAULT_GROUPS, MODULES } from '@/lib/modules';
 import { createClient } from '@/lib/supabase/client';
 import { texts } from '@/lib/texts';
 
@@ -38,6 +38,28 @@ export function ModuleEinstellungen({
     const { error } = await supabase
       .from('project_modules')
       .upsert(rows, { onConflict: 'project_id,module_key' });
+
+    // Beim Aktivieren der Baukostenkontrolle in einem Projekt ohne Gruppen
+    // die Schweizer BKP-Hauptgruppen als Standard anlegen – damit ist ein
+    // frisches Projekt sofort arbeitsfähig. Importe (P2-M4) bringen eigene
+    // Gruppen mit und gleichen über die Ziffer ab.
+    if (!error && enabled.has('baukostenkontrolle')) {
+      const { count } = await supabase
+        .from('bkk_groups')
+        .select('id', { count: 'exact', head: true })
+        .eq('project_id', projectId);
+      if (count === 0) {
+        await supabase.from('bkk_groups').insert(
+          BKK_DEFAULT_GROUPS.map((group, index) => ({
+            project_id: projectId,
+            digit: group.digit,
+            name: group.name,
+            sort: index,
+          })),
+        );
+      }
+    }
+
     setSaving(false);
     showToast(
       error ? texts.hub.saveErrorToast : texts.hub.savedToast,
