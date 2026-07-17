@@ -72,6 +72,8 @@ npm run build    # Produktions-Build (vorher Dev-Server stoppen – teilt .next!
 npm run lint     # ESLint
 npm run seed     # Seed – Standard: Dev-Umgebung
 npm run import:wattwil # M4: Import der bestehenden Projektübersicht (idempotent)
+npm run import:bkk-wattwil # P2-M4: BKK-Import aus HTML-Snapshot (idempotent, Abgleich)
+npm run import:lv-wattwil  # P2-M4: LV-Import aus HTML-Snapshot (idempotent, Abgleich)
 npm run migrate:wattwil # M5: Datei-Migration vom Alt-Server (LEGACY_BASIC_AUTH)
 npm run create:admin   # Plattform-Admin anlegen
 npm run cleanup:testusers # example.com-Testbenutzer löschen (mit Sicherung)

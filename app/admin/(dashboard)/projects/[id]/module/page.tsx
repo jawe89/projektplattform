@@ -12,11 +12,15 @@ export default async function ProjectModulePage({
   const { id } = await params;
   const { supabase } = await requirePlatformAdmin();
 
-  const { data: modules } = await supabase
+  // Fehler hart machen: Eine stumm fehlgeschlagene Abfrage würde alle
+  // Checkboxen als «deaktiviert» rendern – ein anschliessendes Speichern
+  // schriebe diesen falschen Zustand in die DB.
+  const { data: modules, error } = await supabase
     .from('project_modules')
     .select('*')
     .eq('project_id', id)
     .returns<ProjectModule[]>();
+  if (error) throw error;
 
   const enabledKeys = (modules ?? [])
     .filter((m) => m.enabled)

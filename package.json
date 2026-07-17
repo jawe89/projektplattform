@@ -9,6 +9,8 @@
     "lint": "eslint",
     "seed": "tsx scripts/seed.ts",
     "import:wattwil": "tsx scripts/import-mcd-wattwil.ts",
+    "import:bkk-wattwil": "tsx scripts/import-bkk-wattwil.ts",
+    "import:lv-wattwil": "tsx scripts/import-lv-wattwil.ts",
     "migrate:wattwil": "tsx scripts/migrate-files-wattwil.ts",
     "create:admin": "tsx scripts/create-admin.ts",
     "cleanup:testusers": "tsx scripts/cleanup-test-users.ts",
