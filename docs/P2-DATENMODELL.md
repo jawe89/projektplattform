@@ -167,7 +167,8 @@ werden wie im Alt-Tool live berechnet; die Logik aus 1.2 ist 1:1 nach
 - **Import (P2-M4)**: Der Alt-Tool-Bestand wird als erste Baseline
   «KV orig.» mit Datum 23.01.2026 angelegt, `is_active = true`;
   Custom-Positionen erhalten dort keinen Wert (Budget via `kv_mut_rp`).
-- **Ausbaupunkt (nicht v1)**: Baseline-Vergleich (zwei nebeneinander).
+- **Ausbaupunkt (nicht v1)**: Baseline-Vergleich (zwei nebeneinander) –
+  siehe `docs/AUSBAULISTE.md`.
 
 **Abweichung vom Alt-Tool – Zwischentotale (Fachblick 17.07.2026):**
 Das Alt-Tool zählte Gruppen-Zwischentotale nur über die sichtbaren Zeilen –

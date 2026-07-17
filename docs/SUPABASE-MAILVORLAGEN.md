@@ -58,7 +58,7 @@ Supabase-Dashboard löschen und frisch einladen.
   Passwort an bzw. nutzt ‹Passwort vergessen›. Keine Einladungsmail
   nötig.»). Eine zusätzliche Hinweis-Mail (z.B. via Resend) wäre ein
   späterer Ausbau, sobald ein transaktionaler Mail-Provider eingerichtet
-  ist.
+  ist – siehe `docs/AUSBAULISTE.md`.
 
 ---
 
