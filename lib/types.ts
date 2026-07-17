@@ -113,3 +113,17 @@ export interface ProjectMember {
   role_id: string;
   is_project_admin: boolean;
 }
+
+export interface ProjectModule {
+  project_id: string;
+  module_key: string;
+  enabled: boolean;
+  settings: Record<string, unknown>;
+}
+
+export interface RoleModuleAccess {
+  role_id: string;
+  module_key: string;
+  can_view: boolean;
+  can_edit: boolean;
+}

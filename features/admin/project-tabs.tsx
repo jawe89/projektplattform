@@ -12,6 +12,7 @@ export function ProjectTabs({ projectId }: { projectId: string }) {
     { key: 'kategorien', label: texts.admin.tabs.kategorien },
     { key: 'rollen', label: texts.admin.tabs.rollen },
     { key: 'benutzer', label: texts.admin.tabs.benutzer },
+    { key: 'module', label: texts.admin.tabs.module },
   ];
 
   return (

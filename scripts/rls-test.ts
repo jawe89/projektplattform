@@ -345,6 +345,81 @@ async function main() {
   }
 
   // -------------------------------------------------------------------------
+  console.log('\n8) Modul-Framework (P2-M1)');
+
+  // Normaler User darf Module weder aktivieren noch sich selbst freigeben
+  const { error: moduleEnableError } = await unternehmer
+    .from('project_modules')
+    .insert({ project_id: wattwilId, module_key: 'baukostenkontrolle', enabled: true });
+  check(
+    'project_modules-Insert als Unternehmer: abgelehnt',
+    moduleEnableError !== null,
+    'Modul-Aktivierung wurde NICHT abgelehnt!',
+  );
+
+  const { data: unternehmerRole } = await admin
+    .from('roles')
+    .select('id')
+    .eq('project_id', wattwilId)
+    .eq('name', 'Unternehmer')
+    .single();
+  const { error: selfGrantError } = await unternehmer
+    .from('role_module_access')
+    .insert({
+      role_id: unternehmerRole!.id,
+      module_key: 'baukostenkontrolle',
+      can_view: true,
+      can_edit: true,
+    });
+  check(
+    'role_module_access-Insert (Selbst-Freigabe) als Unternehmer: abgelehnt',
+    selfGrantError !== null,
+    'Selbst-Freigabe wurde NICHT abgelehnt!',
+  );
+
+  // Projekt-Admin darf Module seines Projekts aktivieren
+  const { error: adminEnableError } = await bauleitung
+    .from('project_modules')
+    .upsert(
+      { project_id: wattwilId, module_key: 'baukostenkontrolle', enabled: true },
+      { onConflict: 'project_id,module_key' },
+    );
+  check(
+    'project_modules-Upsert als Projekt-Admin: erlaubt',
+    adminEnableError === null,
+    adminEnableError?.message ?? '',
+  );
+
+  // Mitglied liest die Modul-Aktivierung des eigenen Projekts …
+  const { data: memberModules } = await unternehmer
+    .from('project_modules')
+    .select('module_key')
+    .eq('project_id', wattwilId);
+  check(
+    'project_modules-Select (eigenes Projekt) als Mitglied: erlaubt',
+    (memberModules ?? []).length >= 1,
+    'Mitglied sieht die Modul-Aktivierung nicht',
+  );
+
+  // … aber nicht die eines fremden Projekts
+  const { data: foreignModules } = await demoBauherr
+    .from('project_modules')
+    .select('module_key')
+    .eq('project_id', wattwilId);
+  check(
+    'project_modules-Select (fremdes Projekt): 0 Zeilen',
+    (foreignModules ?? []).length === 0,
+    `erhielt ${(foreignModules ?? []).length} Zeilen`,
+  );
+
+  // Aufräumen: Modul-Aktivierung aus dem Test entfernen
+  await admin
+    .from('project_modules')
+    .delete()
+    .eq('project_id', wattwilId)
+    .eq('module_key', 'baukostenkontrolle');
+
+  // -------------------------------------------------------------------------
   console.log(`\nErgebnis: ${passed} bestanden, ${failed} fehlgeschlagen.`);
   if (failed > 0) process.exit(1);
 }

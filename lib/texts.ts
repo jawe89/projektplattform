@@ -48,6 +48,20 @@ export const texts = {
     backToLogin: 'Zurück zur Anmeldung',
     backToLanding: 'Zur Projektseite',
   },
+  modules: {
+    sectionTitle: 'Module',
+    badge: 'Modul',
+    open: 'Öffnen',
+    comingSoon: 'Dieses Modul wird mit dem nächsten Ausbauschritt freigeschaltet.',
+    baukostenkontrolle: {
+      label: 'Baukostenkontrolle',
+      description: 'Kostenstand · Soll/Ist · Prognose',
+    },
+    leistungsverzeichnis: {
+      label: 'Verkehr Leistungsverzeichnis',
+      description: 'Vergabeübersicht · LV / Offerten / Werkverträge',
+    },
+  },
   hub: {
     title: 'Dokumente',
     logout: 'Abmelden',
@@ -111,8 +125,20 @@ export const texts = {
       kategorien: 'Kategorien',
       rollen: 'Rollen',
       benutzer: 'Benutzer',
+      module: 'Module',
     },
     exportLabel: 'JSON-Export',
+    module: {
+      title: 'Module',
+      intro:
+        'Aktivierte Module erscheinen im Dokumenten-Hub – sichtbar nur für Rollen mit Freigabe (Tab «Rollen»).',
+      enabled: 'Aktiviert',
+      hint: 'Nach dem Aktivieren die Freigaben in der Rollen-Matrix setzen – ohne Freigabe sehen nur Projekt-Admins das Modul.',
+    },
+    rollen_module: {
+      view: 'Sehen',
+      edit: 'Bearbeiten',
+    },
     daten: {
       title: 'Projektdaten',
       subtitle: 'Untertitel',

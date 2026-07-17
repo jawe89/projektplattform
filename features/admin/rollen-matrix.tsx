@@ -3,8 +3,14 @@
 import { useState } from 'react';
 import { ToastContainer, useToasts } from '@/components/ui/toast';
 import { createClient } from '@/lib/supabase/client';
+import type { ModuleInfo } from '@/lib/modules';
 import { texts } from '@/lib/texts';
-import type { Category, Role, RoleCategoryAccess } from '@/lib/types';
+import type {
+  Category,
+  Role,
+  RoleCategoryAccess,
+  RoleModuleAccess,
+} from '@/lib/types';
 
 interface EditableRole {
   id: string;
@@ -17,17 +23,30 @@ interface AccessEntry {
   upload: boolean;
 }
 
-/** Rollen + Sichtbarkeits-/Upload-Matrix als Checkbox-Grid. */
+interface ModuleAccessEntry {
+  view: boolean;
+  edit: boolean;
+}
+
+/**
+ * Rollen + Sichtbarkeits-/Upload-Matrix als Checkbox-Grid.
+ * Seit P2-M1 zusätzlich Spalten für aktivierte Module (Sehen/Bearbeiten).
+ */
 export function RollenMatrix({
   projectId,
   roles,
   categories,
   access,
+  modules,
+  moduleAccess,
 }: {
   projectId: string;
   roles: Role[];
   categories: Category[];
   access: RoleCategoryAccess[];
+  /** Nur aktivierte Module (leere Liste = keine Modul-Spalten) */
+  modules: Pick<ModuleInfo, 'key' | 'label'>[];
+  moduleAccess: RoleModuleAccess[];
 }) {
   const [items, setItems] = useState<EditableRole[]>(
     roles.map((r) => ({ id: r.id, name: r.name, isNew: false })),
@@ -43,6 +62,18 @@ export function RollenMatrix({
     }
     return map;
   });
+  const [moduleMatrix, setModuleMatrix] = useState<Map<string, ModuleAccessEntry>>(
+    () => {
+      const map = new Map<string, ModuleAccessEntry>();
+      for (const row of moduleAccess) {
+        map.set(`${row.role_id}:${row.module_key}`, {
+          view: row.can_view,
+          edit: row.can_edit,
+        });
+      }
+      return map;
+    },
+  );
   const [newRoleName, setNewRoleName] = useState('');
   const [saving, setSaving] = useState(false);
   const { toasts, showToast } = useToasts();
@@ -66,12 +97,33 @@ export function RollenMatrix({
     });
   }
 
+  function moduleEntry(roleId: string, moduleKey: string): ModuleAccessEntry {
+    // Default: kein Zugriff – Module sind opt-in pro Rolle
+    return moduleMatrix.get(`${roleId}:${moduleKey}`) ?? { view: false, edit: false };
+  }
+
+  function setModuleEntry(
+    roleId: string,
+    moduleKey: string,
+    patch: Partial<ModuleAccessEntry>,
+  ) {
+    setModuleMatrix((current) => {
+      const next = new Map(current);
+      const updated = { ...moduleEntry(roleId, moduleKey), ...patch };
+      // Bearbeiten ohne Sehen ergibt keinen Sinn
+      if (patch.edit) updated.view = true;
+      if (patch.view === false) updated.edit = false;
+      next.set(`${roleId}:${moduleKey}`, updated);
+      return next;
+    });
+  }
+
   function addRole() {
     const name = newRoleName.trim();
     if (!name) return;
     const id = crypto.randomUUID();
     setItems((current) => [...current, { id, name, isNew: true }]);
-    // Default: alles sichtbar, kein Upload
+    // Default: alle Kategorien sichtbar, kein Upload; Module ohne Zugriff
     setMatrix((current) => {
       const next = new Map(current);
       for (const category of categories) {
@@ -136,6 +188,26 @@ export function RollenMatrix({
       }
     }
 
+    if (!failed && modules.length > 0) {
+      const moduleRows = items.flatMap((role) =>
+        modules.map((module) => {
+          const value = moduleEntry(role.id, module.key);
+          return {
+            role_id: role.id,
+            module_key: module.key,
+            can_view: value.view,
+            can_edit: value.edit,
+          };
+        }),
+      );
+      if (moduleRows.length > 0) {
+        const { error } = await supabase
+          .from('role_module_access')
+          .upsert(moduleRows, { onConflict: 'role_id,module_key' });
+        if (error) failed = true;
+      }
+    }
+
     setSaving(false);
     if (failed) {
       showToast(failMessage, 'error');
@@ -164,6 +236,18 @@ export function RollenMatrix({
                   <span className="mt-1 flex justify-center gap-3 text-[9px] normal-case">
                     <span>{texts.admin.rollen.view}</span>
                     <span>{texts.admin.rollen.upload}</span>
+                  </span>
+                </th>
+              ))}
+              {modules.map((module) => (
+                <th
+                  key={module.key}
+                  className="display-title border-l border-line px-3 py-3 text-center text-xs font-normal text-accent-dark"
+                >
+                  {module.label}
+                  <span className="mt-1 flex justify-center gap-3 text-[9px] normal-case text-primary">
+                    <span>{texts.admin.rollen_module.view}</span>
+                    <span>{texts.admin.rollen_module.edit}</span>
                   </span>
                 </th>
               ))}
@@ -196,6 +280,38 @@ export function RollenMatrix({
                           onChange={(e) =>
                             setEntry(role.id, category.id, {
                               upload: e.target.checked,
+                            })
+                          }
+                        />
+                      </span>
+                    </td>
+                  );
+                })}
+                {modules.map((module) => {
+                  const value = moduleEntry(role.id, module.key);
+                  return (
+                    <td
+                      key={module.key}
+                      className="border-l border-line px-3 py-2 text-center"
+                    >
+                      <span className="flex justify-center gap-4">
+                        <input
+                          type="checkbox"
+                          title={texts.admin.rollen_module.view}
+                          checked={value.view}
+                          onChange={(e) =>
+                            setModuleEntry(role.id, module.key, {
+                              view: e.target.checked,
+                            })
+                          }
+                        />
+                        <input
+                          type="checkbox"
+                          title={texts.admin.rollen_module.edit}
+                          checked={value.edit}
+                          onChange={(e) =>
+                            setModuleEntry(role.id, module.key, {
+                              edit: e.target.checked,
                             })
                           }
                         />

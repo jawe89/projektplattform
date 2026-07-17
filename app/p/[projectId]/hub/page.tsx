@@ -1,9 +1,15 @@
 import { redirect } from 'next/navigation';
 import { HubClient } from '@/features/hub/hub-client';
+import { MODULES } from '@/lib/modules';
 import { publicBrandingUrl } from '@/lib/storage';
 import { createClient } from '@/lib/supabase/server';
 import { getTenantData } from '@/lib/tenant';
-import type { Category, DocumentEntry } from '@/lib/types';
+import type {
+  Category,
+  DocumentEntry,
+  ProjectModule,
+  RoleModuleAccess,
+} from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -72,6 +78,34 @@ export default async function HubPage({
     }
   }
 
+  // Module (P2-M1): aktiviert UND für die Rolle freigegeben (Admins: alle
+  // aktivierten). Die Filterung ist serverseitig – das UI bekommt nur die
+  // sichtbaren Module; die Modul-Route prüft zusätzlich selbst.
+  const { data: projectModules } = await supabase
+    .from('project_modules')
+    .select('*')
+    .eq('project_id', projectId)
+    .eq('enabled', true)
+    .returns<ProjectModule[]>();
+  const enabledKeys = new Set((projectModules ?? []).map((m) => m.module_key));
+
+  let visibleModuleKeys: Set<string>;
+  if (membership.is_project_admin) {
+    visibleModuleKeys = enabledKeys;
+  } else {
+    const { data: moduleAccess } = await supabase
+      .from('role_module_access')
+      .select('*')
+      .eq('role_id', membership.role_id)
+      .returns<RoleModuleAccess[]>();
+    visibleModuleKeys = new Set(
+      (moduleAccess ?? [])
+        .filter((a) => a.can_view && enabledKeys.has(a.module_key))
+        .map((a) => a.module_key),
+    );
+  }
+  const visibleModules = MODULES.filter((m) => visibleModuleKeys.has(m.key));
+
   const branding = tenant?.branding ?? null;
 
   return (
@@ -85,6 +119,7 @@ export default async function HubPage({
           : null
       }
       heroUrl={branding?.hero_path ? publicBrandingUrl(branding.hero_path) : null}
+      modules={visibleModules}
       categories={categories ?? []}
       initialDocuments={documents ?? []}
       canUploadByCategory={canUploadByCategory}

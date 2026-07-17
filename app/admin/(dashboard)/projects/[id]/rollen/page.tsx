@@ -1,6 +1,13 @@
 import { requirePlatformAdmin } from '@/features/admin/require-admin';
 import { RollenMatrix } from '@/features/admin/rollen-matrix';
-import type { Category, Role, RoleCategoryAccess } from '@/lib/types';
+import { MODULES } from '@/lib/modules';
+import type {
+  Category,
+  ProjectModule,
+  Role,
+  RoleCategoryAccess,
+  RoleModuleAccess,
+} from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,12 +42,33 @@ export default async function ProjectRollenPage({
         .returns<RoleCategoryAccess[]>()
     : { data: [] as RoleCategoryAccess[] };
 
+  // Aktivierte Module (P2-M1) → zusätzliche Matrix-Spalten
+  const { data: projectModules } = await supabase
+    .from('project_modules')
+    .select('*')
+    .eq('project_id', id)
+    .eq('enabled', true)
+    .returns<ProjectModule[]>();
+  const enabledModules = MODULES.filter((m) =>
+    (projectModules ?? []).some((pm) => pm.module_key === m.key),
+  );
+
+  const { data: moduleAccess } = roleIds.length
+    ? await supabase
+        .from('role_module_access')
+        .select('*')
+        .in('role_id', roleIds)
+        .returns<RoleModuleAccess[]>()
+    : { data: [] as RoleModuleAccess[] };
+
   return (
     <RollenMatrix
       projectId={id}
       roles={roles ?? []}
       categories={categories ?? []}
       access={access ?? []}
+      modules={enabledModules}
+      moduleAccess={moduleAccess ?? []}
     />
   );
 }

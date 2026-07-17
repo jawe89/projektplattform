@@ -24,6 +24,8 @@ interface HubClientProps {
   managementLogoUrl: string | null;
   /** Hero-Bild aus dem Branding (öffentliche URL) oder null */
   heroUrl: string | null;
+  /** Aktivierte, für die Rolle freigegebene Module (serverseitig gefiltert) */
+  modules: { key: string; label: string; description: string }[];
   categories: Category[];
   initialDocuments: DocumentEntry[];
   /** category_id → darf hochladen/bearbeiten */
@@ -70,6 +72,7 @@ export function HubClient({
   managementName,
   managementLogoUrl,
   heroUrl,
+  modules,
   categories,
   initialDocuments,
   canUploadByCategory,
@@ -552,9 +555,18 @@ export function HubClient({
         </div>
       )}
 
-      {/* Sprungnavigation */}
+      {/* Sprungnavigation (Kategorien-Anker + Modul-Links) */}
       <nav className="mt-6 border-y border-line bg-white">
         <div className="mx-auto flex max-w-5xl gap-4 overflow-x-auto px-6 py-2">
+          {modules.map((module) => (
+            <a
+              key={module.key}
+              href={`/module/${module.key}`}
+              className="display-title shrink-0 text-xs text-accent-dark hover:text-accent"
+            >
+              {module.label}
+            </a>
+          ))}
           {categories.map((category) => (
             <a
               key={category.id}
@@ -570,6 +582,39 @@ export function HubClient({
       {/* Kategorien-Abschnitte */}
       <main className="mx-auto max-w-5xl px-6 pt-8 pb-16">
         <h1 className="display-title mb-8 text-2xl text-ink">{projectName}</h1>
+
+        {/* Modul-Einstiegskarten (P2-M1) */}
+        {modules.length > 0 && (
+          <section className="mb-12">
+            <div className="mb-4 flex items-baseline justify-between border-b border-line pb-2">
+              <h2 className="display-title text-lg text-ink">
+                {texts.modules.sectionTitle}
+              </h2>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {modules.map((module) => (
+                <a
+                  key={module.key}
+                  href={`/module/${module.key}`}
+                  className="group flex flex-col gap-2 border border-line bg-white p-5 transition-colors hover:border-accent"
+                >
+                  <span className="display-title inline-block self-start border border-accent px-2 py-0.5 text-[10px] text-accent">
+                    {texts.modules.badge}
+                  </span>
+                  <span className="text-sm font-semibold text-ink group-hover:text-accent">
+                    {module.label}
+                  </span>
+                  <span className="text-xs leading-relaxed text-primary">
+                    {module.description}
+                  </span>
+                  <span className="mt-auto pt-2 text-xs font-medium text-accent">
+                    {texts.modules.open} →
+                  </span>
+                </a>
+              ))}
+            </div>
+          </section>
+        )}
 
         {categories.map((category) => {
           const topDocs = docsOf(category, null);
