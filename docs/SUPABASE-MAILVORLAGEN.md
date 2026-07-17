@@ -26,6 +26,26 @@ wird:
 Alle Vorlagen haben Fallbacks für fehlende Felder (ältere Konten bzw.
 Einladungen von vor dieser Änderung).
 
+**Escaping im Betreff:** Supabase HTML-maskiert Template-Variablen auch im
+Text-Kontext der Betreffzeile – ein Projektname mit Apostroph erschiene
+dort wörtlich als «McDonald&amp;#39;s». Die Invite-Action bereinigt
+`project_name` und `management_name` deshalb vor der Übergabe
+(`lib/mail-text.ts`); die Originalnamen in der Datenbank bleiben
+unverändert. Regeln:
+
+| Zeichen | Ersetzung |
+|---|---|
+| `'` (ASCII-Apostroph) | `’` (typografisch, U+2019) |
+| `"…"` (gerade Anführungszeichen) | `«…»` (paarweise Guillemets) |
+| `&` | ` und ` (im Betreff nicht maskierbar) |
+| `<`, `>` | entfernt |
+
+**Merkposten Metadaten-Aktualisierung:** Erneutes Einladen eines
+bestehenden **unbestätigten** Kontos verschickt die Mail zwar erneut,
+aktualisiert dessen Metadaten aber **nicht** – bei falschem/verändertem
+Projektbezug das Konto in der Benutzerverwaltung entfernen bzw. im
+Supabase-Dashboard löschen und frisch einladen.
+
 **Re-Invite-Verhalten** (per API-Test verifiziert):
 
 - **Unbestätigtes Konto** (Einladung noch nicht angenommen): Supabase

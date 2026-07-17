@@ -1,5 +1,6 @@
 'use server';
 
+import { sanitizeMailText } from '@/lib/mail-text';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 import { texts } from '@/lib/texts';
@@ -225,9 +226,11 @@ export async function inviteUser(
     .select('management_name')
     .eq('project_id', projectId)
     .maybeSingle();
+  // Namen für die Mail bereinigen (Supabase HTML-maskiert auch den Betreff –
+  // siehe lib/mail-text.ts); die Originalnamen in der DB bleiben unverändert.
   const inviteData = {
-    project_name: project?.name ?? '',
-    management_name: branding?.management_name ?? '',
+    project_name: sanitizeMailText(project?.name ?? ''),
+    management_name: sanitizeMailText(branding?.management_name ?? ''),
     project_domain: project?.domain ?? '',
   };
 
