@@ -4,7 +4,13 @@ import { useState } from 'react';
 import { ToastContainer, useToasts } from '@/components/ui/toast';
 import { createClient } from '@/lib/supabase/client';
 import { texts } from '@/lib/texts';
-import type { Category, CategoryLayout, FieldDef } from '@/lib/types';
+import type {
+  Category,
+  CategoryLayout,
+  CategorySortDirection,
+  CategorySortMode,
+  FieldDef,
+} from '@/lib/types';
 
 interface EditableCategory {
   id: string;
@@ -15,6 +21,9 @@ interface EditableCategory {
   layout: CategoryLayout;
   allowChildren: boolean;
   fields: FieldDef[];
+  sortMode: CategorySortMode;
+  sortField: string;
+  sortDirection: CategorySortDirection;
 }
 
 function slugify(value: string): string {
@@ -37,6 +46,9 @@ function toEditable(category: Category): EditableCategory {
     layout: category.layout,
     allowChildren: category.field_schema.allowChildren ?? false,
     fields: category.field_schema.fields ?? [],
+    sortMode: category.sort_mode ?? 'manual',
+    sortField: category.sort_field ?? '',
+    sortDirection: category.sort_direction ?? 'asc',
   };
 }
 
@@ -130,6 +142,12 @@ export function KategorienEditor({
         while (usedKeys.has(key)) key = `${base}-${n++}`;
         usedKeys.add(key);
       }
+      // Feldsortierung: ohne gültiges Feld auf «manuell» zurückfallen
+      const sortField =
+        item.sortMode === 'field'
+          ? item.sortField || item.fields[0]?.key || ''
+          : '';
+      const sortMode = sortField ? item.sortMode : 'manual';
       return {
         id: item.id,
         project_id: projectId,
@@ -148,6 +166,9 @@ export function KategorienEditor({
           })),
           allowChildren: item.allowChildren,
         },
+        sort_mode: sortMode,
+        sort_field: sortMode === 'field' ? sortField : null,
+        sort_direction: item.sortDirection,
       };
     });
 
@@ -226,6 +247,68 @@ export function KategorienEditor({
               />
               {texts.admin.kategorien.allowChildren}
             </label>
+            <label className="flex flex-col gap-1">
+              <span className="text-xs text-primary">
+                {texts.admin.kategorien.sortMode}
+              </span>
+              <select
+                value={category.sortMode}
+                onChange={(e) =>
+                  update(index, {
+                    sortMode: e.target.value as CategorySortMode,
+                    sortField:
+                      e.target.value === 'field' && !category.sortField
+                        ? (category.fields[0]?.key ?? '')
+                        : category.sortField,
+                  })
+                }
+                className={inputClass}
+              >
+                <option value="manual">
+                  {texts.admin.kategorien.sortManual}
+                </option>
+                <option value="field">
+                  {texts.admin.kategorien.sortByField}
+                </option>
+              </select>
+            </label>
+            {category.sortMode === 'field' && (
+              <>
+                <label className="flex flex-col gap-1">
+                  <span className="text-xs text-primary">
+                    {texts.admin.kategorien.sortField}
+                  </span>
+                  <select
+                    value={category.sortField}
+                    onChange={(e) => update(index, { sortField: e.target.value })}
+                    className={inputClass}
+                  >
+                    {category.fields.map((field) => (
+                      <option key={field.key} value={field.key}>
+                        {field.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="flex flex-col gap-1">
+                  <span className="text-xs text-primary">
+                    {texts.admin.kategorien.sortDirection}
+                  </span>
+                  <select
+                    value={category.sortDirection}
+                    onChange={(e) =>
+                      update(index, {
+                        sortDirection: e.target.value as CategorySortDirection,
+                      })
+                    }
+                    className={inputClass}
+                  >
+                    <option value="asc">{texts.admin.kategorien.sortAsc}</option>
+                    <option value="desc">{texts.admin.kategorien.sortDesc}</option>
+                  </select>
+                </label>
+              </>
+            )}
             <span className="pb-2 text-xs text-primary">
               {texts.admin.kategorien.keyLabel}:{' '}
               <code>{category.isNew ? '(aus Bezeichnung)' : category.key}</code>
@@ -391,6 +474,9 @@ export function KategorienEditor({
                   { key: 'icon', label: 'Kürzel', badge: true, required: true },
                   { key: 'title', label: 'Titel', required: true },
                 ],
+                sortMode: 'manual',
+                sortField: '',
+                sortDirection: 'asc',
               },
             ])
           }

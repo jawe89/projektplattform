@@ -84,6 +84,7 @@ export default async function HubPage({
           ? publicBrandingUrl(branding.management_logo_path)
           : null
       }
+      heroUrl={branding?.hero_path ? publicBrandingUrl(branding.hero_path) : null}
       categories={categories ?? []}
       initialDocuments={documents ?? []}
       canUploadByCategory={canUploadByCategory}

@@ -17,7 +17,7 @@ export default async function AdminProjectLayout({
 
   const { data: project } = await supabase
     .from('projects')
-    .select('name, project_no, slug')
+    .select('name, project_no, slug, domain')
     .eq('id', id)
     .maybeSingle();
   if (!project) notFound();
@@ -30,9 +30,20 @@ export default async function AdminProjectLayout({
             {project.project_no}
           </p>
           <h1 className="display-title text-2xl text-ink">{project.name}</h1>
-          <p className="mt-1 text-xs text-primary">
-            http://{project.slug}.localhost:3000
-          </p>
+          {/* Nur die öffentliche Projekt-Domain anzeigen – keine internen
+              Entwicklungs-URLs im Produktivbetrieb. */}
+          {project.domain && (
+            <p className="mt-1 text-xs text-primary">
+              <a
+                href={`https://${project.domain}`}
+                target="_blank"
+                rel="noreferrer"
+                className="underline-offset-2 hover:text-ink hover:underline"
+              >
+                https://{project.domain}
+              </a>
+            </p>
+          )}
         </div>
         <a
           href={`/projects/${id}/export`}

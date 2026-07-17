@@ -63,6 +63,9 @@ export interface FieldSchema {
   allowChildren: boolean;
 }
 
+export type CategorySortMode = 'manual' | 'field';
+export type CategorySortDirection = 'asc' | 'desc';
+
 export interface Category {
   id: string;
   project_id: string;
@@ -72,6 +75,10 @@ export interface Category {
   layout: CategoryLayout;
   sort: number;
   field_schema: FieldSchema;
+  /** Optional bis Migration 0005 ausgeführt ist; fehlend = «manual». */
+  sort_mode?: CategorySortMode;
+  sort_field?: string | null;
+  sort_direction?: CategorySortDirection;
 }
 
 export interface DocumentEntry {

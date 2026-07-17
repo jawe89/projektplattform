@@ -167,6 +167,13 @@ export const texts = {
       fieldBadge: 'Badge',
       moveUp: 'Nach oben',
       moveDown: 'Nach unten',
+      sortMode: 'Sortierung',
+      sortManual: 'Manuell (Drag)',
+      sortByField: 'Automatisch nach Feld',
+      sortField: 'Sortierfeld',
+      sortDirection: 'Richtung',
+      sortAsc: 'Aufsteigend',
+      sortDesc: 'Absteigend',
       confirmDeleteCategory:
         'Kategorie wirklich löschen? Alle zugehörigen Dokumente werden mitgelöscht.',
       confirmDeleteField: 'Feld aus dem Schema entfernen?',

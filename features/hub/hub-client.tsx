@@ -22,6 +22,8 @@ interface HubClientProps {
   projectName: string;
   managementName: string | null;
   managementLogoUrl: string | null;
+  /** Hero-Bild aus dem Branding (öffentliche URL) oder null */
+  heroUrl: string | null;
   categories: Category[];
   initialDocuments: DocumentEntry[];
   /** category_id → darf hochladen/bearbeiten */
@@ -67,6 +69,7 @@ export function HubClient({
   projectName,
   managementName,
   managementLogoUrl,
+  heroUrl,
   categories,
   initialDocuments,
   canUploadByCategory,
@@ -105,10 +108,36 @@ export function HubClient({
     return () => window.removeEventListener('beforeunload', handler);
   }, [dirty]);
 
-  function docsOf(categoryId: string, parentId: string | null): HubDoc[] {
-    return docs.filter(
-      (d) => d.category_id === categoryId && d.parent_id === parentId,
+  /**
+   * Dokumente einer Gruppe (Kategorie + Parent). Bei sort_mode «field» wird
+   * automatisch nach dem konfigurierten Feld sortiert – natürliche Sortierung,
+   * damit z.B. BKP «211.4» zwischen «211» und «212» einsortiert wird.
+   * Gilt sinngemäss auch für Unterpositionen (gleiche Kategorie).
+   */
+  function docsOf(category: Category, parentId: string | null): HubDoc[] {
+    const group = docs.filter(
+      (d) => d.category_id === category.id && d.parent_id === parentId,
     );
+    if ((category.sort_mode ?? 'manual') !== 'field' || !category.sort_field) {
+      return group;
+    }
+    const field = category.sort_field;
+    const direction = category.sort_direction === 'desc' ? -1 : 1;
+    return [...group].sort((a, b) => {
+      const va = (a.data[field] ?? '').trim();
+      const vb = (b.data[field] ?? '').trim();
+      if (!va && !vb) return 0;
+      if (!va) return 1; // leere Werte ans Ende
+      if (!vb) return -1;
+      return (
+        va.localeCompare(vb, 'de-CH', { numeric: true, sensitivity: 'base' }) *
+        direction
+      );
+    });
+  }
+
+  function isManuallySortable(category: Category): boolean {
+    return (category.sort_mode ?? 'manual') === 'manual';
   }
 
   function applyModal(result: ModalResult) {
@@ -236,6 +265,27 @@ export function HubClient({
 
   // -------------------------------------------------------------------------
 
+  /**
+   * Dokumenttitel: klickbar, wenn eine Datei/URL hinterlegt ist (gleiche
+   * Aktion wie der Download-Pfeil, gleiche Signed-URL-Logik) – mit
+   * Hover-Rückmeldung. Bearbeitungs-Buttons bleiben separat.
+   */
+  function titleNode(doc: HubDoc, title: string, className: string) {
+    const href = hrefOf(doc);
+    if (!href) return <span className={className}>{title}</span>;
+    return (
+      <a
+        href={href}
+        target="_blank"
+        rel="noreferrer"
+        title={texts.hub.open}
+        className={`${className} underline-offset-2 hover:text-accent hover:underline`}
+      >
+        {title}
+      </a>
+    );
+  }
+
   function editorControls(doc: HubDoc, category: Category) {
     if (!canUploadByCategory[category.id]) return null;
     return (
@@ -269,7 +319,10 @@ export function HubClient({
   }
 
   function dragProps(doc: HubDoc, category: Category) {
-    if (!canUploadByCategory[category.id]) return {};
+    // Drag-Sortierung nur bei manueller Sortierung (sonst automatisch nach Feld)
+    if (!canUploadByCategory[category.id] || !isManuallySortable(category)) {
+      return {};
+    }
     return {
       draggable: true,
       title: texts.hub.dragHint,
@@ -284,7 +337,7 @@ export function HubClient({
   }
 
   function childList(parent: HubDoc, category: Category) {
-    const children = docsOf(category.id, parent.id);
+    const children = docsOf(category, parent.id);
     const isOpen = expanded.has(parent.id);
     if (!category.field_schema.allowChildren) return null;
     return (
@@ -317,9 +370,7 @@ export function HubClient({
                   {parts.badge}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-sm text-ink">
-                    {parts.title}
-                  </span>
+                  {titleNode(child, parts.title, 'block truncate text-sm text-ink')}
                   {parts.sub && (
                     <span className="block truncate text-xs text-primary">
                       {parts.sub}
@@ -376,7 +427,9 @@ export function HubClient({
             </span>
             {editorControls(doc, category)}
           </div>
-          <h3 className="text-sm font-semibold text-ink">{parts.title}</h3>
+          <h3 className="text-sm font-semibold">
+            {titleNode(doc, parts.title, 'text-ink')}
+          </h3>
           {parts.sub && (
             <p className="text-xs leading-relaxed text-primary">
               {parts.sub}
@@ -411,9 +464,7 @@ export function HubClient({
           {parts.badge}
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-sm font-medium text-ink">
-            {parts.title}
-          </span>
+          {titleNode(doc, parts.title, 'block truncate text-sm font-medium text-ink')}
           {parts.sub && (
             <span className="block truncate text-xs text-primary">
               {parts.sub}
@@ -483,34 +534,49 @@ export function HubClient({
             <LogoutButton />
           </div>
         </div>
-        {/* Sprungnavigation */}
-        <nav className="border-t border-line bg-white">
-          <div className="mx-auto flex max-w-5xl gap-4 overflow-x-auto px-6 py-2">
-            {categories.map((category) => (
-              <a
-                key={category.id}
-                href={`#${category.key}`}
-                className="display-title shrink-0 text-xs text-primary hover:text-accent"
-              >
-                {category.label}
-              </a>
-            ))}
-          </div>
-        </nav>
       </header>
+
+      {/* Hero-Bild aus dem Branding (entfällt ersatzlos ohne Bild) */}
+      {heroUrl && (
+        <div className="mx-auto max-w-5xl px-6 pt-6">
+          <figure className="border border-line bg-white p-1">
+            {/* eslint-disable-next-line @next/next/no-img-element -- externe Storage-URL */}
+            <img
+              src={heroUrl}
+              alt={projectName}
+              className="h-32 w-full object-cover sm:h-40"
+            />
+          </figure>
+        </div>
+      )}
+
+      {/* Sprungnavigation */}
+      <nav className="mt-6 border-y border-line bg-white">
+        <div className="mx-auto flex max-w-5xl gap-4 overflow-x-auto px-6 py-2">
+          {categories.map((category) => (
+            <a
+              key={category.id}
+              href={`#${category.key}`}
+              className="display-title shrink-0 text-xs text-primary hover:text-accent"
+            >
+              {category.label}
+            </a>
+          ))}
+        </div>
+      </nav>
 
       {/* Kategorien-Abschnitte */}
       <main className="mx-auto max-w-5xl px-6 pt-8 pb-16">
         <h1 className="display-title mb-8 text-2xl text-ink">{projectName}</h1>
 
         {categories.map((category) => {
-          const topDocs = docsOf(category.id, null);
+          const topDocs = docsOf(category, null);
           const canUpload = canUploadByCategory[category.id];
           return (
             <section
               key={category.id}
               id={category.key}
-              className="mb-12 scroll-mt-32"
+              className="mb-12 scroll-mt-24"
             >
               <div className="mb-4 flex items-baseline justify-between border-b border-line pb-2">
                 <h2 className="display-title text-lg text-ink">
