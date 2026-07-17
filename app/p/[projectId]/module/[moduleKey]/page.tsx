@@ -2,15 +2,16 @@ import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { LogoutButton } from '@/features/auth/logout-button';
 import { BkkClient } from '@/features/bkk/bkk-client';
-import { formatDate } from '@/lib/format';
 import { isModuleKey, MODULES } from '@/lib/modules';
 import { createClient } from '@/lib/supabase/server';
 import { getTenantData } from '@/lib/tenant';
 import { texts } from '@/lib/texts';
 import type {
+  BkkBaseline,
   BkkEntry,
   BkkGroup,
   BkkPosition,
+  BkkPositionBaselineValue,
   ProjectModule,
   RoleModuleAccess,
 } from '@/lib/types';
@@ -26,8 +27,10 @@ export const dynamic = 'force-dynamic';
  */
 export default async function ModulePage({
   params,
+  searchParams,
 }: {
   params: Promise<{ projectId: string; moduleKey: string }>;
+  searchParams: Promise<{ baseline?: string }>;
 }) {
   const { projectId, moduleKey } = await params;
   if (!isModuleKey(moduleKey)) notFound();
@@ -81,47 +84,78 @@ export default async function ModulePage({
     // RLS filtert zusätzlich (can_view_module); Reihenfolge: Gruppen nach
     // sort/digit, Positionen nach sort (Anzeige sortiert natürlich nach BKP),
     // Einträge nach Datum (ohne Datum zuletzt) und Erfassungszeit.
-    const [{ data: groups }, { data: positions }, { data: entries }] =
-      await Promise.all([
-        supabase
-          .from('bkk_groups')
-          .select('*')
-          .eq('project_id', projectId)
-          .order('sort')
-          .order('digit')
-          .returns<BkkGroup[]>(),
-        supabase
-          .from('bkk_positions')
-          .select('*')
-          .eq('project_id', projectId)
-          .order('sort')
-          .returns<BkkPosition[]>(),
-        supabase
-          .from('bkk_entries')
-          .select('*')
-          .eq('project_id', projectId)
-          .order('datum', { ascending: true, nullsFirst: false })
-          .order('created_at')
-          .returns<BkkEntry[]>(),
-      ]);
+    const [
+      { data: groups },
+      { data: positions },
+      { data: entries },
+      { data: baselines },
+    ] = await Promise.all([
+      supabase
+        .from('bkk_groups')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('sort')
+        .order('digit')
+        .returns<BkkGroup[]>(),
+      supabase
+        .from('bkk_positions')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('sort')
+        .returns<BkkPosition[]>(),
+      supabase
+        .from('bkk_entries')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('datum', { ascending: true, nullsFirst: false })
+        .order('created_at')
+        .returns<BkkEntry[]>(),
+      supabase
+        .from('bkk_baselines')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('datum')
+        .returns<BkkBaseline[]>(),
+    ]);
 
-    const settings = projectModule.settings ?? {};
-    const kvOrigDatum =
-      typeof settings.kv_orig_datum === 'string' && settings.kv_orig_datum
-        ? formatDate(settings.kv_orig_datum)
-        : null;
+    // Betrachtete Baseline: aktive, oder per ?baseline= eine andere –
+    // dann ist die Ansicht read-only (Bearbeitung nur in der aktiven).
+    const { baseline: baselineParam } = await searchParams;
+    const activeBaseline = (baselines ?? []).find((b) => b.is_active) ?? null;
+    const requestedBaseline = baselineParam
+      ? ((baselines ?? []).find((b) => b.id === baselineParam) ?? null)
+      : null;
+    const viewedBaseline = requestedBaseline ?? activeBaseline;
+    const isActiveBaselineView =
+      !requestedBaseline || requestedBaseline.id === activeBaseline?.id;
+
+    const { data: baselineValueRows } = viewedBaseline
+      ? await supabase
+          .from('bkk_position_baseline_values')
+          .select('*')
+          .eq('baseline_id', viewedBaseline.id)
+          .returns<BkkPositionBaselineValue[]>()
+      : { data: [] as BkkPositionBaselineValue[] };
+    const baselineValues: Record<string, number> = {};
+    for (const row of baselineValueRows ?? []) {
+      baselineValues[row.position_id] = row.kv_rp;
+    }
+
     // 5-Rappen-Regel: Default aktiv (Alt-Tool-Verhalten), abschaltbar über
     // project_modules.settings.round5_totals = false
-    const round5 = settings.round5_totals !== false;
+    const round5 = (projectModule.settings ?? {}).round5_totals !== false;
 
     return (
       <BkkClient
         projectId={projectId}
         projectName={tenant?.project.name ?? ''}
         canEdit={canEdit}
-        kvOrigDatum={kvOrigDatum}
         round5={round5}
         groups={groups ?? []}
+        baselines={baselines ?? []}
+        viewedBaseline={viewedBaseline}
+        baselineValues={baselineValues}
+        isActiveBaselineView={isActiveBaselineView}
         initialPositions={positions ?? []}
         initialEntries={entries ?? []}
       />

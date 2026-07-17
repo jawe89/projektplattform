@@ -145,14 +145,29 @@ export interface BkkPosition {
   group_id: string;
   bkp: string;
   name: string;
-  /** Originalbudget in Rappen (historisch fix) */
-  kv_orig_rp: number;
-  /** Mutiertes KV in Rappen; null = wie Original */
+  /** Mutiertes KV in Rappen; null = wie aktive Baseline */
   kv_mut_rp: number | null;
   is_custom: boolean;
   hidden: boolean;
   notiz: string | null;
   sort: number;
+}
+
+/** KV-Baseline («KV orig.», «KV rev. 1», …) – genau eine aktive pro Projekt */
+export interface BkkBaseline {
+  id: string;
+  project_id: string;
+  bezeichnung: string;
+  /** ISO-Datum (YYYY-MM-DD) */
+  datum: string;
+  is_active: boolean;
+}
+
+/** KV-Wert je Position und Baseline; fehlende Zeile = «nicht in dieser Baseline» */
+export interface BkkPositionBaselineValue {
+  baseline_id: string;
+  position_id: string;
+  kv_rp: number;
 }
 
 export type BkkEntryType = 'vertrag' | 'zahlung';

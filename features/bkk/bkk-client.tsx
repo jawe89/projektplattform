@@ -4,6 +4,10 @@ import Link from 'next/link';
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { ToastContainer, useToasts } from '@/components/ui/toast';
 import { LogoutButton } from '@/features/auth/logout-button';
+import {
+  BaselineModal,
+  type BaselineModalResult,
+} from '@/features/bkk/baseline-modal';
 import { EntryModal, type EntryModalResult } from '@/features/bkk/entry-modal';
 import {
   PositionModal,
@@ -14,6 +18,7 @@ import {
   type BkkCalcOptions,
   type BkkPositionWithEntries,
   type BkkStatus,
+  baselineRp,
   deltaPct,
   deltaTone,
   displayRp,
@@ -32,18 +37,30 @@ import {
 import { formatDate, formatRappen, parseChfToRappen } from '@/lib/format';
 import { createClient } from '@/lib/supabase/client';
 import { texts } from '@/lib/texts';
-import type { BkkEntry, BkkEntryType, BkkGroup, BkkPosition } from '@/lib/types';
+import type {
+  BkkBaseline,
+  BkkEntry,
+  BkkEntryType,
+  BkkGroup,
+  BkkPosition,
+} from '@/lib/types';
 
 interface BkkClientProps {
   projectId: string;
   projectName: string;
   /** Bearbeitung (Rollen-Freigabe «Bearbeiten» oder Projekt-Admin) */
   canEdit: boolean;
-  /** «KV orig.»-Datum aus den Moduleinstellungen (formatiert) oder null */
-  kvOrigDatum: string | null;
   /** 5-Rappen-Anzeige-/Totalisierungsregel (Moduleinstellung) */
   round5: boolean;
   groups: BkkGroup[];
+  /** Alle Baselines des Projekts (für die Verwaltung) */
+  baselines: BkkBaseline[];
+  /** Betrachtete Baseline (aktive oder per ?baseline= gewählte) oder null */
+  viewedBaseline: BkkBaseline | null;
+  /** position_id → kv_rp der betrachteten Baseline */
+  baselineValues: Record<string, number>;
+  /** false = Read-only-Ansicht einer nicht aktiven Baseline */
+  isActiveBaselineView: boolean;
   initialPositions: BkkPosition[];
   initialEntries: BkkEntry[];
 }
@@ -80,14 +97,20 @@ function formatPctSigned(pct: number): string {
   return `${pct > 0 ? '+' : ''}${pct.toFixed(1)} %`;
 }
 
-/** Inline-Eingabe «KV mutiert» (Alt-Tool-Bedienung: leer = wie Original) */
+/** «KV orig. 23.01.2026» – Spaltenkopf/KPI-Titel der betrachteten Baseline */
+function baselineLabel(baseline: BkkBaseline | null): string {
+  if (!baseline) return texts.bkk.colOrig;
+  return `${baseline.bezeichnung} ${formatDate(baseline.datum)}`;
+}
+
+/** Inline-Eingabe «KV mutiert» (Alt-Tool-Bedienung: leer = wie Baseline) */
 function KvMutInput({
   valueRp,
   placeholderRp,
   onCommit,
 }: {
   valueRp: number | null;
-  placeholderRp: number;
+  placeholderRp: number | null;
   onCommit: (rp: number | null) => void;
 }) {
   const [text, setText] = useState(
@@ -98,7 +121,7 @@ function KvMutInput({
       type="text"
       inputMode="decimal"
       value={text}
-      placeholder={formatRappen(placeholderRp)}
+      placeholder={placeholderRp !== null ? formatRappen(placeholderRp) : ''}
       onFocus={(e) => {
         setText((t) => t.replace(/['’\s]/g, ''));
         e.target.select();
@@ -119,15 +142,20 @@ function KvMutInput({
  * Alt-Tools, Positionen nach Gruppen mit Zwischentotalen, Live-Gesamttotale
  * und KPI-Ampeln aus lib/bkk-calc.ts, aufklappbare Positionsdetails,
  * Erfassen/Bearbeiten über Modals, Speicherstatus/Toasts analog Hub.
+ * KV-Referenz = aktive Baseline (0008); alte Baselines sind read-only
+ * aufrufbar, die Verwaltung (Anlegen/Umschalten) ist Teil des Moduls.
  * Sehen-Rolle: reine Ansicht ohne Bearbeitungselemente.
  */
 export function BkkClient({
   projectId,
   projectName,
   canEdit,
-  kvOrigDatum,
   round5,
   groups,
+  baselines,
+  viewedBaseline,
+  baselineValues,
+  isActiveBaselineView,
   initialPositions,
   initialEntries,
 }: BkkClientProps) {
@@ -146,8 +174,12 @@ export function BkkClient({
     kind: BkkEntryType;
     entry?: BkkEntry;
   } | null>(null);
+  const [baselineModal, setBaselineModal] = useState(false);
+  const [baselineBusy, setBaselineBusy] = useState(false);
   const { toasts, showToast } = useToasts();
 
+  // In der Ansicht einer alten Baseline ist ALLES read-only
+  const editing = canEdit && isActiveBaselineView;
   const opts: BkkCalcOptions = useMemo(() => ({ round5 }), [round5]);
 
   // Warnung bei ungespeicherten Änderungen (wie Hub)
@@ -167,13 +199,17 @@ export function BkkClient({
     );
   }
 
+  /** kv_rp der Position in der betrachteten Baseline; null = nicht enthalten */
+  function baselineValueOf(position: BkkPosition): number | null {
+    return baselineValues[position.id] ?? null;
+  }
+
   function toCalcRow(position: BkkPosition): BkkPositionWithEntries {
     return {
       position: {
         bkp: position.bkp,
-        kvOrigRp: position.kv_orig_rp,
+        kvBaselineRp: baselineValueOf(position),
         kvMutRp: position.kv_mut_rp,
-        isCustom: position.is_custom,
         hidden: position.hidden,
       },
       entries: entriesOf(position.id).map((e) => ({
@@ -199,7 +235,7 @@ export function BkkClient({
   );
 
   // -------------------------------------------------------------------------
-  // Mutationen (nur canEdit)
+  // Mutationen (nur editing)
 
   function markDirty() {
     setDirty(true);
@@ -223,7 +259,6 @@ export function BkkClient({
         {
           id: crypto.randomUUID(),
           project_id: projectId,
-          kv_mut_rp: null,
           is_custom: true,
           sort: current.length,
           ...result,
@@ -241,7 +276,7 @@ export function BkkClient({
     setEntries((current) =>
       current.filter((e) => e.position_id !== position.id),
     );
-    // Zugehörige Einträge löscht die DB per Cascade beim Positions-Delete
+    // Zugehörige Einträge/Baseline-Werte löscht die DB per Cascade
     setDeletedPositionIds((current) => [...current, position.id]);
     markDirty();
     showToast(texts.hub.deletedToast);
@@ -327,6 +362,91 @@ export function BkkClient({
     }
   }
 
+  // -------------------------------------------------------------------------
+  // Baseline-Verwaltung (nur editing; arbeitet auf dem gespeicherten Stand)
+
+  async function createBaseline(result: BaselineModalResult) {
+    setBaselineModal(false);
+    setBaselineBusy(true);
+    const supabase = createClient();
+
+    const { data: created, error } = await supabase
+      .from('bkk_baselines')
+      .insert({
+        project_id: projectId,
+        bezeichnung: result.bezeichnung,
+        datum: result.datum,
+        is_active: false,
+      })
+      .select('id')
+      .single<{ id: string }>();
+
+    let failed = Boolean(error) || !created;
+    if (!failed && created) {
+      // Werte-Snapshot: aus der bisherigen Baseline (Positionen ohne Wert
+      // bleiben ohne Wert) oder aus KV mutiert (alle Positionen erhalten
+      // einen Wert – der revidierte KV wird neue Referenz)
+      const valueRows =
+        result.source === 'active'
+          ? positions
+              .filter((p) => baselineValueOf(p) !== null)
+              .map((p) => ({
+                baseline_id: created.id,
+                position_id: p.id,
+                kv_rp: baselineValueOf(p)!,
+              }))
+          : positions.map((p) => ({
+              baseline_id: created.id,
+              position_id: p.id,
+              kv_rp: p.kv_mut_rp ?? baselineValueOf(p) ?? 0,
+            }));
+      if (valueRows.length > 0) {
+        const { error: valueError } = await supabase
+          .from('bkk_position_baseline_values')
+          .insert(valueRows);
+        failed = Boolean(valueError);
+      }
+    }
+
+    setBaselineBusy(false);
+    if (failed) {
+      showToast(texts.bkk.baselines.errorToast, 'error');
+    } else {
+      showToast(texts.bkk.baselines.createdToast);
+      // Neu laden, damit Liste und Werte dem gespeicherten Stand entsprechen
+      window.location.reload();
+    }
+  }
+
+  async function activateBaseline(baseline: BkkBaseline) {
+    if (!window.confirm(texts.bkk.baselines.confirmActivate)) return;
+    setBaselineBusy(true);
+    const supabase = createClient();
+
+    // Partial-Unique-Index verlangt: zuerst deaktivieren, dann aktivieren
+    const { error: deactivateError } = await supabase
+      .from('bkk_baselines')
+      .update({ is_active: false })
+      .eq('project_id', projectId)
+      .eq('is_active', true);
+    let failed = Boolean(deactivateError);
+    if (!failed) {
+      const { error: activateError } = await supabase
+        .from('bkk_baselines')
+        .update({ is_active: true })
+        .eq('id', baseline.id);
+      failed = Boolean(activateError);
+    }
+
+    setBaselineBusy(false);
+    if (failed) {
+      showToast(texts.bkk.baselines.errorToast, 'error');
+    } else {
+      showToast(texts.bkk.baselines.activatedToast);
+      window.location.assign('/module/baukostenkontrolle');
+    }
+  }
+
   function toggleExpanded(id: string) {
     setExpanded((current) => {
       const next = new Set(current);
@@ -381,7 +501,7 @@ export function BkkClient({
               <span className="shrink-0 text-xs font-medium text-ink">
                 {formatRappen(displayRp(entry.betrag_rp, opts))}
               </span>
-              {canEdit && (
+              {editing && (
                 <span className="flex shrink-0 items-center gap-1">
                   <button
                     type="button"
@@ -406,7 +526,7 @@ export function BkkClient({
             </li>
           ))}
         </ul>
-        {canEdit && (
+        {editing && (
           <button
             type="button"
             onClick={() => setEntryModal({ positionId: position.id, kind })}
@@ -421,11 +541,12 @@ export function BkkClient({
 
   function positionRow(position: BkkPosition) {
     const calcRow = toCalcRow(position);
+    const inBaseline = calcRow.position.kvBaselineRp !== null;
+    const base = baselineRp(calcRow.position, opts);
     const kvm = effectiveKvMutRp(calcRow.position, opts);
-    const orig = displayRp(position.kv_orig_rp, opts);
     const sums = entrySums(calcRow.entries, opts);
     const status = positionStatus(calcRow.position, calcRow.entries, opts);
-    const dPct = position.kv_mut_rp !== null ? deltaPct(kvm, orig) : null;
+    const dPct = position.kv_mut_rp !== null ? deltaPct(kvm, base) : null;
     const isOpen = expanded.has(position.id);
 
     return (
@@ -466,7 +587,7 @@ export function BkkClient({
                   )}
                 </span>
               </button>
-              {canEdit && (
+              {editing && (
                 <span className="flex shrink-0 items-center gap-1">
                   <button
                     type="button"
@@ -491,14 +612,23 @@ export function BkkClient({
             </div>
           </td>
           <td className="border-b border-line bg-bkk-orig-tint px-3 py-2 text-right text-sm text-ink">
-            {formatRappen(orig)}
+            {inBaseline ? (
+              formatRappen(base)
+            ) : (
+              <span>
+                –
+                <span className="block text-[10px] leading-tight text-bkk-orig-ink">
+                  {texts.bkk.notInBaseline}
+                </span>
+              </span>
+            )}
           </td>
           <td className="border-b border-l-2 border-line border-l-primary bg-bkk-mut-tint px-3 py-2 text-right text-sm text-ink">
-            {canEdit ? (
+            {editing ? (
               <KvMutInput
                 key={`${position.id}:${position.kv_mut_rp ?? ''}`}
                 valueRp={position.kv_mut_rp}
-                placeholderRp={position.kv_orig_rp}
+                placeholderRp={baselineValueOf(position)}
                 onCommit={(rp) => updatePosition(position.id, { kv_mut_rp: rp })}
               />
             ) : (
@@ -552,17 +682,17 @@ export function BkkClient({
 
   function subtotalRow(group: BkkGroup) {
     // Zwischentotal über die sichtbaren Zeilen der Gruppe (wie Alt-Tool);
-    // ausgeblendete zählen nur ins Gesamttotal-KV-orig.
+    // ausgeblendete zählen nur ins Baseline-Gesamttotal.
     const visible = positionsOf(group.id).filter((p) => !p.hidden);
     const sub = groupSubtotals(visible.map(toCalcRow), opts);
-    const dPct = deltaPct(sub.kvMutRp, sub.kvOrigRp);
+    const dPct = deltaPct(sub.kvMutRp, sub.kvBaselineRp);
     return (
       <tr key={`${group.id}-subtotal`} className="text-sm font-medium">
         <td className="sticky left-0 z-10 border-b border-line bg-white px-3 py-2 text-xs text-primary-dark">
           {texts.bkk.groupTotal}
         </td>
         <td className="border-b border-line bg-bkk-orig-head px-3 py-2 text-right text-bkk-orig-ink">
-          {formatRappen(sub.kvOrigRp)}
+          {formatRappen(sub.kvBaselineRp)}
         </td>
         <td className="border-b border-l-2 border-line border-l-primary bg-bkk-mut-head px-3 py-2 text-right text-bkk-mut-ink">
           {formatRappen(sub.kvMutRp)}
@@ -606,6 +736,10 @@ export function BkkClient({
     .filter((p) => p.id !== positionModal?.position?.id)
     .map((p) => p.bkp);
 
+  const sortedBaselines = [...baselines].sort((a, b) =>
+    a.datum.localeCompare(b.datum),
+  );
+
   return (
     <div className="min-h-screen">
       {/* Sticky Toolbar mit Speicherstatus (analog Hub) */}
@@ -626,7 +760,7 @@ export function BkkClient({
             </span>
           </div>
           <div className="flex shrink-0 items-center gap-3">
-            {canEdit && (
+            {editing && (
               <>
                 <span
                   className={`text-xs font-medium ${dirty ? 'text-warn' : 'text-accent'}`}
@@ -649,15 +783,31 @@ export function BkkClient({
       </header>
 
       <main className="mx-auto max-w-7xl px-6 py-6">
+        {/* Banner: Read-only-Ansicht einer nicht aktiven Baseline */}
+        {!isActiveBaselineView && viewedBaseline && (
+          <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border border-warn bg-white px-4 py-2">
+            <p className="text-sm text-warn">
+              {texts.bkk.baselines.viewingBanner}{' '}
+              «{baselineLabel(viewedBaseline)}» –{' '}
+              {texts.bkk.baselines.viewingReadOnly}
+            </p>
+            <Link
+              href="/module/baukostenkontrolle"
+              className="border border-line bg-white px-3 py-1 text-xs text-primary-dark hover:border-primary"
+            >
+              {texts.bkk.baselines.backToActive}
+            </Link>
+          </div>
+        )}
+
         {/* KPI-Karten mit Ampeln */}
         <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           <div className="border border-line bg-white p-4">
             <p className="display-title text-xs text-primary">
-              {texts.bkk.kpiOrig}
-              {kvOrigDatum && ` ${kvOrigDatum}`}
+              {baselineLabel(viewedBaseline)}
             </p>
             <p className="mt-1 text-lg font-semibold text-ink">
-              {formatRappen(grandTotals.kvOrigRp)}
+              {formatRappen(grandTotals.kvBaselineRp)}
             </p>
           </div>
           <div className={`border bg-white p-4 ${AMPEL_BORDER[kpiMut.ampel]}`}>
@@ -729,8 +879,7 @@ export function BkkClient({
                       {texts.bkk.colPosition}
                     </th>
                     <th className="border-b border-line bg-bkk-orig-head px-3 py-2 text-right text-bkk-orig-ink">
-                      {texts.bkk.colOrig}
-                      {kvOrigDatum && ` ${kvOrigDatum}`}
+                      {baselineLabel(viewedBaseline)}
                     </th>
                     <th className="border-b border-l-2 border-line border-l-primary bg-bkk-mut-head px-3 py-2 text-right text-bkk-mut-ink">
                       {texts.bkk.colMut}
@@ -761,7 +910,7 @@ export function BkkClient({
                 <tbody>
                   {groups.map((group) => {
                     const groupPositions = positionsOf(group.id).filter(
-                      (p) => canEdit || !p.hidden,
+                      (p) => editing || !p.hidden,
                     );
                     if (groupPositions.length === 0) return null;
                     return (
@@ -787,16 +936,16 @@ export function BkkClient({
                       {texts.bkk.grandTotal}
                     </td>
                     <td className="bg-bkk-orig-head px-3 py-2.5 text-right text-bkk-orig-ink">
-                      {formatRappen(grandTotals.kvOrigRp)}
+                      {formatRappen(grandTotals.kvBaselineRp)}
                     </td>
                     <td className="border-l-2 border-l-primary bg-bkk-mut-head px-3 py-2.5 text-right text-bkk-mut-ink">
                       {formatRappen(grandTotals.kvMutRp)}
                     </td>
                     <td className="bg-bkk-mut-head px-3 py-2.5 text-right text-xs text-bkk-mut-ink">
-                      {grandTotals.kvOrigRp > 0
+                      {grandTotals.kvBaselineRp > 0
                         ? formatPctSigned(
-                            ((grandTotals.kvMutRp - grandTotals.kvOrigRp) /
-                              grandTotals.kvOrigRp) *
+                            ((grandTotals.kvMutRp - grandTotals.kvBaselineRp) /
+                              grandTotals.kvBaselineRp) *
                               100,
                           )
                         : '–'}
@@ -830,7 +979,7 @@ export function BkkClient({
           )}
         </section>
 
-        {canEdit && (
+        {editing && (
           <button
             type="button"
             onClick={() => setPositionModal({})}
@@ -838,6 +987,74 @@ export function BkkClient({
           >
             {texts.bkk.addPosition}
           </button>
+        )}
+
+        {/* Baseline-Verwaltung (nur Bearbeiten-Rolle, nur in der aktiven
+            Ansicht). Baseline-Vergleich (zwei nebeneinander) ist Ausbaupunkt. */}
+        {canEdit && isActiveBaselineView && (
+          <section className="mt-8 border border-line bg-white">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-3">
+              <h2 className="display-title text-xs text-ink">
+                {texts.bkk.baselines.title}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setBaselineModal(true)}
+                disabled={dirty || baselineBusy}
+                title={dirty ? texts.bkk.baselines.saveFirst : undefined}
+                className="border border-dashed border-line px-3 py-1 text-xs text-primary hover:border-accent hover:text-accent disabled:opacity-50"
+              >
+                {texts.bkk.baselines.add}
+              </button>
+            </div>
+            <p className="border-b border-line px-4 py-2 text-xs text-primary">
+              {texts.bkk.baselines.intro}
+            </p>
+            {sortedBaselines.length === 0 ? (
+              <p className="px-4 py-3 text-sm text-primary">
+                {texts.bkk.baselines.empty}
+              </p>
+            ) : (
+              <ul>
+                {sortedBaselines.map((baseline) => (
+                  <li
+                    key={baseline.id}
+                    className="flex flex-wrap items-center gap-3 border-b border-line px-4 py-2 last:border-b-0"
+                  >
+                    <span className="min-w-0 flex-1 text-sm text-ink">
+                      <span className="font-medium">{baseline.bezeichnung}</span>{' '}
+                      <span className="text-xs text-primary">
+                        {formatDate(baseline.datum)}
+                      </span>
+                    </span>
+                    {baseline.is_active ? (
+                      <span className="border border-bkk-mut-bord px-2 py-0.5 text-[11px] text-bkk-mut-ink">
+                        {texts.bkk.baselines.activeBadge}
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1">
+                        <Link
+                          href={`/module/baukostenkontrolle?baseline=${baseline.id}`}
+                          className="border border-line bg-white px-2 py-0.5 text-[11px] text-primary-dark hover:border-primary"
+                        >
+                          {texts.bkk.baselines.view}
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => activateBaseline(baseline)}
+                          disabled={dirty || baselineBusy}
+                          title={dirty ? texts.bkk.baselines.saveFirst : undefined}
+                          className="border border-line bg-white px-2 py-0.5 text-[11px] text-primary-dark hover:border-warn hover:text-warn disabled:opacity-50"
+                        >
+                          {texts.bkk.baselines.setActive}
+                        </button>
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
         )}
       </main>
 
@@ -856,6 +1073,12 @@ export function BkkClient({
           initial={entryModal.entry ?? undefined}
           onApply={applyEntryModal}
           onClose={() => setEntryModal(null)}
+        />
+      )}
+      {baselineModal && (
+        <BaselineModal
+          onApply={createBaseline}
+          onClose={() => setBaselineModal(false)}
         />
       )}
       <ToastContainer toasts={toasts} />

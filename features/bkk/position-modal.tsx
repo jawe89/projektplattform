@@ -8,7 +8,7 @@ import type { BkkGroup, BkkPosition } from '@/lib/types';
 export interface PositionModalResult {
   bkp: string;
   name: string;
-  kv_orig_rp: number;
+  kv_mut_rp: number | null;
   group_id: string;
   hidden: boolean;
   notiz: string | null;
@@ -27,8 +27,9 @@ interface PositionModalProps {
 /**
  * Modal «Neue Position / Position bearbeiten» (analog Hub-Modal).
  * Die Gruppe wird beim Tippen der BKP-Nr. mit der ersten Ziffer vorbelegt
- * und bleibt pro Position übersteuerbar (Entscheid 2). KV orig. ist bei
- * Katalog-Positionen historisch fix – editierbar nur bei Custom-Positionen.
+ * und bleibt pro Position übersteuerbar (Entscheid 2). Baseline-Werte sind
+ * Snapshots und hier nie editierbar – das Budget neuer Positionen läuft
+ * über «KV mutiert» (leer = Wert der aktiven Baseline).
  */
 export function PositionModal({
   groups,
@@ -37,11 +38,10 @@ export function PositionModal({
   onApply,
   onClose,
 }: PositionModalProps) {
-  const isCustom = initial ? initial.is_custom : true;
   const [bkp, setBkp] = useState(initial?.bkp ?? '');
   const [name, setName] = useState(initial?.name ?? '');
-  const [kvOrig, setKvOrig] = useState(
-    initial ? formatRappen(initial.kv_orig_rp) : '',
+  const [kvMut, setKvMut] = useState(
+    initial?.kv_mut_rp != null ? formatRappen(initial.kv_mut_rp) : '',
   );
   const [groupId, setGroupId] = useState(initial?.group_id ?? '');
   const [groupTouched, setGroupTouched] = useState(Boolean(initial));
@@ -69,10 +69,10 @@ export function PositionModal({
       setError(texts.bkk.duplicateBkp);
       return;
     }
-    let kvOrigRp = initial?.kv_orig_rp ?? 0;
-    if (isCustom) {
-      kvOrigRp = kvOrig.trim() === '' ? 0 : (parseChfToRappen(kvOrig) ?? NaN);
-      if (Number.isNaN(kvOrigRp)) {
+    let kvMutRp: number | null = null;
+    if (kvMut.trim() !== '') {
+      kvMutRp = parseChfToRappen(kvMut);
+      if (kvMutRp === null) {
         setError(texts.bkk.invalidAmount);
         return;
       }
@@ -80,7 +80,7 @@ export function PositionModal({
     onApply({
       bkp: trimmedBkp,
       name: trimmedName,
-      kv_orig_rp: kvOrigRp,
+      kv_mut_rp: kvMutRp,
       group_id: groupId,
       hidden,
       notiz: notiz.trim() || null,
@@ -134,26 +134,16 @@ export function PositionModal({
           </label>
           <label className="flex flex-col gap-1">
             <span className="text-xs font-medium text-primary-dark">
-              {texts.bkk.fieldKvOrig}
+              {texts.bkk.fieldKvMut}
             </span>
-            {isCustom ? (
-              <input
-                type="text"
-                inputMode="decimal"
-                value={kvOrig}
-                onChange={(e) => setKvOrig(e.target.value)}
-                className="border border-line bg-white px-3 py-2 text-right text-sm text-ink outline-none focus:border-accent"
-              />
-            ) : (
-              <span className="border border-line bg-bg px-3 py-2 text-right text-sm text-primary-dark">
-                {formatRappen(initial!.kv_orig_rp)}
-              </span>
-            )}
-            {!isCustom && (
-              <span className="text-xs text-primary">
-                {texts.bkk.kvOrigFixedHint}
-              </span>
-            )}
+            <input
+              type="text"
+              inputMode="decimal"
+              value={kvMut}
+              onChange={(e) => setKvMut(e.target.value)}
+              className="border border-line bg-white px-3 py-2 text-right text-sm text-ink outline-none focus:border-accent"
+            />
+            <span className="text-xs text-primary">{texts.bkk.kvMutHint}</span>
           </label>
           <label className="flex flex-col gap-1">
             <span className="text-xs font-medium text-primary-dark">

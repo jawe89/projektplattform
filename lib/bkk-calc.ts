@@ -3,14 +3,19 @@
  *
  * 1:1-Portierung aus dem Alt-Tool
  * (scripts/data/baukostenkontrolle-mcd-wattwil_….html), umgestellt auf
- * Ganzzahl-Rappen. Reine Funktionen ohne Abhängigkeiten – abgesichert durch
- * tests/bkk-calc.test.ts (npm run test:unit).
+ * Ganzzahl-Rappen und KV-Baselines (0008, Lesart B). Reine Funktionen ohne
+ * Abhängigkeiten – abgesichert durch tests/bkk-calc.test.ts (npm run
+ * test:unit).
  *
- * Dokumentierte Feinheiten des Alt-Tools, die hier bewusst erhalten bleiben:
- *  * KV orig. zählt im Gesamttotal IMMER alle Katalog-Positionen, auch
- *    ausgeblendete – das Originalbudget ist historisch fix.
- *  * Custom-Positionen zählen NICHT ins KV-orig.-Total, aber in alles andere
- *    (KV mutiert, Verträge, Zahlungen).
+ * Dokumentierte Feinheiten, die hier bewusst erhalten bleiben:
+ *  * «KV orig. zählt historisch fix alle Positionen» gilt PRO BASELINE:
+ *    Das Baseline-Total zählt auch ausgeblendete Positionen; KV mutiert/
+ *    Verträge/Zahlungen zählen nur sichtbare.
+ *  * Positionen ohne Wert in der betrachteten Baseline (z.B. später
+ *    angelegte – im Alt-Tool die «Custom-Positionen») zählen dort mit 0;
+ *    ihr Budget läuft über kv_mut_rp. Damit zählen sie nicht ins
+ *    Baseline-Total, aber in alles andere – exakt die alte
+ *    Custom-Positionen-Regel, jetzt baseline-bezogen.
  *  * Status-Pille mit Toleranzfaktoren 1.001 («> KV») bzw. 0.999 («bezahlt»),
  *    Prüfreihenfolge exakt wie im Alt-Tool.
  *  * 5-Rappen-Rundung: im Alt-Tool wurde bei der EINGABE gerundet; hier wird
@@ -21,13 +26,14 @@
 
 export interface BkkCalcPosition {
   bkp: string;
-  /** Originalbudget in Rappen (historisch fix). */
-  kvOrigRp: number;
-  /** Mutiertes KV in Rappen; null = wie Original. 0 ist eine gültige Mutation. */
+  /**
+   * KV-Wert der betrachteten Baseline in Rappen;
+   * null = nicht in dieser Baseline (zählt 0, Kennzeichnung in der Ansicht).
+   */
+  kvBaselineRp: number | null;
+  /** Mutiertes KV in Rappen; null = wie Baseline. 0 ist eine gültige Mutation. */
   kvMutRp: number | null;
-  /** Custom-Position: zählt nicht ins KV-orig.-Total. */
-  isCustom: boolean;
-  /** Ausgeblendet: zählt im Gesamttotal nur ins KV orig. */
+  /** Ausgeblendet: zählt im Gesamttotal nur ins Baseline-Total. */
   hidden: boolean;
 }
 
@@ -61,12 +67,23 @@ export function displayRp(rp: number, opts: BkkCalcOptions): number {
   return opts.round5 ? round5Rp(rp) : rp;
 }
 
-/** KV mutiert effektiv: Überschreibung, sonst Original (Alt-Tool: effectiveKvMut). */
+/** Baseline-Wert einer Position (fehlend = 0), gerundet gemäss Regel. */
+export function baselineRp(
+  position: BkkCalcPosition,
+  opts: BkkCalcOptions,
+): number {
+  return displayRp(position.kvBaselineRp ?? 0, opts);
+}
+
+/**
+ * KV mutiert effektiv: Überschreibung, sonst Baseline-Wert, sonst 0
+ * (Alt-Tool: effectiveKvMut, kv jetzt aus der betrachteten Baseline).
+ */
 export function effectiveKvMutRp(
   position: BkkCalcPosition,
   opts: BkkCalcOptions,
 ): number {
-  return displayRp(position.kvMutRp ?? position.kvOrigRp, opts);
+  return displayRp(position.kvMutRp ?? position.kvBaselineRp ?? 0, opts);
 }
 
 export interface BkkEntrySums {
@@ -106,24 +123,25 @@ export function positionStatus(
   return 'offen';
 }
 
-export interface BkkSubtotals {
-  kvOrigRp: number;
+export interface BkkTotals {
+  kvBaselineRp: number;
   kvMutRp: number;
   vertragRp: number;
   zahlungRp: number;
 }
 
 /**
- * Zwischentotal einer Gruppe über die übergebenen (sichtbaren) Zeilen –
- * Custom-Positionen zählen nicht ins KV orig. (Alt-Tool: groupSubtotals).
+ * Zwischentotal einer Gruppe über die übergebenen (sichtbaren) Zeilen.
+ * Positionen ohne Baseline-Wert zählen im Baseline-Total mit 0
+ * (Alt-Tool: groupSubtotals, Customs ohne KV-orig.-Anteil).
  */
 export function groupSubtotals(
   rows: BkkPositionWithEntries[],
   opts: BkkCalcOptions,
-): BkkSubtotals {
-  const sub: BkkSubtotals = { kvOrigRp: 0, kvMutRp: 0, vertragRp: 0, zahlungRp: 0 };
+): BkkTotals {
+  const sub: BkkTotals = { kvBaselineRp: 0, kvMutRp: 0, vertragRp: 0, zahlungRp: 0 };
   for (const { position, entries } of rows) {
-    if (!position.isCustom) sub.kvOrigRp += displayRp(position.kvOrigRp, opts);
+    sub.kvBaselineRp += baselineRp(position, opts);
     sub.kvMutRp += effectiveKvMutRp(position, opts);
     const sums = entrySums(entries, opts);
     sub.vertragRp += sums.vertragRp;
@@ -132,52 +150,26 @@ export function groupSubtotals(
   return sub;
 }
 
-export interface BkkTotals extends BkkSubtotals {
-  customKvRp: number;
-  customMutRp: number;
-  customVertragRp: number;
-  customZahlungRp: number;
-}
-
 /**
- * Gesamttotal über ALLE Zeilen (inkl. ausgeblendeter und Custom-Positionen) –
- * Zähllogik exakt wie im Alt-Tool (totals):
- *  * KV orig.: alle Katalog-Positionen, auch ausgeblendete; Customs nie.
- *  * KV mutiert/Verträge/Zahlungen: nur sichtbare Katalog-Positionen,
- *    Custom-Positionen immer.
+ * Gesamttotal über ALLE Zeilen (inkl. ausgeblendeter) – Zähllogik wie im
+ * Alt-Tool (totals), baseline-bezogen:
+ *  * Baseline-Total: alle Positionen, auch ausgeblendete (historisch fix
+ *    pro Baseline); fehlende Baseline-Werte zählen 0.
+ *  * KV mutiert/Verträge/Zahlungen: nur sichtbare Positionen.
  */
 export function totals(
   rows: BkkPositionWithEntries[],
   opts: BkkCalcOptions,
 ): BkkTotals {
-  const t: BkkTotals = {
-    kvOrigRp: 0,
-    kvMutRp: 0,
-    vertragRp: 0,
-    zahlungRp: 0,
-    customKvRp: 0,
-    customMutRp: 0,
-    customVertragRp: 0,
-    customZahlungRp: 0,
-  };
+  const t: BkkTotals = { kvBaselineRp: 0, kvMutRp: 0, vertragRp: 0, zahlungRp: 0 };
   for (const { position, entries } of rows) {
-    const sums = entrySums(entries, opts);
-    if (position.isCustom) {
-      t.customKvRp += displayRp(position.kvOrigRp, opts);
-      t.customMutRp += effectiveKvMutRp(position, opts);
-      t.customVertragRp += sums.vertragRp;
-      t.customZahlungRp += sums.zahlungRp;
-      continue;
-    }
-    t.kvOrigRp += displayRp(position.kvOrigRp, opts);
+    t.kvBaselineRp += baselineRp(position, opts);
     if (position.hidden) continue;
     t.kvMutRp += effectiveKvMutRp(position, opts);
+    const sums = entrySums(entries, opts);
     t.vertragRp += sums.vertragRp;
     t.zahlungRp += sums.zahlungRp;
   }
-  t.kvMutRp += t.customMutRp;
-  t.vertragRp += t.customVertragRp;
-  t.zahlungRp += t.customZahlungRp;
   return t;
 }
 
@@ -225,9 +217,14 @@ export interface BkkKvMutKpi {
   einsparung: boolean;
 }
 
-/** KPI «KV mutiert»: Δ% mit Ampel (<0 grün «Einsparung», 0–5 % gelb, >5 % rot). */
-export function kvMutKpi(t: Pick<BkkTotals, 'kvOrigRp' | 'kvMutRp'>): BkkKvMutKpi {
-  const pct = t.kvOrigRp > 0 ? ((t.kvMutRp - t.kvOrigRp) / t.kvOrigRp) * 100 : 0;
+/** KPI «KV mutiert»: Δ% zur Baseline mit Ampel (<0 grün «Einsparung», 0–5 % gelb, >5 % rot). */
+export function kvMutKpi(
+  t: Pick<BkkTotals, 'kvBaselineRp' | 'kvMutRp'>,
+): BkkKvMutKpi {
+  const pct =
+    t.kvBaselineRp > 0
+      ? ((t.kvMutRp - t.kvBaselineRp) / t.kvBaselineRp) * 100
+      : 0;
   if (Math.abs(pct) < 0.05) return { deltaPct: pct, ampel: 'neutral', einsparung: false };
   if (pct < 0) return { deltaPct: pct, ampel: 'green', einsparung: true };
   return { deltaPct: pct, ampel: pct > 5 ? 'red' : 'amber', einsparung: false };

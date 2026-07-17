@@ -91,13 +91,36 @@ create table bkk_positions (
                                        -- danach pro Position übersteuerbar
   bkp text not null,                   -- '211', '211.9', '297.3a'
   name text not null,
-  kv_orig_rp bigint not null default 0, -- Originalbudget (Rappen)
-  kv_mut_rp bigint,                    -- mutiertes KV; null = wie Original
-  is_custom boolean not null default false, -- zählt nicht ins KV-orig-Total
-  hidden boolean not null default false,    -- ausgeblendet (zählt nur ins KV orig.)
+  kv_mut_rp bigint,                    -- mutiertes KV; null = wie aktive Baseline
+  is_custom boolean not null default false,
+  hidden boolean not null default false,    -- ausgeblendet (zählt nur ins Baseline-Total)
   notiz text,                          -- Freitext (Nachträge, Rückbehalte, …)
   sort int not null default 0,
   unique (project_id, bkp)
+);
+
+-- KV-Baselines als Historie (0008, Entscheid 6 – Lesart B): Bei grossen
+-- Projektänderungen wird ein revidierter KV zur neuen Referenz, der alte
+-- bleibt nachvollziehbar. Genau eine aktive Baseline pro Projekt.
+create table bkk_baselines (
+  id uuid primary key default gen_random_uuid(),
+  project_id uuid not null references projects(id) on delete cascade,
+  bezeichnung text not null,           -- «KV orig.», «KV rev. 1», …
+  datum date not null,
+  is_active boolean not null default false,
+  created_at timestamptz default now()
+);
+create unique index bkk_baselines_active_idx
+  on bkk_baselines (project_id) where is_active;
+
+-- KV-Wert je Position und Baseline (ersetzt die frühere Spalte kv_orig_rp).
+-- Positionen ohne Zeile («nicht in dieser Baseline», z.B. später angelegte)
+-- zählen dort mit 0; ihr Budget läuft über kv_mut_rp.
+create table bkk_position_baseline_values (
+  baseline_id uuid not null references bkk_baselines(id) on delete cascade,
+  position_id uuid not null references bkk_positions(id) on delete cascade,
+  kv_rp bigint not null default 0,
+  primary key (baseline_id, position_id)
 );
 
 -- Verträge und Zahlungen (gleiche Struktur → eine Tabelle mit Typ)
@@ -122,13 +145,29 @@ werden wie im Alt-Tool live berechnet; die Logik aus 1.2 ist 1:1 nach
 
 **Moduleinstellungen** (`project_modules.settings`, jsonb):
 
-- `kv_orig_datum` (ISO-Datum) – das «KV orig. 23.01.2026» aus dem
-  Spaltenkopf des Alt-Tools.
 - `round5_totals` (boolean) – 5-Rappen-Rundung als **Anzeige-/
   Totalisierungsregel**: Beträge werden exakt in Rappen gespeichert; bei
   aktiver Regel wird jeder Betrag für Anzeige und Summierung auf 5 Rappen
   gerundet (Totale = Summe der gerundeten Beträge – identisch zum
   Alt-Tool, das bereits bei der Eingabe rundete). Default Wattwil: aktiv.
+- Die frühere Einstellung `kv_orig_datum` entfällt zugunsten des
+  Baseline-Datums (`bkk_baselines.datum`).
+
+**Baselines – Verhalten (P2-M2 v1):**
+
+- Die Spalte «KV orig.» zeigt die **aktive** Baseline (Spaltenkopf mit
+  Bezeichnung + Datum); «KV orig. zählt historisch fix alle Positionen»
+  gilt **pro Baseline**. Positionen ohne Wert in einer Baseline zählen
+  dort 0 und sind als «nicht in dieser Baseline» gekennzeichnet.
+- Verwaltung im Modul (nur Bearbeiten-Rolle): Liste, neue Baseline mit
+  Werte-Übernahme wahlweise aus der bisherigen Baseline oder aus KV
+  mutiert (typischer Fall: revidierter KV = bisheriger Stand inkl.
+  Mutationen wird neue Referenz), Umschalten der aktiven Baseline mit
+  Warnhinweis. Alte Baselines sind read-only aufrufbar (`?baseline=`).
+- **Import (P2-M4)**: Der Alt-Tool-Bestand wird als erste Baseline
+  «KV orig.» mit Datum 23.01.2026 angelegt, `is_active = true`;
+  Custom-Positionen erhalten dort keinen Wert (Budget via `kv_mut_rp`).
+- **Ausbaupunkt (nicht v1)**: Baseline-Vergleich (zwei nebeneinander).
 
 ---
 
@@ -262,3 +301,8 @@ konfigurierbare Workflows wären Ausbau, nicht Funktionsparität.
 5. **Notizfelder** (Ergänzung): Freitext-Notiz pro BKK-Position und pro
    Vertrag/Zahlung (`notiz text`, optional) – für Nachtragsbegründungen,
    Rückbehalte und Ähnliches, was bisher in Nebenlisten landete.
+6. **KV-Baselines als Historie** (Ergänzung 17.07.2026, Lesart B): Das
+   KV-orig.-Datum ist keine fixe Moduleinstellung – revidierte KVs werden
+   als Baselines geführt (`bkk_baselines` +
+   `bkk_position_baseline_values`, Migration 0008; `kv_orig_rp` aus 0007
+   entfällt). Details und v1-Umfang siehe Abschnitt 1.3.
