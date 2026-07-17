@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { LoginForm } from '@/features/auth/login-form';
 import { publicBrandingUrl } from '@/lib/storage';
 import type { TenantData } from '@/lib/tenant';
@@ -89,21 +88,12 @@ export function LandingPage({
             ))}
           </section>
 
-          {/* Kompakte Login-Karte */}
+          {/* Kompakte Login-Karte (LoginForm bleibt auch eingeloggt gemountet) */}
           <aside className="h-fit border border-line bg-white p-5">
             <h2 className="display-title mb-4 text-sm text-ink">
               {texts.landing.loginTitle}
             </h2>
-            {isLoggedIn ? (
-              <Link
-                href="/hub"
-                className="block w-full bg-accent px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-accent-dark"
-              >
-                {texts.landing.toHub}
-              </Link>
-            ) : (
-              <LoginForm />
-            )}
+            <LoginForm isLoggedIn={isLoggedIn} />
           </aside>
         </div>
       </main>

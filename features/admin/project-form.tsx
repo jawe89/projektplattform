@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useEffect } from 'react';
 import {
   createProject,
   type CreateProjectState,
@@ -14,14 +14,16 @@ interface ProjectFormProps {
 }
 
 export function ProjectForm({ templates }: ProjectFormProps) {
+  // Navigation nach dem Commit via useEffect – nie im Action-Aufruf
+  // (siehe CLAUDE.md-Stolperfalle).
   const [state, formAction, pending] = useActionState(
-    async (prev: CreateProjectState, formData: FormData) => {
-      const result = await createProject(prev, formData);
-      if (result.redirectTo) window.location.assign(result.redirectTo);
-      return result;
-    },
+    createProject,
     initialState,
   );
+
+  useEffect(() => {
+    if (state.redirectTo) window.location.assign(state.redirectTo);
+  }, [state.redirectTo]);
 
   const inputClass =
     'border border-line bg-white px-3 py-2 text-sm text-ink outline-none focus:border-accent';

@@ -1,5 +1,4 @@
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
 import { LoginForm } from '@/features/auth/login-form';
 import { createClient } from '@/lib/supabase/server';
 import { getTenantData } from '@/lib/tenant';
@@ -7,7 +6,12 @@ import { texts } from '@/lib/texts';
 
 export const dynamic = 'force-dynamic';
 
-/** Login-Seite (Supabase Auth, E-Mail + Passwort). */
+/**
+ * Login-Seite (Supabase Auth, E-Mail + Passwort). Kein serverseitiger
+ * Redirect für eingeloggte Benutzer: Der würde auch beim Re-Render nach der
+ * Login-Action feuern und mit der Client-Navigation rennen – die LoginForm
+ * zeigt eingeloggt stattdessen den Hub-Link.
+ */
 export default async function LoginPage({
   params,
   searchParams,
@@ -22,7 +26,6 @@ export default async function LoginPage({
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (user) redirect('/hub');
 
   const tenant = await getTenantData(projectId);
 
@@ -40,6 +43,7 @@ export default async function LoginPage({
       </div>
       <div className="border border-line bg-white p-6">
         <LoginForm
+          isLoggedIn={Boolean(user)}
           initialError={error === 'auth' ? texts.auth.linkInvalid : undefined}
         />
       </div>

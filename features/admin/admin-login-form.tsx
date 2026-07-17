@@ -1,21 +1,45 @@
 'use client';
 
-import { useActionState } from 'react';
+import Link from 'next/link';
+import { useActionState, useEffect } from 'react';
 import { signInAdmin } from '@/features/admin/actions';
 import type { AuthFormState } from '@/features/auth/actions';
 import { texts } from '@/lib/texts';
 
 const initialState: AuthFormState = {};
 
-export function AdminLoginForm() {
-  const [state, formAction, pending] = useActionState(
-    async (prev: AuthFormState, formData: FormData) => {
-      const result = await signInAdmin(prev, formData);
-      if (result.redirectTo) window.location.assign(result.redirectTo);
-      return result;
-    },
-    initialState,
-  );
+/**
+ * Admin-Login. Navigation nach dem Commit via useEffect – nie im
+ * Action-Aufruf (siehe CLAUDE.md-Stolperfalle). Eingeloggt rendert die
+ * Komponente den Link zur Projektliste statt des Formulars (kein Unmount,
+ * kein serverseitiger Redirect-Race auf der Login-Seite).
+ */
+export function AdminLoginForm({
+  isLoggedIn = false,
+}: {
+  isLoggedIn?: boolean;
+}) {
+  const [state, formAction, pending] = useActionState(signInAdmin, initialState);
+
+  useEffect(() => {
+    if (state.redirectTo) window.location.assign(state.redirectTo);
+  }, [state.redirectTo]);
+
+  if (state.redirectTo || isLoggedIn) {
+    return (
+      <div className="flex flex-col gap-3">
+        <Link
+          href="/"
+          className="block w-full bg-accent px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-accent-dark"
+        >
+          {texts.admin.projects}
+        </Link>
+        {state.redirectTo && (
+          <p className="text-xs text-primary">{texts.landing.loginPending}</p>
+        )}
+      </div>
+    );
+  }
 
   return (
     <form action={formAction} className="flex flex-col gap-3">

@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { ToastContainer, useToasts } from '@/components/ui/toast';
 import {
   inviteUser,
@@ -29,19 +29,20 @@ export function BenutzerVerwaltung({
   roles: Role[];
   members: MemberRow[];
 }) {
-  const [state, formAction, pending] = useActionState(
-    async (prev: InviteState, formData: FormData) => {
-      const result = await inviteUser(prev, formData);
-      if (result.success && !result.inviteLink) {
-        // Liste neu laden (Server-Daten)
-        window.location.reload();
-      }
-      return result;
-    },
-    initialState,
-  );
+  // Reload/Navigation nach dem Commit via useEffect – nie im Action-Aufruf
+  // (siehe CLAUDE.md-Stolperfalle).
+  const [state, formAction, pending] = useActionState(inviteUser, initialState);
   const [removing, setRemoving] = useState<string | null>(null);
+  const [removed, setRemoved] = useState(false);
   const { toasts, showToast } = useToasts();
+
+  useEffect(() => {
+    // Liste neu laden (Server-Daten); bei Invite-Link bleibt die Seite stehen,
+    // damit der Link kopiert werden kann.
+    if ((state.success && !state.inviteLink) || removed) {
+      window.location.reload();
+    }
+  }, [state.success, state.inviteLink, removed]);
 
   const inputClass =
     'border border-line bg-white px-3 py-2 text-sm text-ink outline-none focus:border-accent';
@@ -54,7 +55,7 @@ export function BenutzerVerwaltung({
     if (result.error) {
       showToast(texts.hub.saveErrorToast, 'error');
     } else {
-      window.location.reload();
+      setRemoved(true); // Reload im Effekt, nicht im Handler
     }
   }
 

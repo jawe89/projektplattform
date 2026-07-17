@@ -1,26 +1,53 @@
 'use client';
 
 import Link from 'next/link';
-import { useActionState } from 'react';
+import { useActionState, useEffect } from 'react';
 import { signIn, type AuthFormState } from '@/features/auth/actions';
 import { texts } from '@/lib/texts';
 
 const initialState: AuthFormState = {};
 
-/** Login-Formular (Landing-Karte und /login). */
-export function LoginForm({ initialError }: { initialError?: string }) {
-  // Navigation direkt im Action-Wrapper (nicht in useEffect): nach dem Login
-  // rendert der Server die Seite neu und unmountet dieses Formular, bevor
-  // Effekte laufen. Harte Navigation, damit die Tenant-Middleware neu auflöst.
-  const [state, formAction, pending] = useActionState(
-    async (prev: AuthFormState, formData: FormData) => {
-      const result = await signIn(prev, formData);
-      if (result.redirectTo) window.location.assign(result.redirectTo);
-      return result;
-    },
-    initialState,
-  );
+/**
+ * Login-Formular (Landing-Karte und /login).
+ *
+ * Navigation NIE innerhalb des Action-Aufrufs (unterbricht die Verarbeitung
+ * der Action-Response → «Application error»-Blitzer, siehe CLAUDE.md).
+ * Stattdessen navigiert ein useEffect nach dem Commit. Damit der Effekt
+ * sicher läuft, bleibt diese Komponente auch im eingeloggten Zustand
+ * gemountet (sie rendert dann den Link statt des Formulars).
+ */
+export function LoginForm({
+  isLoggedIn = false,
+  initialError,
+}: {
+  isLoggedIn?: boolean;
+  initialError?: string;
+}) {
+  const [state, formAction, pending] = useActionState(signIn, initialState);
   const error = state.error ?? initialError;
+
+  useEffect(() => {
+    if (state.redirectTo) window.location.assign(state.redirectTo);
+  }, [state.redirectTo]);
+
+  // Nach erfolgreichem Login (Navigation läuft) oder bei bereits
+  // angemeldetem Benutzer: Link statt Formular – gleiche Komponente,
+  // kein Unmount.
+  if (state.redirectTo || isLoggedIn) {
+    return (
+      <div className="flex flex-col gap-3">
+        <Link
+          href="/hub"
+          className="block w-full bg-accent px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-accent-dark"
+        >
+          {texts.landing.toHub}
+        </Link>
+        {state.redirectTo && (
+          <p className="text-xs text-primary">{texts.landing.loginPending}</p>
+        )}
+      </div>
+    );
+  }
 
   return (
     <form action={formAction} className="flex flex-col gap-3">

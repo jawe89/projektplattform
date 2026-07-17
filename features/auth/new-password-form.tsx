@@ -1,21 +1,23 @@
 'use client';
 
-import { useActionState } from 'react';
+import { useActionState, useEffect } from 'react';
 import { updatePassword, type AuthFormState } from '@/features/auth/actions';
 import { texts } from '@/lib/texts';
 
 const initialState: AuthFormState = {};
 
 export function NewPasswordForm() {
-  // Navigation direkt im Action-Wrapper (siehe login-form.tsx).
+  // Navigation nach dem Commit via useEffect – nie im Action-Aufruf
+  // (siehe CLAUDE.md-Stolperfalle; die Seite ersetzt dieses Formular nicht,
+  // der Effekt läuft also sicher).
   const [state, formAction, pending] = useActionState(
-    async (prev: AuthFormState, formData: FormData) => {
-      const result = await updatePassword(prev, formData);
-      if (result.redirectTo) window.location.assign(result.redirectTo);
-      return result;
-    },
+    updatePassword,
     initialState,
   );
+
+  useEffect(() => {
+    if (state.redirectTo) window.location.assign(state.redirectTo);
+  }, [state.redirectTo]);
 
   return (
     <form action={formAction} className="flex flex-col gap-3">

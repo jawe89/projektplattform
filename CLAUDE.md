@@ -70,19 +70,40 @@ scripts/              Seed- und Import-Skripte (tsx)
 npm run dev      # Dev-Server (http://localhost:3000, Tenants via slug.localhost:3000)
 npm run build    # Produktions-Build (vorher Dev-Server stoppen – teilt .next!)
 npm run lint     # ESLint
-npm run seed     # Seed-Skript (braucht SUPABASE_SERVICE_ROLE_KEY in .env.local)
+npm run seed     # Seed-Skript – NUR mit SEED_ALLOW_PROD=1 (siehe unten!)
 npm run import:wattwil # M4: Import der bestehenden Projektübersicht (idempotent)
 npm run migrate:wattwil # M5: Datei-Migration vom Alt-Server (LEGACY_BASIC_AUTH)
-npm run test:rls # RLS-Nachweis (Cross-Tenant-Isolation, Rollen-Matrix)
+npm run create:admin   # Echten Plattform-Admin anlegen (Go-Live)
+npm run cleanup:testusers # example.com-Testbenutzer löschen (mit Sicherung)
+npm run test:rls # RLS-Nachweis (braucht Seed-Testbenutzer!)
 ```
+
+## Produktivschutz (seit Go-Live-Vorbereitung)
+
+- **`npm run seed` bricht ohne `SEED_ALLOW_PROD=1` ab.** Die Datenbank ist
+  die Produktiv-DB; das Seed überschreibt Projekte/Branding/Kategorien und
+  legt example.com-Testbenutzer an. Nie gegen den Produktivbestand ausführen.
+- `npm run cleanup:testusers` verweigert die Ausführung, solange kein
+  Plattform-Admin mit echter (Nicht-example.com-)Adresse existiert –
+  zuerst `npm run create:admin`, Login auf der Admin-Adresse testen.
+- `npm run test:rls` setzt die Seed-Testbenutzer voraus und ist nach dem
+  Cleanup nicht mehr lauffähig (nur noch in einer separaten Test-Umgebung).
 
 ## Gelernte Stolperfallen
 
 - **Kein `redirect()` in Server Actions**: Next rendert das Ziel im selben
   Request, die Tenant-Middleware läuft nicht → interner Pfad stimmt nicht.
-  Stattdessen `redirectTo` zurückgeben und im Client-Wrapper der Action hart
-  navigieren (`window.location.assign`). Nicht in `useEffect` – nach dem Login
-  kann das Formular unmounten, bevor der Effekt läuft.
+  Stattdessen `redirectTo` zurückgeben.
+- **Navigation nach Actions NUR im `useEffect` nach dem Commit** – niemals
+  im Action-Wrapper (`window.location.assign` direkt nach `await action()`
+  unterbricht die Verarbeitung der Action-Response → «Application error»-
+  Blitzer, auf Vercel teils dauerhaft). Damit der Effekt sicher läuft, darf
+  die Formular-Komponente beim Re-Render nicht unmounten: den Logged-in-
+  Zustand IN der Komponente rendern (LoginForm zeigt eingeloggt den Link)
+  statt sie zu ersetzen; Login-Seiten haben deshalb auch keinen
+  serverseitigen Redirect für eingeloggte Benutzer (würde mit der
+  Client-Navigation rennen). Logout läuft als nativer Form-POST auf
+  `/auth/signout` (Route-Handler, 303) – ganz ohne Client-JS.
 - **RLS + `maybeSingle()`**: Admin-Policies machen Fremdzeilen sichtbar –
   Abfragen auf «eigene» Zeilen immer explizit auf `user_id` filtern.
 - **Storage-Cache**: Öffentliche Branding-Dateien werden vom CDN/Browser

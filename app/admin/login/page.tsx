@@ -1,23 +1,29 @@
-import { redirect } from 'next/navigation';
 import { AdminLoginForm } from '@/features/admin/admin-login-form';
 import { createClient } from '@/lib/supabase/server';
 import { texts } from '@/lib/texts';
 
 export const dynamic = 'force-dynamic';
 
-/** Login des Adminbereichs (nur platform_admins kommen weiter). */
+/**
+ * Login des Adminbereichs (nur platform_admins kommen weiter). Kein
+ * serverseitiger Redirect für eingeloggte Admins – der würde beim Re-Render
+ * nach der Login-Action mit der Client-Navigation rennen; das Formular zeigt
+ * eingeloggt stattdessen den Link zur Projektliste.
+ */
 export default async function AdminLoginPage() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  let isAdmin = false;
   if (user) {
     const { data: adminRow } = await supabase
       .from('platform_admins')
       .select('user_id')
       .eq('user_id', user.id)
       .maybeSingle();
-    if (adminRow) redirect('/');
+    isAdmin = Boolean(adminRow);
   }
 
   return (
@@ -31,7 +37,7 @@ export default async function AdminLoginPage() {
         </h1>
       </div>
       <div className="border border-line bg-white p-6">
-        <AdminLoginForm />
+        <AdminLoginForm isLoggedIn={isAdmin} />
       </div>
     </main>
   );

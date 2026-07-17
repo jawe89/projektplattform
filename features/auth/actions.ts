@@ -76,11 +76,6 @@ export async function signIn(
   return { redirectTo: '/hub' };
 }
 
-export async function signOut(): Promise<void> {
-  const supabase = await createClient();
-  await supabase.auth.signOut();
-}
-
 /** Passwort-Reset anfordern (Antwort verrät nicht, ob das Konto existiert). */
 export async function requestPasswordReset(
   _prevState: AuthFormState,
