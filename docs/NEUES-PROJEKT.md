@@ -23,6 +23,13 @@ Dauer: ca. 15 Minuten plus DNS-Wartezeit.
 Das Projekt ist ab jetzt unter `?tenant=<slug>` bzw. lokal unter
 `<slug>.localhost:3000` erreichbar – auch ohne eigene Domain.
 
+**Test unter vercel.app (`?tenant=`-Modus):** Der Parameter muss nur einmal
+angegeben werden – die Middleware merkt sich den Tenant in einem Cookie
+(`tenant-slug`), sodass Login, Hub, Downloads und Logout ohne Parameter
+funktionieren. Ein neuer `?tenant=<anderer-slug>` wechselt den Tenant.
+Eine echte Projekt-Domain hat immer Vorrang vor Parameter und Cookie –
+in Produktion kann so nichts übersteuert werden.
+
 ## 2. Domain beim Registrar auf Vercel zeigen
 
 Beim Registrar der Projekt-Domain (z.B. Hostpoint, Infomaniak) im DNS:

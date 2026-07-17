@@ -1,6 +1,6 @@
 'use server';
 
-import { headers } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { createClient } from '@/lib/supabase/server';
 import { texts } from '@/lib/texts';
 
@@ -92,9 +92,17 @@ export async function requestPasswordReset(
   }
 
   const origin = await getRequestOrigin();
+  // Query-Modus (?tenant=/Sticky-Cookie, z.B. vercel.app-Test): Der Mail-Link
+  // wird u.U. in einem Browser ohne Tenant-Cookie geöffnet – deshalb den
+  // Tenant-Slug explizit in die Callback-URL aufnehmen. Auf echten
+  // Projekt-Domains ist das unnötig (und die Domain gewinnt ohnehin).
+  const cookieStore = await cookies();
+  const tenantSlug = cookieStore.get('tenant-slug')?.value;
+  const tenantQuery = tenantSlug ? `tenant=${encodeURIComponent(tenantSlug)}&` : '';
+
   const supabase = await createClient();
   await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${origin}/auth/callback?next=/passwort-neu`,
+    redirectTo: `${origin}/auth/callback?${tenantQuery}next=/passwort-neu`,
   });
 
   return { success: texts.auth.resetSent };

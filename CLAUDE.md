@@ -89,6 +89,15 @@ npm run test:rls # RLS-Nachweis (Cross-Tenant-Isolation, Rollen-Matrix)
   1 h gecacht (`max-age=3600`). Beim Logo-/Hero-Upload im Admin (M3) deshalb
   eindeutige Dateinamen vergeben (z.B. `logo-<timestamp>.svg`) statt
   gleichnamig zu überschreiben, sonst wirkt die Änderung nicht sofort.
+- **`?tenant=` ist nur mit Sticky-Cookie brauchbar**: Interne Navigationen
+  (Login-Redirect auf `/hub`, Logout, Links, Auth-Callbacks) tragen den
+  Query-Parameter nicht weiter. Die Middleware setzt deshalb beim
+  `?tenant=`-Treffer ein httpOnly-Cookie `tenant-slug` und fällt darauf
+  zurück, wenn weder Domain noch Query greifen. Priorität strikt:
+  **echte Domain > `?tenant=` > Cookie** – eine erkannte Projekt-Domain
+  gewinnt immer (kein Übersteuern in Produktion); ein neuer `?tenant=`-Wert
+  überschreibt das Cookie. Passwort-Reset-Links nehmen den Slug zusätzlich
+  explizit in die Callback-URL auf (Mail wird u.U. ohne Cookie geöffnet).
 
 ## Umgebungsvariablen (`.env.local`, siehe `.env.example`)
 

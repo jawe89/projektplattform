@@ -34,9 +34,11 @@ zwei Live-Tools (Baukostenkontrolle, Leistungsverzeichnis) verweisen auf
 
   `LEGACY_BASIC_AUTH` wird **nicht** in Vercel gesetzt (nur lokales Skript).
 - [ ] Deployment testen unter der vercel.app-Adresse:
-  - `https://<projekt>.vercel.app/?tenant=mcd-wattwil` → Landingpage Wattwil
-    (der `?tenant=`-Parameter funktioniert auf jeder Domain und ist genau für
-    solche Tests gedacht).
+  - `https://<projekt>.vercel.app/?tenant=mcd-wattwil` → Landingpage Wattwil.
+    Der Parameter ist nur beim Einstieg nötig: Die Middleware merkt sich den
+    Tenant in einem Cookie (`tenant-slug`), Login/Hub/Logout funktionieren
+    danach ohne Parameter. Tenant-Wechsel mit neuem `?tenant=`; echte
+    Projekt-Domains haben immer Vorrang.
   - Login Bauleitung → Hub, Stichproben-Download (signierte URL).
   - Admin-Test: `ADMIN_DOMAIN` vorübergehend auf `<projekt>.vercel.app`
     stellen, Adminbereich prüfen, danach zurück auf

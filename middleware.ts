@@ -106,6 +106,10 @@ async function rewriteWithSession(
   return response;
 }
 
+/** Sticky-Tenant-Cookie für den Query-Modus (?tenant= auf vercel.app/localhost). */
+const TENANT_COOKIE = 'tenant-slug';
+const TENANT_COOKIE_MAX_AGE_SECONDS = 60 * 60 * 24 * 30;
+
 export async function middleware(request: NextRequest) {
   const adminDomain = (process.env.ADMIN_DOMAIN ?? 'admin.projektplattform.ch').toLowerCase();
   const rawHost = request.headers.get('host') ?? '';
@@ -116,34 +120,56 @@ export async function middleware(request: NextRequest) {
     return rewriteWithSession(request, '/admin');
   }
 
-  // Lokale Entwicklung: ?tenant=slug oder slug.localhost:3000
   const tenantParam = request.nextUrl.searchParams.get('tenant');
-  if (tenantParam) {
-    const projectId = await lookupProjectId('slug', tenantParam);
-    if (projectId) return rewriteWithSession(request, `/p/${projectId}`, projectId);
-    return rewriteTo(request, '/tenant-not-found');
-  }
+  const tenantCookie = request.cookies.get(TENANT_COOKIE)?.value ?? null;
+  const isNakedLocalhost = host === 'localhost' || host === '127.0.0.1';
 
+  let projectId: string | null = null;
+  let cookieSlugToSet: string | null = null;
+  let cookieIsStale = false;
+
+  // Priorität 1: echte Domain (gewinnt immer – keine Verwechslung in Produktion)
   if (host.endsWith('.localhost')) {
-    const slug = host.slice(0, -'.localhost'.length);
-    const projectId = await lookupProjectId('slug', slug);
-    if (projectId) return rewriteWithSession(request, `/p/${projectId}`, projectId);
-    return rewriteTo(request, '/tenant-not-found');
+    projectId = await lookupProjectId('slug', host.slice(0, -'.localhost'.length));
+  } else if (!isNakedLocalhost) {
+    projectId = await lookupProjectId('domain', host);
   }
 
-  // Nacktes localhost: neutrale Hinweisseite bzw. direkte Pfade (Dev-Komfort)
-  if (host === 'localhost' || host === '127.0.0.1') {
-    const response = NextResponse.next();
-    await refreshSession(request, response);
+  // Priorität 2: ?tenant=slug (Query-Modus, z.B. vercel.app-Test) → Cookie setzen
+  if (!projectId && tenantParam) {
+    projectId = await lookupProjectId('slug', tenantParam);
+    if (projectId && tenantParam !== tenantCookie) {
+      cookieSlugToSet = tenantParam;
+    }
+  }
+
+  // Priorität 3: Sticky-Cookie (interne Navigation ohne Query-Parameter)
+  if (!projectId && !tenantParam && tenantCookie) {
+    projectId = await lookupProjectId('slug', tenantCookie);
+    if (!projectId) cookieIsStale = true;
+  }
+
+  if (projectId) {
+    const response = await rewriteWithSession(request, `/p/${projectId}`, projectId);
+    if (cookieSlugToSet) {
+      response.cookies.set(TENANT_COOKIE, cookieSlugToSet, {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        maxAge: TENANT_COOKIE_MAX_AGE_SECONDS,
+      });
+    }
     return response;
   }
 
-  // Produktion: Projekt-Lookup über die Domain
-  const projectId = await lookupProjectId('domain', host);
-  if (projectId) return rewriteWithSession(request, `/p/${projectId}`, projectId);
-
-  // Unbekannte Domain → neutrale Hinweisseite
-  return rewriteTo(request, '/tenant-not-found');
+  // Kein Tenant auflösbar: nacktes localhost → neutrale Hinweisseite bzw.
+  // direkte Pfade (Dev-Komfort); sonst neutrale Hinweisseite.
+  const response = isNakedLocalhost
+    ? NextResponse.next()
+    : rewriteTo(request, '/tenant-not-found');
+  if (isNakedLocalhost) await refreshSession(request, response);
+  if (cookieIsStale) response.cookies.delete(TENANT_COOKIE);
+  return response;
 }
 
 export const config = {
