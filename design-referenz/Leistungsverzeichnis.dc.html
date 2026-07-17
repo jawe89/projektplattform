@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;500;600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #ececea; font-family: 'Montserrat', sans-serif; color: #2b2b2b; }
+  a { color: #70ad47; text-decoration: none; }
+  a:hover { color: #5a8f38; text-decoration: underline; }
+</style>
+</helmet>
+<div style="display: flex; align-items: flex-start; gap: 64px; padding: 48px; width: max-content;">
+
+  <!-- ============ DESKTOP 1440 ============ -->
+  <div style="width: 1440px; flex: none;">
+    <div style="font-size: 12px; color: #7c7c7c; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px;">Desktop · 1440</div>
+    <div style="background: #f6f6f4; border: 1px solid #e5e5e5;">
+
+      <!-- Toolbar -->
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 56px; height: 56px; background: #ffffff; border-bottom: 1px solid #e5e5e5;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 28px; height: 28px; border: 1px solid #2b2b2b; display: flex; align-items: center; justify-content: center; font-family: 'Antonio', sans-serif; font-weight: 600; font-size: 14px;">B</div>
+          <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase;">Brunner Baumanagement</div>
+          <div style="width: 1px; height: 20px; background: #e5e5e5;"></div>
+          <a href="#" style="font-size: 12px; color: #7c7c7c;" style-hover="color: #2b2b2b; text-decoration: none;">← Dokumente</a>
+        </div>
+        <div style="display: flex; align-items: center; gap: 20px;">
+          <div style="display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: #4d9a3f;">✓ Gespeichert</div>
+          <div style="display: flex; gap: 10px;">
+            <button style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #ffffff; background: {{ accent }}; border: none; padding: 9px 22px; cursor: pointer;" style-hover="opacity: 0.9;">Speichern</button>
+            <button style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #5a5a5a; background: transparent; border: 1px solid #e5e5e5; padding: 9px 22px; cursor: pointer;" style-hover="border-color: #5a5a5a;">Abmelden</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero -->
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; padding: 30px 56px 22px 56px; border-bottom: 1px solid #e5e5e5;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: #ffffff; background: #2b2b2b; padding: 4px 10px;">Modul</div>
+            <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 26px; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1.1;">Leistungsverzeichnis</div>
+          </div>
+          <div style="font-family: 'Antonio', sans-serif; font-size: 12px; letter-spacing: 0.26em; text-transform: uppercase; color: #7c7c7c; margin-top: 6px;">Workflow der Vergabeeinheiten · Projekt 24-018</div>
+        </div>
+        <div style="font-size: 12px; color: #7c7c7c;">Stand 17.07.2026</div>
+      </div>
+
+      <div style="padding: 32px 56px 56px 56px; display: flex; flex-direction: column; gap: 28px;">
+
+        <!-- KPI-Karten -->
+        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px;">
+          <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="5">
+            <div style="background: #ffffff; border: 1px solid #e5e5e5; border-top: 3px solid {{ k.top }}; padding: 16px 18px;">
+              <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #5a5a5a;">{{ k.label }}</div>
+              <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 8px;">
+                <span style="font-size: 24px; font-weight: 600; font-variant-numeric: tabular-nums;">{{ k.value }}</span>
+                <span style="font-size: 12px; font-weight: 600; color: {{ k.pctColor }};">{{ k.pct }}</span>
+              </div>
+              <div style="height: 3px; background: #eeeeec; margin-top: 10px;"><div style="height: 3px; background: {{ k.top }}; width: {{ k.barW }};"></div></div>
+            </div>
+          </sc-for>
+        </div>
+
+        <!-- Matrix -->
+        <div style="background: #ffffff; border: 1px solid #e5e5e5;">
+          <div style="display: flex; justify-content: space-between; align-items: baseline; padding: 14px 16px; border-bottom: 1px solid #d9d9d6;">
+            <div style="display: flex; align-items: baseline; gap: 12px;">
+              <span style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 14px; letter-spacing: 0.16em; text-transform: uppercase;">Workflow-Matrix</span>
+              <span style="font-size: 12px; color: #7c7c7c;">16 von 67 Vergabeeinheiten · Filter «aktive Phase»</span>
+            </div>
+            <a href="#" style="font-size: 12px; font-weight: 600;">Alle 67 anzeigen →</a>
+          </div>
+
+          <!-- Kopf -->
+          <div style="display: grid; grid-template-columns: 250px repeat(9, 1fr) 135px; border-bottom: 1px solid #d9d9d6; background: #fafaf8;">
+            <div style="padding: 10px 16px; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #5a5a5a;">Vergabeeinheit</div>
+            <sc-for list="{{ steps }}" as="s" hint-placeholder-count="9">
+              <div style="padding: 10px 8px 8px 8px; border-left: 1px solid #eeeeec;">
+                <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #5a5a5a; text-align: center;">{{ s.label }}</div>
+                <div style="font-size: 9px; color: #a8a8a5; text-align: center; font-variant-numeric: tabular-nums; margin-top: 2px;">{{ s.count }}/67</div>
+                <div style="height: 2px; background: #eeeeec; margin-top: 6px;"><div style="height: 2px; background: #93b878; width: {{ s.barW }};"></div></div>
+              </div>
+            </sc-for>
+            <div style="padding: 10px 12px; border-left: 1px solid #eeeeec; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #5a5a5a;">Status</div>
+          </div>
+
+          <sc-for list="{{ rows }}" as="r" hint-placeholder-count="10">
+            <div style="display: grid; grid-template-columns: 250px repeat(9, 1fr) 135px; border-bottom: 1px solid #eeeeec; opacity: {{ r.opacity }}; align-items: stretch;" style-hover="background: #fafaf8;">
+              <div style="padding: 9px 16px;">
+                <div style="display: flex; gap: 8px; font-size: 12px;">
+                  <span style="font-weight: 700; font-variant-numeric: tabular-nums;">{{ r.bkp }}</span>
+                  <span style="font-weight: 500;">{{ r.name }}</span>
+                </div>
+                <sc-if value="{{ r.wv }}" hint-placeholder-val="{{ false }}">
+                  <a href="#" style="font-size: 10px; font-weight: 600;">Werkvertrag öffnen →</a>
+                </sc-if>
+              </div>
+              <sc-for list="{{ r.cells }}" as="c" hint-placeholder-count="9">
+                <div style="border-left: 1px solid #f1f1ef; display: flex; align-items: center; justify-content: center; font-size: 11px; font-variant-numeric: tabular-nums; padding: 6px 4px; text-align: center; color: {{ c.color }}; font-weight: {{ c.fw }}; background: {{ c.bg }};">{{ c.txt }}</div>
+              </sc-for>
+              <div style="border-left: 1px solid #f1f1ef; display: flex; align-items: center; padding: 6px 12px;">
+                <span style="font-size: 9.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: {{ r.pillColor }}; border: 1px solid {{ r.pillColor }}; border-radius: 999px; padding: 3px 9px; white-space: nowrap;">{{ r.status }}</span>
+              </div>
+            </div>
+          </sc-for>
+        </div>
+
+        <!-- Legende -->
+        <div style="display: flex; align-items: center; gap: 20px; font-size: 11px; color: #7c7c7c; flex-wrap: wrap;">
+          <span style="font-family: 'Antonio', sans-serif; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: #5a5a5a;">Lesart</span>
+          <span><span style="font-weight: 700; color: #2b2b2b;">14.08.26</span> letzter erledigter Schritt</span>
+          <span><span style="color: #a8a8a5;">12.11.24</span> erledigt (tritt zurück)</span>
+          <span><span style="color: #4d9a3f;">✓</span> abgelegt</span>
+          <span><span style="color: #b0b0ae;">⊘</span> nach Aufwand</span>
+          <span><span style="color: #d5d5d2;">·</span> offen</span>
+          <span style="margin-left: auto;">Abgeschlossene Zeilen sind gedimmt</span>
+        </div>
+      </div>
+
+      <footer style="display: flex; justify-content: space-between; padding: 20px 56px; border-top: 1px solid #e5e5e5; font-size: 11px; letter-spacing: 0.08em; color: #7c7c7c; text-transform: uppercase;">
+        <span>Projekt-Nr. 24-018</span>
+        <span>© 2026 Brunner Baumanagement AG</span>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ============ MOBILE 390 ============ -->
+  <div style="width: 390px; flex: none;">
+    <div style="font-size: 12px; color: #7c7c7c; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px;">Mobile · 390</div>
+    <div style="background: #f6f6f4; border: 1px solid #e5e5e5;">
+
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 16px; height: 52px; background: #ffffff; border-bottom: 1px solid #e5e5e5;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 26px; height: 26px; border: 1px solid #2b2b2b; display: flex; align-items: center; justify-content: center; font-family: 'Antonio', sans-serif; font-weight: 600; font-size: 13px;">B</div>
+          <span style="font-size: 11px; font-weight: 600; color: #4d9a3f;">✓ Gespeichert</span>
+        </div>
+        <button style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #5a5a5a; background: transparent; border: 1px solid #e5e5e5; padding: 8px 14px; cursor: pointer;">Abmelden</button>
+      </div>
+
+      <div style="padding: 18px 16px 14px 16px; border-bottom: 1px solid #e5e5e5;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: #ffffff; background: #2b2b2b; padding: 3px 8px;">Modul</div>
+          <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 18px; letter-spacing: 0.05em; text-transform: uppercase;">Leistungsverzeichnis</div>
+        </div>
+        <div style="font-family: 'Antonio', sans-serif; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #7c7c7c; margin-top: 5px;">67 Vergabeeinheiten · Stand 17.07.2026</div>
+      </div>
+
+      <!-- KPI horizontal scroll -->
+      <div style="display: flex; gap: 10px; padding: 14px 16px; overflow-x: auto; border-bottom: 1px solid #e5e5e5;">
+        <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="5">
+          <div style="flex: none; width: 128px; background: #ffffff; border: 1px solid #e5e5e5; border-top: 3px solid {{ k.top }}; padding: 11px 13px;">
+            <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: #5a5a5a;">{{ k.label }}</div>
+            <div style="display: flex; align-items: baseline; gap: 6px; margin-top: 5px;">
+              <span style="font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums;">{{ k.value }}</span>
+              <span style="font-size: 10px; font-weight: 600; color: {{ k.pctColor }};">{{ k.pct }}</span>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+
+      <!-- Matrix scrollbar -->
+      <div style="padding: 14px 0 6px 0;">
+        <div style="padding: 0 16px 10px 16px; display: flex; justify-content: space-between; align-items: baseline;">
+          <span style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase;">Workflow-Matrix</span>
+          <span style="font-size: 10px; color: #7c7c7c;">→ horizontal scrollen</span>
+        </div>
+        <div style="overflow-x: auto; border-top: 1px solid #e5e5e5;">
+          <div style="width: 856px;">
+            <div style="display: grid; grid-template-columns: 128px repeat(9, 70px) 98px; border-bottom: 1px solid #d9d9d6; background: #fafaf8;">
+              <div style="position: sticky; left: 0; z-index: 2; background: #fafaf8; border-right: 1px solid #d9d9d6; padding: 8px 12px; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: #5a5a5a;">Einheit</div>
+              <sc-for list="{{ steps }}" as="s" hint-placeholder-count="9">
+                <div style="padding: 8px 4px 6px 4px; border-left: 1px solid #eeeeec;">
+                  <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 8.5px; letter-spacing: 0.06em; text-transform: uppercase; color: #5a5a5a; text-align: center;">{{ s.label }}</div>
+                  <div style="height: 2px; background: #eeeeec; margin-top: 5px;"><div style="height: 2px; background: #93b878; width: {{ s.barW }};"></div></div>
+                </div>
+              </sc-for>
+              <div style="padding: 8px 8px; border-left: 1px solid #eeeeec; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: #5a5a5a;">Status</div>
+            </div>
+            <sc-for list="{{ rows }}" as="r" hint-placeholder-count="8">
+              <div style="display: grid; grid-template-columns: 128px repeat(9, 70px) 98px; border-bottom: 1px solid #eeeeec; background: #ffffff; opacity: {{ r.opacity }};">
+                <div style="position: sticky; left: 0; z-index: 1; background: #ffffff; border-right: 1px solid #d9d9d6; padding: 7px 12px;">
+                  <div style="font-size: 10px; font-weight: 700; font-variant-numeric: tabular-nums;">{{ r.bkp }}</div>
+                  <div style="font-size: 9px; color: #5a5a5a; line-height: 1.25;">{{ r.name }}</div>
+                </div>
+                <sc-for list="{{ r.cells }}" as="c" hint-placeholder-count="9">
+                  <div style="border-left: 1px solid #f1f1ef; display: flex; align-items: center; justify-content: center; font-size: 9px; font-variant-numeric: tabular-nums; padding: 4px 2px; text-align: center; color: {{ c.color }}; font-weight: {{ c.fw }}; background: {{ c.bg }};">{{ c.txt }}</div>
+                </sc-for>
+                <div style="border-left: 1px solid #f1f1ef; display: flex; align-items: center; padding: 4px 8px;">
+                  <span style="font-size: 7.5px; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; color: {{ r.pillColor }}; border: 1px solid {{ r.pillColor }}; border-radius: 999px; padding: 2px 7px; white-space: nowrap;">{{ r.status }}</span>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="padding: 10px 16px; font-size: 10px; color: #7c7c7c;">16 von 67 Einheiten · Positionsspalte fixiert</div>
+      </div>
+
+      <footer style="display: flex; flex-direction: column; gap: 2px; align-items: center; padding: 14px 16px; border-top: 1px solid #e5e5e5; font-size: 10px; letter-spacing: 0.08em; color: #7c7c7c; text-transform: uppercase;">
+        <span>Projekt-Nr. 24-018</span>
+        <span>© 2026 Brunner Baumanagement AG</span>
+      </footer>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;accentColor&quot;: { &quot;editor&quot;: &quot;color&quot;, &quot;default&quot;: &quot;#70ad47&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;options&quot;: [&quot;#70ad47&quot;, &quot;#3e7cb1&quot;, &quot;#c0713a&quot;, &quot;#5a5a5a&quot;], &quot;section&quot;: &quot;Theme (mandantenfähig)&quot; },
+  &quot;dimCompleted&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Darstellung&quot; }
+}">
+class Component extends DCLogic {
+  renderVals() {
+    const accent = this.props.accentColor ?? '#70ad47';
+    const dim = this.props.dimCompleted ?? true;
+    const kpis = [
+      { label: 'Total Einheiten', value: '67', pct: '', pctColor: '#7c7c7c', top: '#5a5a5a', barW: '100%' },
+      { label: 'LV erstellt', value: '52', pct: '78 %', pctColor: '#4d9a3f', top: '#93b878', barW: '78%' },
+      { label: 'Offerten zurück', value: '41', pct: '61 %', pctColor: '#4d9a3f', top: '#93b878', barW: '61%' },
+      { label: 'WV zurück', value: '28', pct: '42 %', pctColor: '#d9a400', top: '#c2ab7d', barW: '42%' },
+      { label: 'Offen', value: '15', pct: '22 %', pctColor: '#c0392b', top: '#c9958d', barW: '22%' }
+    ];
+    const stepDefs = [ ['LV', 52], ['Versand', 48], ['Frist', 44], ['Offerten', 41], ['Vergleich', 36], ['Vergabe', 33], ['WV raus', 30], ['WV zurück', 28], ['Ablage', 26] ];
+    const steps = stepDefs.map(([label, count]) => ({ label, count, barW: Math.round(count / 67 * 100) + '%' }));
+    const R = [
+      ['201', 'Baugrubenaushub', ['12.11.24','15.11.24','06.12.24','3 Off.','13.12.24','20.12.24','08.01.25','22.01.25','✓'], 'done', true],
+      ['211', 'Baumeisterarbeiten', ['10.12.24','16.12.24','24.01.25','4 Off.','31.01.25','07.02.25','10.02.25','14.02.25','✓'], 'done', true],
+      ['214', 'Montagebau in Holz', ['20.01.25','27.01.25','07.03.25','3 Off.','14.03.25','28.03.25','14.04.25','02.05.25','✓'], 'done', true],
+      ['221', 'Fenster Kunststoff', ['02.12.25','09.12.25','30.01.26','5 Off.','13.02.26','06.03.26','10.03.26','20.03.26',null], 'WV zurück', true],
+      ['222', 'Spenglerarbeiten', ['15.01.26','22.01.26','27.02.26','⊘','⊘','⊘','⊘','⊘','⊘'], 'na', false],
+      ['224', 'Bedachungsarbeiten', ['26.06.26','03.07.26','14.08.26',null,null,null,null,null,null], 'Frist läuft', false],
+      ['226', 'Fassadenputz', ['30.06.26','07.07.26',null,null,null,null,null,null,null], 'Versandt', false],
+      ['230', 'Elektroanlagen', ['02.02.26','09.02.26','13.03.26','4 Off.','20.03.26','03.04.26','06.04.26','08.04.26','✓'], 'done', true],
+      ['240', 'Heizungsanlagen', ['04.05.26','11.05.26','12.06.26','3 Off.','26.06.26','10.07.26',null,null,null], 'Vergabe', false],
+      ['244', 'Lüftungsanlagen', ['11.05.26','18.05.26','19.06.26','5 Off.',null,null,null,null,null], 'Offerten', false],
+      ['250', 'Sanitäranlagen', ['20.04.26','27.04.26','29.05.26','4 Off.','12.06.26','19.06.26','01.07.26',null,null], 'WV versandt', true],
+      ['258', 'Kücheneinrichtungen', ['22.06.26','29.06.26','24.07.26',null,null,null,null,null,null], 'Frist läuft', false],
+      ['271', 'Gipserarbeiten', ['02.07.26',null,null,null,null,null,null,null,null], 'LV erstellt', false],
+      ['273', 'Schreinerarbeiten', [null,null,null,null,null,null,null,null,null], 'offen', false],
+      ['281', 'Bodenbeläge', ['13.04.26','20.04.26','22.05.26','3 Off.','05.06.26',null,null,null,null], 'Vergleich', false],
+      ['285', 'Malerarbeiten', [null,null,null,null,null,null,null,null,null], 'offen', false]
+    ];
+    const rows = R.map(([bkp, name, cells, st, wv]) => {
+      const complete = st === 'done';
+      const lastIdx = cells.reduce((a, c, i) => (c != null && c !== '⊘' ? i : a), -1);
+      const mapped = cells.map((c, i) => {
+        if (c === '✓') return { txt: '✓', color: '#4d9a3f', fw: 700, bg: 'transparent' };
+        if (c === '⊘') return { txt: '⊘', color: '#b0b0ae', fw: 400, bg: '#fafaf8' };
+        if (c == null) return { txt: '·', color: '#d5d5d2', fw: 400, bg: '#fafaf8' };
+        if (!complete && i === lastIdx) return { txt: c, color: '#2b2b2b', fw: 700, bg: '#f1f7ea' };
+        return { txt: c, color: '#a8a8a5', fw: 400, bg: 'transparent' };
+      });
+      let status, pillColor;
+      if (st === 'done') { status = '✓ Abgeschlossen'; pillColor = '#4d9a3f'; }
+      else if (st === 'na') { status = '⊘ Nach Aufwand'; pillColor = '#9a9a97'; }
+      else if (st === 'offen') { status = 'Offen'; pillColor = '#7c7c7c'; }
+      else { status = st; pillColor = '#3e7cb1'; }
+      return { bkp, name, wv, cells: mapped, status, pillColor, opacity: complete && dim ? 0.5 : 1 };
+    });
+    return { accent, kpis, steps, rows };
+  }
+}
+</script>
+</body>
+</html>

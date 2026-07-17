@@ -11,6 +11,11 @@ export interface LandingContent {
   subtitle?: string;
   description?: string;
   infoCells?: InfoCell[];
+  /** Hero-Bildunterschrift links/rechts (Design-Runde); leer = entfällt */
+  heroCaptionLeft?: string;
+  heroCaptionRight?: string;
+  /** Untertext der Login-Karte; leer = entfällt */
+  loginSubtext?: string;
 }
 
 export interface Project {

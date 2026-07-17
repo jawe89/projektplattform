@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;500;600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #ececea; font-family: 'Montserrat', sans-serif; color: #2b2b2b; }
+  a { color: #70ad47; text-decoration: none; }
+  a:hover { color: #5a8f38; text-decoration: underline; }
+</style>
+</helmet>
+<div style="display: flex; align-items: flex-start; gap: 64px; padding: 48px; width: max-content;">
+
+  <!-- ============ DESKTOP 1440 ============ -->
+  <div style="width: 1440px; flex: none;">
+    <div style="font-size: 12px; color: #7c7c7c; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px;">Desktop · 1440</div>
+    <div style="background: #f6f6f4; border: 1px solid #e5e5e5;">
+
+      <!-- Sticky Toolbar -->
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 56px; height: 56px; background: #ffffff; border-bottom: 1px solid #e5e5e5;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 28px; height: 28px; border: 1px solid #2b2b2b; display: flex; align-items: center; justify-content: center; font-family: 'Antonio', sans-serif; font-weight: 600; font-size: 14px;">B</div>
+          <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase;">Brunner Baumanagement</div>
+          <div style="width: 1px; height: 20px; background: #e5e5e5;"></div>
+          <div style="font-size: 12px; color: #7c7c7c;">Wohnüberbauung Lindenhof</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 20px;">
+          <sc-if value="{{ unsaved }}" hint-placeholder-val="{{ false }}">
+            <div style="display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: #d97a00;"><span style="font-size: 9px;">●</span>Ungespeicherte Änderungen</div>
+          </sc-if>
+          <sc-if value="{{ saved }}" hint-placeholder-val="{{ true }}">
+            <div style="display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: #4d9a3f;">✓ Gespeichert</div>
+          </sc-if>
+          <div style="display: flex; gap: 10px;">
+            <button style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #ffffff; background: {{ accent }}; border: none; padding: 9px 22px; cursor: pointer;" style-hover="opacity: 0.9;">Speichern</button>
+            <button style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #5a5a5a; background: transparent; border: 1px solid #e5e5e5; padding: 9px 22px; cursor: pointer;" style-hover="border-color: #5a5a5a;">Abmelden</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Kompaktes Hero-Banner -->
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; padding: 32px 56px 24px 56px; border-bottom: 1px solid #e5e5e5;">
+        <div>
+          <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 26px; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1.1;">Dokumente</div>
+          <div style="font-family: 'Antonio', sans-serif; font-weight: 400; font-size: 12px; letter-spacing: 0.26em; text-transform: uppercase; color: #7c7c7c; margin-top: 5px;">Wohnüberbauung Lindenhof · Projekt 24-018</div>
+        </div>
+        <div style="font-size: 12px; color: #7c7c7c;">86 Dokumente · Stand 17.07.2026</div>
+      </div>
+
+      <!-- Sprungnavigation -->
+      <div style="display: flex; gap: 28px; padding: 0 56px; height: 46px; align-items: center; background: #f6f6f4; border-bottom: 1px solid #e5e5e5;">
+        <a href="#" style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #2b2b2b; border-bottom: 2px solid {{ accent }}; padding: 13px 0 11px 0; text-decoration: none;">Module <span style="color: #7c7c7c; font-weight: 400;">2</span></a>
+        <a href="#" style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #7c7c7c; padding: 13px 0 11px 0; text-decoration: none;" style-hover="color: #2b2b2b; text-decoration: none;">Übersicht <span style="font-weight: 400;">4</span></a>
+        <a href="#" style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #7c7c7c; padding: 13px 0 11px 0; text-decoration: none;" style-hover="color: #2b2b2b; text-decoration: none;">Pläne · Offerten · Werkverträge <span style="font-weight: 400;">74</span></a>
+        <a href="#" style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #7c7c7c; padding: 13px 0 11px 0; text-decoration: none;" style-hover="color: #2b2b2b; text-decoration: none;">Ausschreibungen <span style="font-weight: 400;">6</span></a>
+        <div style="margin-left: auto; display: flex; align-items: center; gap: 8px; border: 1px solid #e5e5e5; background: #ffffff; padding: 7px 12px; width: 240px;">
+          <span style="color: #7c7c7c; font-size: 12px;">⌕</span>
+          <span style="font-size: 12px; color: #b0b0ae;">Dokument oder BKP-Nr. suchen…</span>
+        </div>
+      </div>
+
+      <div style="padding: 40px 56px 56px 56px; display: flex; flex-direction: column; gap: 48px;">
+
+        <!-- Module -->
+        <section>
+          <div style="display: flex; align-items: baseline; gap: 12px; margin-bottom: 18px;">
+            <h2 style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 18px; letter-spacing: 0.16em; text-transform: uppercase; margin: 0;">Module</h2>
+            <span style="font-size: 12px; color: #7c7c7c;">2 Module</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div style="background: #2b2b2b; padding: 26px 28px; display: flex; flex-direction: column; gap: 10px; cursor: pointer;" style-hover="background: #3a3a3a;">
+              <div style="align-self: flex-start; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: #2b2b2b; background: {{ accent }}; padding: 4px 10px;">Modul</div>
+              <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 22px; letter-spacing: 0.08em; text-transform: uppercase; color: #ffffff;">Baukostenkontrolle</div>
+              <div style="font-size: 13px; line-height: 1.6; color: #b8b8b6;">Kostenstand nach BKP, Verpflichtungen und Prognose – laufend nachgeführt.</div>
+              <div style="font-size: 13px; color: {{ accent }}; margin-top: 4px;">Modul öffnen →</div>
+            </div>
+            <div style="background: #2b2b2b; padding: 26px 28px; display: flex; flex-direction: column; gap: 10px; cursor: pointer;" style-hover="background: #3a3a3a;">
+              <div style="align-self: flex-start; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: #2b2b2b; background: {{ accent }}; padding: 4px 10px;">Modul</div>
+              <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 22px; letter-spacing: 0.08em; text-transform: uppercase; color: #ffffff;">Bautagebuch</div>
+              <div style="font-size: 13px; line-height: 1.6; color: #b8b8b6;">Tagesrapporte, Wetter, Belegschaft und Fotodokumentation der Baustelle.</div>
+              <div style="font-size: 13px; color: {{ accent }}; margin-top: 4px;">Modul öffnen →</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Übersichtsdokumente -->
+        <section>
+          <div style="display: flex; align-items: baseline; gap: 12px; margin-bottom: 18px;">
+            <h2 style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 18px; letter-spacing: 0.16em; text-transform: uppercase; margin: 0;">Übersichtsdokumente</h2>
+            <span style="font-size: 12px; color: #7c7c7c;">4 Dokumente</span>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px;">
+            <sc-for list="{{ uebersicht }}" as="doc" hint-placeholder-count="4">
+              <div style="background: #ffffff; border: 1px solid #e5e5e5; padding: 22px; display: flex; flex-direction: column; gap: 10px; cursor: pointer;" style-hover="border-color: #7c7c7c;">
+                <div style="align-self: flex-start; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: {{ doc.badgeColor }}; border: 1px solid {{ doc.badgeColor }}; padding: 3px 8px;">{{ doc.badge }}</div>
+                <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 17px; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1.2;">{{ doc.title }}</div>
+                <div style="font-size: 12px; line-height: 1.55; color: #7c7c7c; flex: 1;">{{ doc.desc }}</div>
+                <div style="font-size: 11px; color: #7c7c7c; border-top: 1px solid #e5e5e5; padding-top: 10px;">{{ doc.meta }}</div>
+              </div>
+            </sc-for>
+            <div style="border: 1px dashed #c9c9c6; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 22px; color: #7c7c7c; cursor: pointer; min-height: 150px;" style-hover="border-color: #7c7c7c; color: #5a5a5a;">
+              <div style="font-size: 22px; font-weight: 400;">+</div>
+              <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase;">Hinzufügen</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Pläne / Offerten / Werkverträge -->
+        <section>
+          <div style="display: flex; align-items: baseline; gap: 12px; margin-bottom: 6px;">
+            <h2 style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 18px; letter-spacing: 0.16em; text-transform: uppercase; margin: 0;">Pläne · Offerten · Werkverträge</h2>
+            <span style="font-size: 12px; color: #7c7c7c;">74 Dokumente in 18 BKP-Gruppen</span>
+          </div>
+          <div style="font-size: 12px; color: #7c7c7c; margin-bottom: 18px;">Gruppiert nach BKP · zuletzt geändert zuerst</div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0 40px;">
+            <sc-for list="{{ plaene }}" as="row" hint-placeholder-count="8">
+              <div style="display: flex; align-items: center; gap: 14px; padding: 11px 4px; border-bottom: 1px solid #e5e5e5; cursor: pointer;" style-hover="background: #ffffff;">
+                <div style="width: 40px; height: 40px; flex: none; background: #ffffff; border: 1px solid #e5e5e5; display: flex; align-items: center; justify-content: center; font-family: 'Antonio', sans-serif; font-weight: 600; font-size: 13px; color: #5a5a5a;">{{ row.bkp }}</div>
+                <div style="flex: 1; min-width: 0;">
+                  <a href="#" style="font-size: 13px; font-weight: 600; color: #2b2b2b; display: block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" style-hover="color: {{ accent }}; text-decoration: none;">{{ row.title }}</a>
+                  <div style="font-size: 11px; color: #7c7c7c; margin-top: 2px;">{{ row.meta }}</div>
+                </div>
+                <div style="width: 30px; height: 30px; flex: none; border: 1px solid #e5e5e5; display: flex; align-items: center; justify-content: center; color: #5a5a5a; font-size: 13px;" style-hover="border-color: {{ accent }}; color: {{ accent }};">↓</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 16px;">
+            <div style="border: 1px dashed #c9c9c6; display: flex; align-items: center; gap: 10px; padding: 12px 20px; color: #7c7c7c; cursor: pointer;" style-hover="border-color: #7c7c7c; color: #5a5a5a;">
+              <span style="font-size: 16px;">+</span>
+              <span style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase;">Dokument hinzufügen</span>
+            </div>
+            <a href="#" style="font-size: 12px; font-weight: 600;">Alle 74 Dokumente anzeigen →</a>
+          </div>
+        </section>
+
+        <!-- Ausschreibungen -->
+        <section>
+          <div style="display: flex; align-items: baseline; gap: 12px; margin-bottom: 18px;">
+            <h2 style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 18px; letter-spacing: 0.16em; text-transform: uppercase; margin: 0;">Ausschreibungen</h2>
+            <span style="font-size: 12px; color: #7c7c7c;">6 laufend</span>
+          </div>
+          <div style="border-top: 1px solid #e5e5e5;">
+            <sc-for list="{{ ausschreibungen }}" as="a9" hint-placeholder-count="4">
+              <div style="border-bottom: 1px solid #e5e5e5;">
+                <div onClick="{{ a9.toggle }}" style="display: flex; align-items: center; gap: 14px; padding: 13px 4px; cursor: pointer; background: {{ a9.rowBg }};" style-hover="background: #ffffff;">
+                  <div style="width: 40px; height: 40px; flex: none; background: #ffffff; border: 1px solid #e5e5e5; display: flex; align-items: center; justify-content: center; font-family: 'Antonio', sans-serif; font-weight: 600; font-size: 13px; color: #5a5a5a;">{{ a9.bkp }}</div>
+                  <div style="flex: 1;">
+                    <div style="font-size: 13px; font-weight: 600;">{{ a9.title }}</div>
+                    <div style="font-size: 11px; color: #7c7c7c; margin-top: 2px;">{{ a9.meta }}</div>
+                  </div>
+                  <div style="font-size: 11px; font-weight: 600; letter-spacing: 0.04em; color: {{ a9.statusColor }}; border: 1px solid {{ a9.statusColor }}; border-radius: 999px; padding: 3px 12px;">{{ a9.status }}</div>
+                  <div style="font-size: 12px; color: #7c7c7c; width: 20px; text-align: center;">{{ a9.chevron }}</div>
+                </div>
+                <sc-if value="{{ a9.open }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding: 4px 0 14px 58px; display: flex; flex-direction: column; gap: 0;">
+                    <sc-for list="{{ a9.subs }}" as="sub" hint-placeholder-count="3">
+                      <div style="display: flex; align-items: center; gap: 12px; padding: 8px 4px 8px 14px; border-left: 1px solid #e5e5e5;" style-hover="background: #ffffff;">
+                        <a href="#" style="font-size: 12px; font-weight: 500; color: #2b2b2b; flex: 1;" style-hover="color: {{ accent }}; text-decoration: none;">{{ sub.title }}</a>
+                        <span style="font-size: 11px; color: #7c7c7c;">{{ sub.meta }}</span>
+                        <div style="width: 26px; height: 26px; border: 1px solid #e5e5e5; display: flex; align-items: center; justify-content: center; color: #5a5a5a; font-size: 12px; cursor: pointer;" style-hover="border-color: {{ accent }}; color: {{ accent }};">↓</div>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+          <div style="border: 1px dashed #c9c9c6; display: inline-flex; align-items: center; gap: 10px; padding: 12px 20px; color: #7c7c7c; cursor: pointer; margin-top: 16px;" style-hover="border-color: #7c7c7c; color: #5a5a5a;">
+            <span style="font-size: 16px;">+</span>
+            <span style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase;">Ausschreibung hinzufügen</span>
+          </div>
+        </section>
+      </div>
+
+      <footer style="display: flex; justify-content: space-between; padding: 20px 56px; border-top: 1px solid #e5e5e5; font-size: 11px; letter-spacing: 0.08em; color: #7c7c7c; text-transform: uppercase;">
+        <span>Projekt-Nr. 24-018</span>
+        <span>© 2026 Brunner Baumanagement AG</span>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ============ MOBILE 390 ============ -->
+  <div style="width: 390px; flex: none;">
+    <div style="font-size: 12px; color: #7c7c7c; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px;">Mobile · 390</div>
+    <div style="background: #f6f6f4; border: 1px solid #e5e5e5;">
+
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 16px; height: 52px; background: #ffffff; border-bottom: 1px solid #e5e5e5;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 26px; height: 26px; border: 1px solid #2b2b2b; display: flex; align-items: center; justify-content: center; font-family: 'Antonio', sans-serif; font-weight: 600; font-size: 13px;">B</div>
+          <sc-if value="{{ unsaved }}" hint-placeholder-val="{{ false }}"><span style="font-size: 11px; font-weight: 600; color: #d97a00;">● Ungespeichert</span></sc-if>
+          <sc-if value="{{ saved }}" hint-placeholder-val="{{ true }}"><span style="font-size: 11px; font-weight: 600; color: #4d9a3f;">✓ Gespeichert</span></sc-if>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #ffffff; background: {{ accent }}; border: none; padding: 8px 14px; cursor: pointer;">Speichern</button>
+          <button style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #5a5a5a; background: transparent; border: 1px solid #e5e5e5; padding: 8px 14px; cursor: pointer;">Abmelden</button>
+        </div>
+      </div>
+
+      <div style="padding: 20px 16px 14px 16px; border-bottom: 1px solid #e5e5e5;">
+        <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 20px; letter-spacing: 0.06em; text-transform: uppercase;">Dokumente</div>
+        <div style="font-family: 'Antonio', sans-serif; font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase; color: #7c7c7c; margin-top: 4px;">Lindenhof · Projekt 24-018 · 86 Dok.</div>
+      </div>
+
+      <div style="display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; border-bottom: 1px solid #e5e5e5; background: #f6f6f4;">
+        <div style="flex: none; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #ffffff; background: #2b2b2b; padding: 7px 14px;">Module</div>
+        <div style="flex: none; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #5a5a5a; border: 1px solid #e5e5e5; background: #ffffff; padding: 6px 14px;">Übersicht</div>
+        <div style="flex: none; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #5a5a5a; border: 1px solid #e5e5e5; background: #ffffff; padding: 6px 14px;">Pläne · Verträge</div>
+        <div style="flex: none; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #5a5a5a; border: 1px solid #e5e5e5; background: #ffffff; padding: 6px 14px;">Ausschreibungen</div>
+      </div>
+
+      <div style="padding: 20px 16px 24px 16px; display: flex; flex-direction: column; gap: 28px;">
+
+        <section style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; align-items: baseline; gap: 10px;">
+            <h2 style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase; margin: 0;">Module</h2>
+            <span style="font-size: 11px; color: #7c7c7c;">2</span>
+          </div>
+          <div style="background: #2b2b2b; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="align-self: flex-start; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: #2b2b2b; background: {{ accent }}; padding: 3px 8px;">Modul</div>
+            <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 17px; letter-spacing: 0.07em; text-transform: uppercase; color: #ffffff;">Baukostenkontrolle</div>
+            <div style="font-size: 12px; line-height: 1.55; color: #b8b8b6;">Kostenstand nach BKP, Verpflichtungen und Prognose.</div>
+          </div>
+          <div style="background: #2b2b2b; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px;">
+            <div style="align-self: flex-start; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: #2b2b2b; background: {{ accent }}; padding: 3px 8px;">Modul</div>
+            <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 17px; letter-spacing: 0.07em; text-transform: uppercase; color: #ffffff;">Bautagebuch</div>
+            <div style="font-size: 12px; line-height: 1.55; color: #b8b8b6;">Tagesrapporte, Wetter und Fotodokumentation.</div>
+          </div>
+        </section>
+
+        <section style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; align-items: baseline; gap: 10px;">
+            <h2 style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase; margin: 0;">Übersichtsdokumente</h2>
+            <span style="font-size: 11px; color: #7c7c7c;">4</span>
+          </div>
+          <sc-for list="{{ uebersicht }}" as="doc" hint-placeholder-count="4">
+            <div style="background: #ffffff; border: 1px solid #e5e5e5; padding: 16px; display: flex; align-items: center; gap: 12px;">
+              <div style="flex: 1;">
+                <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 14px; letter-spacing: 0.05em; text-transform: uppercase;">{{ doc.title }}</div>
+                <div style="font-size: 11px; color: #7c7c7c; margin-top: 3px;">{{ doc.meta }}</div>
+              </div>
+              <div style="flex: none; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; color: {{ doc.badgeColor }}; border: 1px solid {{ doc.badgeColor }}; padding: 3px 7px;">{{ doc.badge }}</div>
+            </div>
+          </sc-for>
+          <div style="border: 1px dashed #c9c9c6; display: flex; align-items: center; justify-content: center; gap: 8px; padding: 13px; color: #7c7c7c;">
+            <span style="font-size: 15px;">+</span>
+            <span style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;">Hinzufügen</span>
+          </div>
+        </section>
+
+        <section style="display: flex; flex-direction: column; gap: 0;">
+          <div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px;">
+            <h2 style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase; margin: 0;">Pläne · Offerten · Werkverträge</h2>
+            <span style="font-size: 11px; color: #7c7c7c;">74</span>
+          </div>
+          <div style="border-top: 1px solid #e5e5e5;">
+            <sc-for list="{{ plaeneMobile }}" as="row" hint-placeholder-count="6">
+              <div style="display: flex; align-items: center; gap: 12px; padding: 11px 2px; border-bottom: 1px solid #e5e5e5; min-height: 44px;">
+                <div style="width: 38px; height: 38px; flex: none; background: #ffffff; border: 1px solid #e5e5e5; display: flex; align-items: center; justify-content: center; font-family: 'Antonio', sans-serif; font-weight: 600; font-size: 12px; color: #5a5a5a;">{{ row.bkp }}</div>
+                <div style="flex: 1; min-width: 0;">
+                  <div style="font-size: 12px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ row.title }}</div>
+                  <div style="font-size: 10px; color: #7c7c7c; margin-top: 2px;">{{ row.meta }}</div>
+                </div>
+                <div style="width: 30px; height: 30px; flex: none; border: 1px solid #e5e5e5; display: flex; align-items: center; justify-content: center; color: #5a5a5a; font-size: 12px;">↓</div>
+              </div>
+            </sc-for>
+          </div>
+          <a href="#" style="font-size: 12px; font-weight: 600; margin-top: 12px;">Alle 74 Dokumente anzeigen →</a>
+        </section>
+
+        <section style="display: flex; flex-direction: column; gap: 0;">
+          <div style="display: flex; align-items: baseline; gap: 10px; margin-bottom: 12px;">
+            <h2 style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase; margin: 0;">Ausschreibungen</h2>
+            <span style="font-size: 11px; color: #7c7c7c;">6</span>
+          </div>
+          <div style="border-top: 1px solid #e5e5e5;">
+            <sc-for list="{{ ausschreibungen }}" as="a9" hint-placeholder-count="3">
+              <div style="border-bottom: 1px solid #e5e5e5;">
+                <div onClick="{{ a9.toggle }}" style="display: flex; align-items: center; gap: 12px; padding: 12px 2px; cursor: pointer; min-height: 44px;">
+                  <div style="width: 38px; height: 38px; flex: none; background: #ffffff; border: 1px solid #e5e5e5; display: flex; align-items: center; justify-content: center; font-family: 'Antonio', sans-serif; font-weight: 600; font-size: 12px; color: #5a5a5a;">{{ a9.bkp }}</div>
+                  <div style="flex: 1; min-width: 0;">
+                    <div style="font-size: 12px; font-weight: 600;">{{ a9.title }}</div>
+                    <div style="font-size: 10px; font-weight: 600; color: {{ a9.statusColor }}; margin-top: 3px;">{{ a9.status }}</div>
+                  </div>
+                  <div style="font-size: 12px; color: #7c7c7c;">{{ a9.chevron }}</div>
+                </div>
+                <sc-if value="{{ a9.open }}" hint-placeholder-val="{{ false }}">
+                  <div style="padding: 0 0 12px 50px;">
+                    <sc-for list="{{ a9.subs }}" as="sub" hint-placeholder-count="3">
+                      <div style="display: flex; align-items: center; gap: 10px; padding: 8px 0 8px 12px; border-left: 1px solid #e5e5e5;">
+                        <a href="#" style="font-size: 12px; font-weight: 500; color: #2b2b2b; flex: 1;">{{ sub.title }}</a>
+                        <span style="font-size: 10px; color: #7c7c7c;">{{ sub.meta }}</span>
+                      </div>
+                    </sc-for>
+                  </div>
+                </sc-if>
+              </div>
+            </sc-for>
+          </div>
+        </section>
+      </div>
+
+      <footer style="display: flex; flex-direction: column; gap: 2px; align-items: center; padding: 14px 16px; border-top: 1px solid #e5e5e5; font-size: 10px; letter-spacing: 0.08em; color: #7c7c7c; text-transform: uppercase;">
+        <span>Projekt-Nr. 24-018</span>
+        <span>© 2026 Brunner Baumanagement AG</span>
+      </footer>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;accentColor&quot;: { &quot;editor&quot;: &quot;color&quot;, &quot;default&quot;: &quot;#70ad47&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;options&quot;: [&quot;#70ad47&quot;, &quot;#3e7cb1&quot;, &quot;#c0713a&quot;, &quot;#5a5a5a&quot;], &quot;section&quot;: &quot;Theme (mandantenfähig)&quot; },
+  &quot;unsavedChanges&quot;: { &quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: false, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Zustand&quot; }
+}">
+class Component extends DCLogic {
+  state = { open: { 211: true } };
+  renderVals() {
+    const accent = this.props.accentColor ?? '#70ad47';
+    const saved = !(this.props.unsavedChanges ?? false);
+    const uebersicht = [
+      { title: 'Projektübersicht', badge: 'HTML', badgeColor: '#4d9a3f', desc: 'Organisation, Kennzahlen und aktueller Projektstand auf einen Blick.', meta: 'Aktualisiert 15.07.2026' },
+      { title: 'Bauprogramm', badge: 'PDF', badgeColor: '#5a5a5a', desc: 'Terminplan aller Gewerke, Etappen und Meilensteine.', meta: '1.8 MB · 02.07.2026' },
+      { title: 'Organigramm', badge: 'PDF', badgeColor: '#5a5a5a', desc: 'Projektorganisation mit Zuständigkeiten und Kontakten.', meta: '0.4 MB · 12.05.2026' },
+      { title: 'Protokolle Bausitzung', badge: 'HTML', badgeColor: '#4d9a3f', desc: 'Sitzungsprotokolle Nr. 1–24, fortlaufend ergänzt.', meta: 'Aktualisiert 14.07.2026' }
+    ];
+    const plaene = [
+      { bkp: '211', title: 'Baumeisterarbeiten – Werkvertrag', meta: 'Werkvertrag · PDF · 3.2 MB · 14.07.2026' },
+      { bkp: '214', title: 'Montagebau in Holz – Offerte Küng AG', meta: 'Offerte · PDF · 1.1 MB · 11.07.2026' },
+      { bkp: '221', title: 'Fenster aus Kunststoff – Werkvertrag', meta: 'Werkvertrag · PDF · 2.4 MB · 09.07.2026' },
+      { bkp: '224', title: 'Bedachungsarbeiten – Offerte Dachtech GmbH', meta: 'Offerte · PDF · 0.9 MB · 08.07.2026' },
+      { bkp: '230', title: 'Elektroanlagen – Plan E-01 EG', meta: 'Plan · PDF · 4.6 MB · 07.07.2026' },
+      { bkp: '240', title: 'Heizung – Prinzipschema', meta: 'Plan · PDF · 1.3 MB · 03.07.2026' },
+      { bkp: '250', title: 'Sanitäranlagen – Werkvertrag', meta: 'Werkvertrag · PDF · 2.1 MB · 01.07.2026' },
+      { bkp: '271', title: 'Gipserarbeiten – Offerte Rüegg AG', meta: 'Offerte · PDF · 0.7 MB · 28.06.2026' },
+      { bkp: '272', title: 'Metallbauarbeiten – Werkvertrag', meta: 'Werkvertrag · PDF · 1.9 MB · 24.06.2026' },
+      { bkp: '281', title: 'Bodenbeläge – Offertvergleich', meta: 'Offerte · PDF · 0.6 MB · 19.06.2026' },
+      { bkp: '285', title: 'Innere Malerarbeiten – Offerte', meta: 'Offerte · PDF · 0.5 MB · 17.06.2026' },
+      { bkp: '287', title: 'Baureinigung – Offerte Clean Bau AG', meta: 'Offerte · PDF · 0.3 MB · 12.06.2026' }
+    ];
+    const ausData = [
+      { bkp: '211', title: 'Baumeisterarbeiten', meta: '3 Unterpositionen · Eingabefrist 05.03.2025', status: 'Vergeben', statusColor: '#4d9a3f',
+        subs: [
+          { title: 'Devis mit Vorbemerkungen', meta: 'PDF · 2.8 MB' },
+          { title: 'Offertvergleich (4 Unternehmer)', meta: 'PDF · 0.9 MB' },
+          { title: 'Vergabeantrag an Bauherrschaft', meta: 'PDF · 0.4 MB' }
+        ] },
+      { bkp: '258', title: 'Kücheneinrichtungen', meta: '2 Unterpositionen · Eingabefrist 24.07.2026', status: 'Offen', statusColor: '#d97a00',
+        subs: [
+          { title: 'Devis Küchen Haus A–D', meta: 'PDF · 1.6 MB' },
+          { title: 'Apparateliste', meta: 'PDF · 0.5 MB' }
+        ] },
+      { bkp: '273', title: 'Schreinerarbeiten', meta: '3 Unterpositionen · Eingabefrist 14.08.2026', status: 'Offen', statusColor: '#d97a00',
+        subs: [
+          { title: 'Devis Innentüren', meta: 'PDF · 1.2 MB' },
+          { title: 'Türliste', meta: 'PDF · 0.7 MB' },
+          { title: 'Beschlägekonzept', meta: 'PDF · 0.3 MB' }
+        ] },
+      { bkp: '281', title: 'Bodenbeläge', meta: '2 Unterpositionen · Offertöffnung 21.07.2026', status: 'In Prüfung', statusColor: '#3e7cb1',
+        subs: [
+          { title: 'Devis Parkett / Platten', meta: 'PDF · 1.4 MB' },
+          { title: 'Offertvergleich (3 Unternehmer)', meta: 'PDF · 0.8 MB' }
+        ] }
+    ];
+    const ausschreibungen = ausData.map(a => {
+      const open = !!this.state.open[a.bkp];
+      return { ...a, open, chevron: open ? '▴' : '▾', rowBg: open ? '#ffffff' : 'transparent',
+        toggle: () => this.setState(s => ({ open: { ...s.open, [a.bkp]: !s.open[a.bkp] } })) };
+    });
+    return { accent, saved, unsaved: !saved, uebersicht, plaene, plaeneMobile: plaene.slice(0, 6), ausschreibungen };
+  }
+}
+</script>
+</body>
+</html>

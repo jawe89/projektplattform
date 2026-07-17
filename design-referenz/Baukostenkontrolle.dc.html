@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;500;600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #ececea; font-family: 'Montserrat', sans-serif; color: #2b2b2b; }
+  a { color: #70ad47; text-decoration: none; }
+  a:hover { color: #5a8f38; text-decoration: underline; }
+</style>
+</helmet>
+<div style="display: flex; align-items: flex-start; gap: 64px; padding: 48px; width: max-content;">
+
+  <!-- ============ DESKTOP 1440 ============ -->
+  <div style="width: 1440px; flex: none;">
+    <div style="font-size: 12px; color: #7c7c7c; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px;">Desktop · 1440</div>
+    <div style="background: #f6f6f4; border: 1px solid #e5e5e5;">
+
+      <!-- Toolbar -->
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 56px; height: 56px; background: #ffffff; border-bottom: 1px solid #e5e5e5;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <div style="width: 28px; height: 28px; border: 1px solid #2b2b2b; display: flex; align-items: center; justify-content: center; font-family: 'Antonio', sans-serif; font-weight: 600; font-size: 14px;">B</div>
+          <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase;">Brunner Baumanagement</div>
+          <div style="width: 1px; height: 20px; background: #e5e5e5;"></div>
+          <a href="#" style="font-size: 12px; color: #7c7c7c;" style-hover="color: #2b2b2b; text-decoration: none;">← Dokumente</a>
+        </div>
+        <div style="display: flex; align-items: center; gap: 20px;">
+          <div style="display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: #4d9a3f;">✓ Gespeichert</div>
+          <div style="display: flex; gap: 10px;">
+            <button style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #ffffff; background: {{ accent }}; border: none; padding: 9px 22px; cursor: pointer;" style-hover="opacity: 0.9;">Speichern</button>
+            <button style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #5a5a5a; background: transparent; border: 1px solid #e5e5e5; padding: 9px 22px; cursor: pointer;" style-hover="border-color: #5a5a5a;">Abmelden</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero -->
+      <div style="display: flex; align-items: flex-end; justify-content: space-between; padding: 30px 56px 22px 56px; border-bottom: 1px solid #e5e5e5;">
+        <div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: #ffffff; background: #2b2b2b; padding: 4px 10px;">Modul</div>
+            <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 26px; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1.1;">Baukostenkontrolle</div>
+          </div>
+          <div style="font-family: 'Antonio', sans-serif; font-size: 12px; letter-spacing: 0.26em; text-transform: uppercase; color: #7c7c7c; margin-top: 6px;">Wohnüberbauung Lindenhof · Projekt 24-018 · CHF inkl. MWST</div>
+        </div>
+        <div style="font-size: 12px; color: #7c7c7c;">Kostenstand 17.07.2026</div>
+      </div>
+
+      <div style="padding: 32px 56px 56px 56px; display: flex; flex-direction: column; gap: 32px;">
+
+        <!-- KPI-Karten -->
+        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px;">
+          <div style="background: #ffffff; border: 1px solid #e0c5c0; border-top: 3px solid #c9958d; padding: 16px 18px;">
+            <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #5a5a5a;">KV orig.</div>
+            <div style="font-size: 19px; font-weight: 600; font-variant-numeric: tabular-nums; margin-top: 8px;">3'710'000.00</div>
+            <div style="font-size: 10px; color: #7c7c7c; margin-top: 6px;">Baseline «KV 1. Fassung» · 12.01.2025</div>
+          </div>
+          <div style="background: #ffffff; border: 1px solid #c9dcb9; border-top: 3px solid #93b878; padding: 16px 18px;">
+            <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #5a5a5a;">KV mutiert</div>
+            <div style="font-size: 19px; font-weight: 600; font-variant-numeric: tabular-nums; margin-top: 8px;">3'786'000.00</div>
+            <div style="display: flex; align-items: center; gap: 6px; font-size: 10px; font-weight: 600; color: #d9a400; margin-top: 6px;"><span style="width: 8px; height: 8px; border-radius: 50%; background: #d9a400;"></span>Δ +2.0 % gegenüber Baseline</div>
+          </div>
+          <div style="background: #ffffff; border: 1px solid #c1d3e3; border-top: 3px solid #7ba2c4; padding: 16px 18px;">
+            <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #5a5a5a;">Verträge</div>
+            <div style="font-size: 19px; font-weight: 600; font-variant-numeric: tabular-nums; margin-top: 8px;">3'546'300.00</div>
+            <div style="font-size: 10px; color: #7c7c7c; margin-top: 6px;">93.7 % des KV mutiert vergeben</div>
+          </div>
+          <div style="background: #ffffff; border: 1px solid #dccfb4; border-top: 3px solid #c2ab7d; padding: 16px 18px;">
+            <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #5a5a5a;">Zahlungen</div>
+            <div style="font-size: 19px; font-weight: 600; font-variant-numeric: tabular-nums; margin-top: 8px;">1'874'200.00</div>
+            <div style="font-size: 10px; color: #7c7c7c; margin-top: 6px;">52.9 % der Vertragssumme bezahlt</div>
+          </div>
+          <div style="background: #ffffff; border: 1px solid #e5e5e5; border-top: 3px solid #5a5a5a; padding: 16px 18px;">
+            <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #5a5a5a;">Offen</div>
+            <div style="font-size: 19px; font-weight: 600; font-variant-numeric: tabular-nums; margin-top: 8px;">1'672'100.00</div>
+            <div style="font-size: 10px; color: #7c7c7c; margin-top: 6px;">Vertrag ./. Zahlung</div>
+          </div>
+        </div>
+
+        <!-- Tabelle -->
+        <div style="background: #ffffff; border: 1px solid #e5e5e5;">
+          <!-- Kopfzeile -->
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) 150px 170px 150px 150px 116px 44px; border-bottom: 1px solid #d9d9d6;">
+            <div style="padding: 12px 16px; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #5a5a5a;">Position (BKP)</div>
+            <div style="padding: 12px 14px; text-align: right; background: #f0dcd9; border-left: 1px solid #e0c5c0; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #5a5a5a;">KV orig.</div>
+            <div style="padding: 12px 14px; text-align: right; background: #e0ecd6; border-left: 1px solid #c9dcb9; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #5a5a5a;">KV mutiert</div>
+            <div style="padding: 12px 14px; text-align: right; background: #dbe6f0; border-left: 1px solid #c1d3e3; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #5a5a5a;">Vertrag</div>
+            <div style="padding: 12px 14px; text-align: right; background: #eee5d3; border-left: 1px solid #dccfb4; border-right: 1px solid #dccfb4; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #5a5a5a;">Zahlung</div>
+            <div style="padding: 12px 14px; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #5a5a5a;">Status</div>
+            <div></div>
+          </div>
+
+          <sc-for list="{{ groups }}" as="g" hint-placeholder-count="3">
+            <div>
+              <!-- Gruppenkopf -->
+              <div style="padding: 12px 16px 8px 16px; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase; color: #7c7c7c; border-bottom: 1px solid #e5e5e5;">{{ g.code }} · {{ g.name }}</div>
+              <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="2">
+                <div style="border-bottom: 1px solid #e5e5e5;">
+                  <div onClick="{{ r.toggle }}" style="display: grid; grid-template-columns: minmax(0, 1fr) 150px 170px 150px 150px 116px 44px; cursor: pointer; align-items: stretch;" style-hover="background: #fafaf8;">
+                    <div style="padding: 10px 16px;">
+                      <div style="font-size: 13px; display: flex; gap: 10px;"><span style="font-weight: 700; font-variant-numeric: tabular-nums;">{{ r.bkp }}</span><span style="font-weight: 500;">{{ r.name }}</span></div>
+                      <div style="font-size: 11px; color: #7c7c7c; margin-top: 2px;">{{ r.note }}</div>
+                    </div>
+                    <div style="padding: 12px 14px; text-align: right; font-size: 12.5px; font-variant-numeric: tabular-nums; background: #f9f0ee; border-left: 1px solid #e0c5c0; color: #5a5a5a;">{{ r.kv0 }}</div>
+                    <div style="padding: 12px 14px; text-align: right; background: #f1f7ea; border-left: 1px solid #c9dcb9;">
+                      <div style="font-size: 12.5px; font-variant-numeric: tabular-nums; font-weight: 600;">{{ r.kvm }}</div>
+                      <div style="font-size: 10px; font-weight: 600; font-variant-numeric: tabular-nums; color: {{ r.deltaColor }};">{{ r.delta }}</div>
+                    </div>
+                    <div style="padding: 12px 14px; text-align: right; font-size: 12.5px; font-variant-numeric: tabular-nums; background: #eef3f8; border-left: 1px solid #c1d3e3; color: #2b2b2b;">{{ r.v }}</div>
+                    <div style="padding: 12px 14px; text-align: right; font-size: 12.5px; font-variant-numeric: tabular-nums; background: #f8f3e8; border-left: 1px solid #dccfb4; border-right: 1px solid #dccfb4; color: #5a5a5a;">{{ r.z }}</div>
+                    <div style="padding: 12px 14px; display: flex; align-items: flex-start;">
+                      <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: {{ r.pillColor }}; border: 1px solid {{ r.pillColor }}; border-radius: 999px; padding: 3px 10px; white-space: nowrap;">{{ r.pill }}</span>
+                    </div>
+                    <div style="display: flex; align-items: center; justify-content: center; color: #7c7c7c; font-size: 11px;">{{ r.chevron }}</div>
+                  </div>
+                  <sc-if value="{{ r.open }}" hint-placeholder-val="{{ false }}">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 32px; padding: 14px 56px 18px 40px; background: #fafaf8; border-top: 1px solid #e5e5e5;">
+                      <div>
+                        <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #7ba2c4; margin-bottom: 8px;">Verträge</div>
+                        <sc-for list="{{ r.vertraege }}" as="d" hint-placeholder-count="1">
+                          <div style="display: flex; gap: 12px; padding: 6px 0; border-bottom: 1px solid #e5e5e5; font-size: 12px;">
+                            <span style="color: #7c7c7c; font-variant-numeric: tabular-nums; width: 74px; flex: none;">{{ d.date }}</span>
+                            <span style="flex: 1;"><span style="font-weight: 600;">{{ d.who }}</span> · {{ d.note }}</span>
+                            <span style="font-variant-numeric: tabular-nums; font-weight: 600;">{{ d.amount }}</span>
+                          </div>
+                        </sc-for>
+                      </div>
+                      <div>
+                        <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #c2ab7d; margin-bottom: 8px;">Zahlungen</div>
+                        <sc-for list="{{ r.zahlungen }}" as="d" hint-placeholder-count="2">
+                          <div style="display: flex; gap: 12px; padding: 6px 0; border-bottom: 1px solid #e5e5e5; font-size: 12px;">
+                            <span style="color: #7c7c7c; font-variant-numeric: tabular-nums; width: 74px; flex: none;">{{ d.date }}</span>
+                            <span style="flex: 1;"><span style="font-weight: 600;">{{ d.who }}</span> · {{ d.note }}</span>
+                            <span style="font-variant-numeric: tabular-nums;">{{ d.amount }}</span>
+                          </div>
+                        </sc-for>
+                      </div>
+                    </div>
+                  </sc-if>
+                </div>
+              </sc-for>
+              <!-- Zwischentotal -->
+              <div style="display: grid; grid-template-columns: minmax(0, 1fr) 150px 170px 150px 150px 116px 44px; border-bottom: 1px solid #d9d9d6; background: #fafaf8;">
+                <div style="padding: 10px 16px; font-size: 12px; font-weight: 600; color: #5a5a5a;">Zwischentotal {{ g.code }} {{ g.name }}</div>
+                <div style="padding: 10px 14px; text-align: right; font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; background: #f4e6e3; border-left: 1px solid #e0c5c0;">{{ g.tkv0 }}</div>
+                <div style="padding: 10px 14px; text-align: right; font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; background: #e9f1df; border-left: 1px solid #c9dcb9;">{{ g.tkvm }}</div>
+                <div style="padding: 10px 14px; text-align: right; font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; background: #e5edf4; border-left: 1px solid #c1d3e3;">{{ g.tv }}</div>
+                <div style="padding: 10px 14px; text-align: right; font-size: 12.5px; font-weight: 600; font-variant-numeric: tabular-nums; background: #f3ecdc; border-left: 1px solid #dccfb4; border-right: 1px solid #dccfb4;">{{ g.tz }}</div>
+                <div></div><div></div>
+              </div>
+            </div>
+          </sc-for>
+
+          <!-- Gesamttotal -->
+          <div style="display: grid; grid-template-columns: minmax(0, 1fr) 150px 170px 150px 150px 116px 44px; border-top: 2px solid #2b2b2b;">
+            <div style="padding: 14px 16px; font-family: 'Antonio', sans-serif; font-weight: 600; font-size: 14px; letter-spacing: 0.16em; text-transform: uppercase;">Gesamttotal</div>
+            <div style="padding: 14px; text-align: right; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; background: #f0dcd9; border-left: 1px solid #e0c5c0;">3'710'000.00</div>
+            <div style="padding: 14px; text-align: right; background: #e0ecd6; border-left: 1px solid #c9dcb9;">
+              <div style="font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums;">3'786'000.00</div>
+              <div style="font-size: 10px; font-weight: 700; color: #d9a400;">+2.0 %</div>
+            </div>
+            <div style="padding: 14px; text-align: right; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; background: #dbe6f0; border-left: 1px solid #c1d3e3;">3'546'300.00</div>
+            <div style="padding: 14px; text-align: right; font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; background: #eee5d3; border-left: 1px solid #dccfb4; border-right: 1px solid #dccfb4;">1'874'200.00</div>
+            <div></div><div></div>
+          </div>
+        </div>
+
+        <!-- Legende -->
+        <div style="display: flex; align-items: center; gap: 18px; font-size: 11px; color: #7c7c7c; flex-wrap: wrap;">
+          <span style="font-family: 'Antonio', sans-serif; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; color: #5a5a5a;">Status</span>
+          <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #7c7c7c; border: 1px solid #7c7c7c; border-radius: 999px; padding: 3px 10px;">offen</span>
+          <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #3e7cb1; border: 1px solid #3e7cb1; border-radius: 999px; padding: 3px 10px;">vertrag</span>
+          <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #d9a400; border: 1px solid #d9a400; border-radius: 999px; padding: 3px 10px;">teilbezahlt</span>
+          <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #4d9a3f; border: 1px solid #4d9a3f; border-radius: 999px; padding: 3px 10px;">bezahlt</span>
+          <span style="font-size: 10px; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: #c0392b; border: 1px solid #c0392b; border-radius: 999px; padding: 3px 10px;">&gt; KV</span>
+          <span style="margin-left: auto;">Alle Beträge CHF inkl. MWST · Schweizer Zahlenformat</span>
+        </div>
+      </div>
+
+      <footer style="display: flex; justify-content: space-between; padding: 20px 56px; border-top: 1px solid #e5e5e5; font-size: 11px; letter-spacing: 0.08em; color: #7c7c7c; text-transform: uppercase;">
+        <span>Projekt-Nr. 24-018</span>
+        <span>© 2026 Brunner Baumanagement AG</span>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ============ MOBILE 390 ============ -->
+  <div style="width: 390px; flex: none;">
+    <div style="font-size: 12px; color: #7c7c7c; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px;">Mobile · 390</div>
+    <div style="background: #f6f6f4; border: 1px solid #e5e5e5;">
+
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 16px; height: 52px; background: #ffffff; border-bottom: 1px solid #e5e5e5;">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <div style="width: 26px; height: 26px; border: 1px solid #2b2b2b; display: flex; align-items: center; justify-content: center; font-family: 'Antonio', sans-serif; font-weight: 600; font-size: 13px;">B</div>
+          <span style="font-size: 11px; font-weight: 600; color: #4d9a3f;">✓ Gespeichert</span>
+        </div>
+        <button style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #5a5a5a; background: transparent; border: 1px solid #e5e5e5; padding: 8px 14px; cursor: pointer;">Abmelden</button>
+      </div>
+
+      <div style="padding: 18px 16px 14px 16px; border-bottom: 1px solid #e5e5e5;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: #ffffff; background: #2b2b2b; padding: 3px 8px;">Modul</div>
+          <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 18px; letter-spacing: 0.05em; text-transform: uppercase;">Baukostenkontrolle</div>
+        </div>
+        <div style="font-family: 'Antonio', sans-serif; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #7c7c7c; margin-top: 5px;">Lindenhof · Stand 17.07.2026 · CHF</div>
+      </div>
+
+      <!-- KPI horizontal scroll -->
+      <div style="display: flex; gap: 10px; padding: 14px 16px; overflow-x: auto; border-bottom: 1px solid #e5e5e5;">
+        <div style="flex: none; width: 150px; background: #ffffff; border: 1px solid #e0c5c0; border-top: 3px solid #c9958d; padding: 12px 14px;">
+          <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #5a5a5a;">KV orig.</div>
+          <div style="font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; margin-top: 6px;">3'710'000.00</div>
+          <div style="font-size: 9px; color: #7c7c7c; margin-top: 4px;">Baseline 12.01.2025</div>
+        </div>
+        <div style="flex: none; width: 150px; background: #ffffff; border: 1px solid #c9dcb9; border-top: 3px solid #93b878; padding: 12px 14px;">
+          <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #5a5a5a;">KV mutiert</div>
+          <div style="font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; margin-top: 6px;">3'786'000.00</div>
+          <div style="display: flex; align-items: center; gap: 5px; font-size: 9px; font-weight: 600; color: #d9a400; margin-top: 4px;"><span style="width: 7px; height: 7px; border-radius: 50%; background: #d9a400;"></span>Δ +2.0 %</div>
+        </div>
+        <div style="flex: none; width: 150px; background: #ffffff; border: 1px solid #c1d3e3; border-top: 3px solid #7ba2c4; padding: 12px 14px;">
+          <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #5a5a5a;">Verträge</div>
+          <div style="font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; margin-top: 6px;">3'546'300.00</div>
+          <div style="font-size: 9px; color: #7c7c7c; margin-top: 4px;">93.7 % vergeben</div>
+        </div>
+        <div style="flex: none; width: 150px; background: #ffffff; border: 1px solid #dccfb4; border-top: 3px solid #c2ab7d; padding: 12px 14px;">
+          <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #5a5a5a;">Zahlungen</div>
+          <div style="font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; margin-top: 6px;">1'874'200.00</div>
+          <div style="font-size: 9px; color: #7c7c7c; margin-top: 4px;">52.9 % bezahlt</div>
+        </div>
+        <div style="flex: none; width: 150px; background: #ffffff; border: 1px solid #e5e5e5; border-top: 3px solid #5a5a5a; padding: 12px 14px;">
+          <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #5a5a5a;">Offen</div>
+          <div style="font-size: 14px; font-weight: 600; font-variant-numeric: tabular-nums; margin-top: 6px;">1'672'100.00</div>
+          <div style="font-size: 9px; color: #7c7c7c; margin-top: 4px;">Vertrag ./. Zahlung</div>
+        </div>
+      </div>
+
+      <!-- Scrollbare Tabelle, Positionsspalte fixiert -->
+      <div style="padding: 14px 0 6px 0;">
+        <div style="padding: 0 16px 10px 16px; display: flex; justify-content: space-between; align-items: baseline;">
+          <span style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase;">Kostentabelle</span>
+          <span style="font-size: 10px; color: #7c7c7c;">→ horizontal scrollen</span>
+        </div>
+        <div style="overflow-x: auto; border-top: 1px solid #e5e5e5;">
+          <div style="width: 700px;">
+            <!-- Kopf -->
+            <div style="display: grid; grid-template-columns: 148px 108px 118px 108px 108px 110px; border-bottom: 1px solid #d9d9d6; background: #ffffff;">
+              <div style="position: sticky; left: 0; z-index: 2; background: #ffffff; border-right: 1px solid #d9d9d6; padding: 9px 12px; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #5a5a5a;">Position</div>
+              <div style="padding: 9px 10px; text-align: right; background: #f0dcd9; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #5a5a5a;">KV orig.</div>
+              <div style="padding: 9px 10px; text-align: right; background: #e0ecd6; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #5a5a5a;">KV mut.</div>
+              <div style="padding: 9px 10px; text-align: right; background: #dbe6f0; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #5a5a5a;">Vertrag</div>
+              <div style="padding: 9px 10px; text-align: right; background: #eee5d3; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #5a5a5a;">Zahlung</div>
+              <div style="padding: 9px 10px; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #5a5a5a;">Status</div>
+            </div>
+            <sc-for list="{{ groups }}" as="g" hint-placeholder-count="3">
+              <div>
+                <div style="border-bottom: 1px solid #e5e5e5; background: #f6f6f4;">
+                  <div style="position: sticky; left: 0; width: 148px; padding: 8px 12px 5px 12px; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #7c7c7c; background: #f6f6f4;">{{ g.code }} · {{ g.name }}</div>
+                </div>
+                <sc-for list="{{ g.rows }}" as="r" hint-placeholder-count="2">
+                  <div style="display: grid; grid-template-columns: 148px 108px 118px 108px 108px 110px; border-bottom: 1px solid #e5e5e5; background: #ffffff;">
+                    <div style="position: sticky; left: 0; z-index: 1; background: #ffffff; border-right: 1px solid #d9d9d6; padding: 8px 12px;">
+                      <div style="font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums;">{{ r.bkp }}</div>
+                      <div style="font-size: 10px; color: #5a5a5a; line-height: 1.3;">{{ r.name }}</div>
+                    </div>
+                    <div style="padding: 10px; text-align: right; font-size: 10.5px; font-variant-numeric: tabular-nums; background: #f9f0ee; color: #5a5a5a;">{{ r.kv0k }}</div>
+                    <div style="padding: 10px; text-align: right; font-size: 10.5px; font-weight: 600; font-variant-numeric: tabular-nums; background: #f1f7ea;">{{ r.kvmk }}</div>
+                    <div style="padding: 10px; text-align: right; font-size: 10.5px; font-variant-numeric: tabular-nums; background: #eef3f8;">{{ r.vk }}</div>
+                    <div style="padding: 10px; text-align: right; font-size: 10.5px; font-variant-numeric: tabular-nums; background: #f8f3e8; color: #5a5a5a;">{{ r.zk }}</div>
+                    <div style="padding: 8px 10px; display: flex; align-items: center;">
+                      <span style="font-size: 8.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: {{ r.pillColor }}; border: 1px solid {{ r.pillColor }}; border-radius: 999px; padding: 2px 8px; white-space: nowrap;">{{ r.pill }}</span>
+                    </div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+            <!-- Gesamttotal -->
+            <div style="display: grid; grid-template-columns: 148px 108px 118px 108px 108px 110px; border-top: 2px solid #2b2b2b; background: #ffffff;">
+              <div style="position: sticky; left: 0; z-index: 1; background: #ffffff; border-right: 1px solid #d9d9d6; padding: 10px 12px; font-family: 'Antonio', sans-serif; font-weight: 600; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;">Total</div>
+              <div style="padding: 10px; text-align: right; font-size: 10.5px; font-weight: 700; font-variant-numeric: tabular-nums; background: #f0dcd9;">3'710.0k</div>
+              <div style="padding: 10px; text-align: right; font-size: 10.5px; font-weight: 700; font-variant-numeric: tabular-nums; background: #e0ecd6;">3'786.0k</div>
+              <div style="padding: 10px; text-align: right; font-size: 10.5px; font-weight: 700; font-variant-numeric: tabular-nums; background: #dbe6f0;">3'546.3k</div>
+              <div style="padding: 10px; text-align: right; font-size: 10.5px; font-weight: 700; font-variant-numeric: tabular-nums; background: #eee5d3;">1'874.2k</div>
+              <div></div>
+            </div>
+          </div>
+        </div>
+        <div style="padding: 10px 16px; font-size: 10px; color: #7c7c7c;">Beträge in Tausend CHF (k) · Details auf Desktop</div>
+      </div>
+
+      <footer style="display: flex; flex-direction: column; gap: 2px; align-items: center; padding: 14px 16px; border-top: 1px solid #e5e5e5; font-size: 10px; letter-spacing: 0.08em; color: #7c7c7c; text-transform: uppercase;">
+        <span>Projekt-Nr. 24-018</span>
+        <span>© 2026 Brunner Baumanagement AG</span>
+      </footer>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;accentColor&quot;: { &quot;editor&quot;: &quot;color&quot;, &quot;default&quot;: &quot;#70ad47&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;options&quot;: [&quot;#70ad47&quot;, &quot;#3e7cb1&quot;, &quot;#c0713a&quot;, &quot;#5a5a5a&quot;], &quot;section&quot;: &quot;Theme (mandantenfähig)&quot; }
+}">
+class Component extends DCLogic {
+  state = { open: { 211: true } };
+  fmt(n) { if (n == null) return '–'; return n.toLocaleString('de-CH').replace(/’/g, "'").replace(/,/g, "'") + '.00'; }
+  k(n) { if (n == null) return '–'; return (n / 1000).toLocaleString('de-CH', { minimumFractionDigits: 1, maximumFractionDigits: 1 }).replace(/’/g, "'") + 'k'; }
+  renderVals() {
+    const accent = this.props.accentColor ?? '#70ad47';
+    const P = { offen: ['offen', '#7c7c7c'], vertrag: ['vertrag', '#3e7cb1'], teil: ['teilbezahlt', '#d9a400'], bez: ['bezahlt', '#4d9a3f'], ueber: ['> KV', '#c0392b'] };
+    const data = [
+      { code: '21', name: 'Rohbau 1', rows: [
+        { bkp: '211', name: 'Baumeisterarbeiten', note: 'Nachtrag 1 (Mehraushub) im KV mutiert enthalten', kv0: 1950000, kvm: 2012000, v: 1985400, z: 1190000, p: 'teil',
+          vertraege: [ { date: '14.02.2025', who: 'Häfliger Bau AG', note: 'Werkvertrag inkl. Nachtrag 1', amount: "1'985'400.00" } ],
+          zahlungen: [
+            { date: '30.04.2025', who: 'Akonto 1', note: 'Aushub / Fundation', amount: "380'000.00" },
+            { date: '30.06.2025', who: 'Akonto 2', note: 'UG / EG Rohbau', amount: "400'000.00" },
+            { date: '30.09.2025', who: 'Akonto 3', note: 'OG 1–2 Rohbau', amount: "410'000.00" } ] },
+        { bkp: '214', name: 'Montagebau in Holz', note: 'Schlussrechnung geprüft und bezahlt', kv0: 480000, kvm: 480000, v: 462500, z: 462500, p: 'bez',
+          vertraege: [ { date: '02.05.2025', who: 'Küng Holzbau AG', note: 'Werkvertrag', amount: "462'500.00" } ],
+          zahlungen: [ { date: '15.01.2026', who: 'Schlussrechnung', note: 'inkl. Rückbehalt-Freigabe', amount: "462'500.00" } ] }
+      ] },
+      { code: '22', name: 'Rohbau 2', rows: [
+        { bkp: '221', name: 'Fenster aus Kunststoff', note: 'Vergabe über KV – Mehrkosten Sonderformate Haus C', kv0: 320000, kvm: 348000, v: 351200, z: 105000, p: 'ueber',
+          vertraege: [ { date: '20.03.2026', who: 'Fenstra AG', note: 'Werkvertrag', amount: "351'200.00" } ],
+          zahlungen: [ { date: '30.06.2026', who: 'Akonto 1', note: 'Lieferung Haus A', amount: "105'000.00" } ] },
+        { bkp: '224', name: 'Bedachungsarbeiten', note: 'Ausschreibung läuft, Eingabefrist 14.08.2026', kv0: 185000, kvm: 185000, v: null, z: null, p: 'offen', vertraege: [], zahlungen: [] }
+      ] },
+      { code: '23–25', name: 'Haustechnik', rows: [
+        { bkp: '230', name: 'Elektroanlagen', note: 'Minderkosten aus Offertvergleich im KV mutiert', kv0: 410000, kvm: 396000, v: 389000, z: 116700, p: 'teil',
+          vertraege: [ { date: '08.04.2026', who: 'Elektro Weber AG', note: 'Werkvertrag', amount: "389'000.00" } ],
+          zahlungen: [ { date: '30.06.2026', who: 'Akonto 1', note: 'Rohinstallation EG', amount: "116'700.00" } ] },
+        { bkp: '250', name: 'Sanitäranlagen', note: 'Vertrag unterzeichnet, Arbeitsbeginn 09/2026', kv0: 365000, kvm: 365000, v: 358200, z: null, p: 'vertrag',
+          vertraege: [ { date: '01.07.2026', who: 'Sanitär Frei GmbH', note: 'Werkvertrag', amount: "358'200.00" } ],
+          zahlungen: [] }
+      ] }
+    ];
+    const groups = data.map(g => {
+      const t = g.rows.reduce((a, r) => ({ kv0: a.kv0 + r.kv0, kvm: a.kvm + r.kvm, v: a.v + (r.v || 0), z: a.z + (r.z || 0) }), { kv0: 0, kvm: 0, v: 0, z: 0 });
+      return {
+        code: g.code, name: g.name,
+        tkv0: this.fmt(t.kv0), tkvm: this.fmt(t.kvm), tv: this.fmt(t.v), tz: this.fmt(t.z),
+        rows: g.rows.map(r => {
+          const open = !!this.state.open[r.bkp];
+          const d = r.kvm - r.kv0;
+          const dp = d === 0 ? '' : (d > 0 ? '+' : '−') + Math.abs(d / r.kv0 * 100).toFixed(1) + ' %';
+          return {
+            bkp: r.bkp, name: r.name, note: r.note,
+            kv0: this.fmt(r.kv0), kvm: this.fmt(r.kvm), v: this.fmt(r.v), z: this.fmt(r.z),
+            kv0k: this.k(r.kv0), kvmk: this.k(r.kvm), vk: this.k(r.v), zk: this.k(r.z),
+            delta: dp, deltaColor: d > 0 ? '#c0392b' : '#4d9a3f',
+            pill: P[r.p][0], pillColor: P[r.p][1],
+            open, chevron: open ? '▴' : '▾',
+            vertraege: r.vertraege, zahlungen: r.zahlungen,
+            toggle: () => this.setState(s => ({ open: { ...s.open, [r.bkp]: !s.open[r.bkp] } }))
+          };
+        })
+      };
+    });
+    return { accent, groups };
+  }
+}
+</script>
+</body>
+</html>

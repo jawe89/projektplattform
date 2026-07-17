@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;500;600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #ececea; font-family: 'Montserrat', sans-serif; color: #2b2b2b; }
+  a { color: #70ad47; text-decoration: none; }
+  a:hover { color: #5a8f38; text-decoration: underline; }
+  input::placeholder { color: #b0b0ae; }
+</style>
+</helmet>
+<div style="display: flex; align-items: flex-start; gap: 64px; padding: 48px; width: max-content;">
+
+  <!-- ============ DESKTOP SCREENS ============ -->
+  <div style="display: flex; flex-direction: column; gap: 56px; width: 1440px; flex: none;">
+
+    <!-- (a) BRANDING -->
+    <div>
+      <div style="font-size: 12px; color: #7c7c7c; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px;">Desktop · Admin — Branding</div>
+      <div style="background: #f6f6f4; border: 1px solid #e5e5e5;">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 32px; height: 56px; background: #2b2b2b;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 28px; height: 28px; border: 1px solid #ffffff; display: flex; align-items: center; justify-content: center; font-family: 'Antonio', sans-serif; font-weight: 600; font-size: 14px; color: #ffffff;">B</div>
+            <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase; color: #ffffff;">Administration</div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 16px;">
+            <span style="font-size: 12px; color: #b8b8b6;"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="640500090d0a240616110a0a01164906094a070c">[email&#160;protected]</a></span>
+            <button style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #ffffff; background: transparent; border: 1px solid #5a5a5a; padding: 8px 16px; cursor: pointer;">Abmelden</button>
+          </div>
+        </div>
+        <div style="display: flex; min-height: 640px;">
+          <!-- Sidebar -->
+          <div style="width: 264px; flex: none; background: #ffffff; border-right: 1px solid #e5e5e5; padding: 24px 0;">
+            <div style="padding: 0 24px 10px 24px; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #7c7c7c;">Projekte</div>
+            <div style="padding: 10px 24px; background: #f6f6f4; border-left: 3px solid {{ accent }}; font-size: 13px; font-weight: 600;">Wohnüberbauung Lindenhof</div>
+            <div style="padding: 0 0 0 27px; margin: 6px 0 14px 0; display: flex; flex-direction: column;">
+              <sc-for list="{{ navBranding }}" as="n" hint-placeholder-count="6">
+                <div style="padding: 8px 24px; font-size: 12.5px; cursor: pointer; font-weight: {{ n.fw }}; color: {{ n.color }}; background: {{ n.bg }};" style-hover="color: #2b2b2b;">{{ n.label }}</div>
+              </sc-for>
+            </div>
+            <div style="padding: 10px 24px; font-size: 13px; color: #7c7c7c; cursor: pointer;" style-hover="color: #2b2b2b;">Sanierung Alte Post</div>
+            <div style="padding: 10px 24px; font-size: 13px; color: #7c7c7c; cursor: pointer;" style-hover="color: #2b2b2b;">Areal West, Etappe 1</div>
+            <div style="margin: 14px 24px 0 24px; border: 1px dashed #c9c9c6; padding: 9px 0; text-align: center; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #7c7c7c; cursor: pointer;" style-hover="border-color: #7c7c7c; color: #5a5a5a;">+ Projekt</div>
+          </div>
+          <!-- Main -->
+          <div style="flex: 1; padding: 32px 40px 48px 40px;">
+            <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 20px; letter-spacing: 0.08em; text-transform: uppercase;">Branding</div>
+            <div style="font-size: 12px; color: #7c7c7c; margin-top: 4px; margin-bottom: 28px;">Farben, Schriften und Bilder dieses Projekts. Statusfarben und BKK-Spaltentöne sind systemweit fix.</div>
+            <div style="display: flex; gap: 40px; align-items: flex-start;">
+              <div style="flex: 1; display: flex; flex-direction: column; gap: 28px;">
+                <!-- Farben -->
+                <div>
+                  <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: #5a5a5a; border-bottom: 1px solid #e5e5e5; padding-bottom: 8px; margin-bottom: 4px;">Farben</div>
+                  <sc-for list="{{ brandColors }}" as="c" hint-placeholder-count="5">
+                    <div style="display: flex; align-items: center; gap: 14px; padding: 9px 0; border-bottom: 1px solid #f1f1ef;">
+                      <div style="width: 26px; height: 26px; flex: none; border: 1px solid #d9d9d6; background: {{ c.value }};"></div>
+                      <div style="flex: 1; font-size: 12.5px; font-weight: 500;">{{ c.label }}</div>
+                      <div style="font-size: 12px; font-variant-numeric: tabular-nums; color: #5a5a5a; border: 1px solid #e5e5e5; background: #ffffff; padding: 5px 10px; width: 84px;">{{ c.value }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+                <!-- Schriften -->
+                <div>
+                  <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: #5a5a5a; border-bottom: 1px solid #e5e5e5; padding-bottom: 8px; margin-bottom: 12px;">Schriften</div>
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div>
+                      <div style="font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #7c7c7c; margin-bottom: 6px;">Titel</div>
+                      <div style="display: flex; align-items: center; justify-content: space-between; border: 1px solid #e5e5e5; background: #ffffff; padding: 9px 12px; cursor: pointer;"><span style="font-family: 'Antonio', sans-serif; font-size: 14px; letter-spacing: 0.06em;">ANTONIO</span><span style="color: #7c7c7c; font-size: 11px;">▾</span></div>
+                    </div>
+                    <div>
+                      <div style="font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #7c7c7c; margin-bottom: 6px;">Text</div>
+                      <div style="display: flex; align-items: center; justify-content: space-between; border: 1px solid #e5e5e5; background: #ffffff; padding: 9px 12px; cursor: pointer;"><span style="font-size: 13px;">Montserrat</span><span style="color: #7c7c7c; font-size: 11px;">▾</span></div>
+                    </div>
+                  </div>
+                </div>
+                <!-- Bilder -->
+                <div>
+                  <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: #5a5a5a; border-bottom: 1px solid #e5e5e5; padding-bottom: 8px; margin-bottom: 12px;">Bilder</div>
+                  <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 16px;">
+                    <div style="border: 1px dashed #c9c9c6; padding: 20px 12px; text-align: center; cursor: pointer;" style-hover="border-color: #7c7c7c;">
+                      <div style="font-size: 16px; color: #7c7c7c;">↑</div>
+                      <div style="font-size: 11px; font-weight: 600; margin-top: 4px;">Logo</div>
+                      <div style="font-size: 10px; color: #7c7c7c;">SVG / PNG</div>
+                    </div>
+                    <div style="border: 1px dashed #c9c9c6; padding: 20px 12px; text-align: center; cursor: pointer;" style-hover="border-color: #7c7c7c;">
+                      <div style="font-size: 16px; color: #7c7c7c;">↑</div>
+                      <div style="font-size: 11px; font-weight: 600; margin-top: 4px;">Hero-Bild</div>
+                      <div style="font-size: 10px; color: #7c7c7c;">21:9 · min. 2400 px breit</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- Live-Vorschau -->
+              <div style="width: 420px; flex: none;">
+                <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: #5a5a5a; border-bottom: 1px solid #e5e5e5; padding-bottom: 8px; margin-bottom: 12px;">Live-Vorschau · Landingpage</div>
+                <div style="border: 1px solid #d9d9d6; background: #f6f6f4; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px;">
+                  <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e5e5; padding-bottom: 8px;">
+                    <div>
+                      <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;">Wohnüberbauung Lindenhof</div>
+                      <div style="font-family: 'Antonio', sans-serif; font-size: 6px; letter-spacing: 0.26em; text-transform: uppercase; color: #7c7c7c; margin-top: 2px;">Neubau · Uster ZH</div>
+                    </div>
+                    <div style="width: 14px; height: 14px; border: 1px solid #2b2b2b; display: flex; align-items: center; justify-content: center; font-family: 'Antonio', sans-serif; font-size: 8px; font-weight: 600;">B</div>
+                  </div>
+                  <div style="border: 1px solid #e5e5e5; background: repeating-linear-gradient(45deg, #eeeeec, #eeeeec 6px, #f4f4f2 6px, #f4f4f2 12px); aspect-ratio: 21 / 9; display: flex; align-items: center; justify-content: center; font-family: monospace; font-size: 9px; color: #9a9a97;">hero 21:9</div>
+                  <div style="display: flex; gap: 8px;">
+                    <div style="flex: 1; display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+                      <div style="border: 1px solid #e5e5e5; background: #ffffff; height: 32px; padding: 4px 6px;"><div style="width: 70%; height: 3px; background: {{ accent }};"></div><div style="width: 90%; height: 2px; background: #e5e5e5; margin-top: 5px;"></div><div style="width: 60%; height: 2px; background: #e5e5e5; margin-top: 3px;"></div></div>
+                      <div style="border: 1px solid #e5e5e5; background: #ffffff; height: 32px; padding: 4px 6px;"><div style="width: 70%; height: 3px; background: {{ accent }};"></div><div style="width: 90%; height: 2px; background: #e5e5e5; margin-top: 5px;"></div><div style="width: 60%; height: 2px; background: #e5e5e5; margin-top: 3px;"></div></div>
+                      <div style="border: 1px solid #e5e5e5; background: #ffffff; height: 32px; padding: 4px 6px;"><div style="width: 70%; height: 3px; background: {{ accent }};"></div><div style="width: 90%; height: 2px; background: #e5e5e5; margin-top: 5px;"></div><div style="width: 60%; height: 2px; background: #e5e5e5; margin-top: 3px;"></div></div>
+                      <div style="border: 1px solid #e5e5e5; background: #ffffff; height: 32px; padding: 4px 6px;"><div style="width: 70%; height: 3px; background: {{ accent }};"></div><div style="width: 90%; height: 2px; background: #e5e5e5; margin-top: 5px;"></div><div style="width: 60%; height: 2px; background: #e5e5e5; margin-top: 3px;"></div></div>
+                    </div>
+                    <div style="width: 110px; flex: none; border: 1px solid #e5e5e5; background: #ffffff; padding: 7px 8px; display: flex; flex-direction: column; gap: 4px;">
+                      <div style="width: 60%; height: 4px; background: #2b2b2b;"></div>
+                      <div style="width: 100%; height: 8px; border: 1px solid #e5e5e5; background: #f6f6f4;"></div>
+                      <div style="width: 100%; height: 8px; border: 1px solid #e5e5e5; background: #f6f6f4;"></div>
+                      <div style="width: 100%; height: 10px; background: {{ accent }};"></div>
+                    </div>
+                  </div>
+                </div>
+                <div style="font-size: 10px; color: #7c7c7c; margin-top: 8px;">Vorschau aktualisiert sich live mit den Einstellungen links.</div>
+                <button style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #ffffff; background: {{ accent }}; border: none; padding: 11px 24px; cursor: pointer; margin-top: 16px; align-self: flex-start;" style-hover="opacity: 0.9;">Branding speichern</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- (b) ROLLEN-MATRIX -->
+    <div>
+      <div style="font-size: 12px; color: #7c7c7c; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px;">Desktop · Admin — Rollen</div>
+      <div style="background: #f6f6f4; border: 1px solid #e5e5e5;">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 32px; height: 56px; background: #2b2b2b;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 28px; height: 28px; border: 1px solid #ffffff; display: flex; align-items: center; justify-content: center; font-family: 'Antonio', sans-serif; font-weight: 600; font-size: 14px; color: #ffffff;">B</div>
+            <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase; color: #ffffff;">Administration</div>
+          </div>
+          <button style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #ffffff; background: transparent; border: 1px solid #5a5a5a; padding: 8px 16px; cursor: pointer;">Abmelden</button>
+        </div>
+        <div style="display: flex; min-height: 520px;">
+          <div style="width: 264px; flex: none; background: #ffffff; border-right: 1px solid #e5e5e5; padding: 24px 0;">
+            <div style="padding: 0 24px 10px 24px; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #7c7c7c;">Projekte</div>
+            <div style="padding: 10px 24px; background: #f6f6f4; border-left: 3px solid {{ accent }}; font-size: 13px; font-weight: 600;">Wohnüberbauung Lindenhof</div>
+            <div style="padding: 0 0 0 27px; margin: 6px 0 14px 0; display: flex; flex-direction: column;">
+              <sc-for list="{{ navRollen }}" as="n" hint-placeholder-count="6">
+                <div style="padding: 8px 24px; font-size: 12.5px; cursor: pointer; font-weight: {{ n.fw }}; color: {{ n.color }}; background: {{ n.bg }};" style-hover="color: #2b2b2b;">{{ n.label }}</div>
+              </sc-for>
+            </div>
+            <div style="padding: 10px 24px; font-size: 13px; color: #7c7c7c;">Sanierung Alte Post</div>
+            <div style="padding: 10px 24px; font-size: 13px; color: #7c7c7c;">Areal West, Etappe 1</div>
+          </div>
+          <div style="flex: 1; padding: 32px 40px 48px 40px;">
+            <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 20px; letter-spacing: 0.08em; text-transform: uppercase;">Rollen &amp; Berechtigungen</div>
+            <div style="font-size: 12px; color: #7c7c7c; margin-top: 4px; margin-bottom: 24px;">Sichtbarkeit pro Dokumentkategorie · Modul-Zugriff getrennt in Sehen / Bearbeiten.</div>
+            <div style="background: #ffffff; border: 1px solid #e5e5e5;">
+              <!-- Kopf -->
+              <div style="display: grid; grid-template-columns: 190px repeat(5, 1fr) 24px repeat(4, 84px); align-items: end; border-bottom: 1px solid #d9d9d6; background: #fafaf8;">
+                <div style="padding: 10px 16px; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: #5a5a5a;">Rolle</div>
+                <div style="padding: 10px 6px; text-align: center; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #5a5a5a; border-left: 1px solid #eeeeec;">Übersicht</div>
+                <div style="padding: 10px 6px; text-align: center; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #5a5a5a; border-left: 1px solid #eeeeec;">Pläne</div>
+                <div style="padding: 10px 6px; text-align: center; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #5a5a5a; border-left: 1px solid #eeeeec;">Offerten</div>
+                <div style="padding: 10px 6px; text-align: center; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #5a5a5a; border-left: 1px solid #eeeeec;">Werkverträge</div>
+                <div style="padding: 10px 6px; text-align: center; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: #5a5a5a; border-left: 1px solid #eeeeec;">Ausschreib.</div>
+                <div style="background: #f1f1ef; height: 100%;"></div>
+                <div style="padding: 4px 6px 10px 6px; border-left: 1px solid #d9d9d6;">
+                  <div style="text-align: center; font-family: 'Antonio', sans-serif; font-weight: 600; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: #2b2b2b;">BKK</div>
+                  <div style="text-align: center; font-size: 9px; color: #7c7c7c; margin-top: 2px;">Sehen</div>
+                </div>
+                <div style="padding: 4px 6px 10px 6px; border-left: 1px solid #eeeeec;">
+                  <div style="text-align: center; font-size: 9px; color: transparent;">·</div>
+                  <div style="text-align: center; font-size: 9px; color: #7c7c7c; margin-top: 2px;">Bearbeiten</div>
+                </div>
+                <div style="padding: 4px 6px 10px 6px; border-left: 1px solid #d9d9d6;">
+                  <div style="text-align: center; font-family: 'Antonio', sans-serif; font-weight: 600; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: #2b2b2b;">Tagebuch</div>
+                  <div style="text-align: center; font-size: 9px; color: #7c7c7c; margin-top: 2px;">Sehen</div>
+                </div>
+                <div style="padding: 4px 6px 10px 6px; border-left: 1px solid #eeeeec;">
+                  <div style="text-align: center; font-size: 9px; color: transparent;">·</div>
+                  <div style="text-align: center; font-size: 9px; color: #7c7c7c; margin-top: 2px;">Bearbeiten</div>
+                </div>
+              </div>
+              <sc-for list="{{ roles }}" as="r" hint-placeholder-count="5">
+                <div style="display: grid; grid-template-columns: 190px repeat(5, 1fr) 24px repeat(4, 84px); align-items: center; border-bottom: 1px solid #eeeeec;" style-hover="background: #fafaf8;">
+                  <div style="padding: 11px 16px;">
+                    <div style="font-size: 12.5px; font-weight: 600;">{{ r.name }}</div>
+                    <div style="font-size: 10px; color: #7c7c7c;">{{ r.sub }}</div>
+                  </div>
+                  <sc-for list="{{ r.cells }}" as="c" hint-placeholder-count="9">
+                    <div style="border-left: 1px solid {{ c.sep }}; display: flex; align-items: center; justify-content: center; align-self: stretch; background: {{ c.zone }};">
+                      <div style="width: 17px; height: 17px; border: 1px solid {{ c.border }}; background: {{ c.bg }}; display: flex; align-items: center; justify-content: center; font-size: 11px; color: {{ c.color }}; cursor: pointer;">{{ c.mark }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-for>
+            </div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 16px;">
+              <div style="border: 1px dashed #c9c9c6; display: inline-flex; align-items: center; gap: 10px; padding: 10px 18px; color: #7c7c7c; cursor: pointer;" style-hover="border-color: #7c7c7c; color: #5a5a5a;">
+                <span style="font-size: 15px;">+</span>
+                <span style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;">Rolle hinzufügen</span>
+              </div>
+              <button style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #ffffff; background: {{ accent }}; border: none; padding: 11px 24px; cursor: pointer;" style-hover="opacity: 0.9;">Speichern</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- (c) KATEGORIEN-EDITOR -->
+    <div>
+      <div style="font-size: 12px; color: #7c7c7c; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px;">Desktop · Admin — Kategorien</div>
+      <div style="background: #f6f6f4; border: 1px solid #e5e5e5;">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 32px; height: 56px; background: #2b2b2b;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 28px; height: 28px; border: 1px solid #ffffff; display: flex; align-items: center; justify-content: center; font-family: 'Antonio', sans-serif; font-weight: 600; font-size: 14px; color: #ffffff;">B</div>
+            <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 15px; letter-spacing: 0.14em; text-transform: uppercase; color: #ffffff;">Administration</div>
+          </div>
+          <button style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #ffffff; background: transparent; border: 1px solid #5a5a5a; padding: 8px 16px; cursor: pointer;">Abmelden</button>
+        </div>
+        <div style="display: flex; min-height: 560px;">
+          <div style="width: 264px; flex: none; background: #ffffff; border-right: 1px solid #e5e5e5; padding: 24px 0;">
+            <div style="padding: 0 24px 10px 24px; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: #7c7c7c;">Projekte</div>
+            <div style="padding: 10px 24px; background: #f6f6f4; border-left: 3px solid {{ accent }}; font-size: 13px; font-weight: 600;">Wohnüberbauung Lindenhof</div>
+            <div style="padding: 0 0 0 27px; margin: 6px 0 14px 0; display: flex; flex-direction: column;">
+              <sc-for list="{{ navKategorien }}" as="n" hint-placeholder-count="6">
+                <div style="padding: 8px 24px; font-size: 12.5px; cursor: pointer; font-weight: {{ n.fw }}; color: {{ n.color }}; background: {{ n.bg }};" style-hover="color: #2b2b2b;">{{ n.label }}</div>
+              </sc-for>
+            </div>
+            <div style="padding: 10px 24px; font-size: 13px; color: #7c7c7c;">Sanierung Alte Post</div>
+            <div style="padding: 10px 24px; font-size: 13px; color: #7c7c7c;">Areal West, Etappe 1</div>
+          </div>
+          <div style="flex: 1; padding: 32px 40px 48px 40px;">
+            <div style="display: flex; align-items: baseline; gap: 12px;">
+              <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 20px; letter-spacing: 0.08em; text-transform: uppercase;">Kategorie bearbeiten</div>
+              <div style="font-size: 12px; color: #7c7c7c;">Pläne · Offerten · Werkverträge</div>
+            </div>
+            <div style="font-size: 12px; color: #7c7c7c; margin-top: 4px; margin-bottom: 24px;">Feld-Schema definiert die Eingabemaske beim Hochladen von Dokumenten dieser Kategorie.</div>
+            <div style="display: flex; gap: 40px; align-items: flex-start;">
+              <div style="flex: 1;">
+                <div style="background: #ffffff; border: 1px solid #e5e5e5;">
+                  <div style="display: grid; grid-template-columns: 36px 1.2fr 0.9fr 76px 1.1fr 110px 32px; border-bottom: 1px solid #d9d9d6; background: #fafaf8;">
+                    <div></div>
+                    <div style="padding: 9px 8px; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #5a5a5a;">Feld</div>
+                    <div style="padding: 9px 8px; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #5a5a5a;">Typ</div>
+                    <div style="padding: 9px 8px; text-align: center; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #5a5a5a;">Pflicht</div>
+                    <div style="padding: 9px 8px; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #5a5a5a;">Platzhalter</div>
+                    <div style="padding: 9px 8px; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #5a5a5a;">Badge</div>
+                    <div></div>
+                  </div>
+                  <sc-for list="{{ fields }}" as="f" hint-placeholder-count="6">
+                    <div style="display: grid; grid-template-columns: 36px 1.2fr 0.9fr 76px 1.1fr 110px 32px; align-items: center; border-bottom: 1px solid #eeeeec;" style-hover="background: #fafaf8;">
+                      <div style="text-align: center; color: #c9c9c6; font-size: 13px; cursor: grab;">⠿</div>
+                      <div style="padding: 10px 8px; font-size: 12.5px; font-weight: 600;">{{ f.name }}</div>
+                      <div style="padding: 10px 8px;"><div style="display: flex; align-items: center; justify-content: space-between; border: 1px solid #e5e5e5; padding: 5px 8px; font-size: 11px; color: #5a5a5a; cursor: pointer;"><span>{{ f.typ }}</span><span style="color: #b0b0ae; font-size: 9px;">▾</span></div></div>
+                      <div style="display: flex; justify-content: center;"><div style="width: 16px; height: 16px; border: 1px solid {{ f.reqBorder }}; background: {{ f.reqBg }}; display: flex; align-items: center; justify-content: center; font-size: 10px; color: #ffffff; cursor: pointer;">{{ f.reqMark }}</div></div>
+                      <div style="padding: 10px 8px;"><div style="border: 1px solid #e5e5e5; padding: 5px 8px; font-size: 11px; color: #b0b0ae; font-style: italic;">{{ f.placeholder }}</div></div>
+                      <div style="padding: 10px 8px;"><div style="display: flex; align-items: center; justify-content: space-between; border: 1px solid #e5e5e5; padding: 5px 8px; font-size: 11px; color: #5a5a5a; cursor: pointer;"><span>{{ f.badge }}</span><span style="color: #b0b0ae; font-size: 9px;">▾</span></div></div>
+                      <div style="text-align: center; color: #c9c9c6; font-size: 12px; cursor: pointer;" style-hover="color: #c0392b;">✕</div>
+                    </div>
+                  </sc-for>
+                  <div style="margin: 12px; border: 1px dashed #c9c9c6; padding: 9px 0; text-align: center; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #7c7c7c; cursor: pointer;" style-hover="border-color: #7c7c7c; color: #5a5a5a;">+ Feld hinzufügen</div>
+                </div>
+              </div>
+              <div style="width: 300px; flex: none; display: flex; flex-direction: column; gap: 20px;">
+                <div style="background: #ffffff; border: 1px solid #e5e5e5; padding: 18px 20px;">
+                  <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: #5a5a5a; margin-bottom: 12px;">Sortierung</div>
+                  <sc-for list="{{ sortOptions }}" as="o" hint-placeholder-count="3">
+                    <div style="display: flex; align-items: center; gap: 10px; padding: 7px 0; cursor: pointer;">
+                      <div style="width: 15px; height: 15px; border-radius: 50%; border: 1px solid {{ o.border }}; display: flex; align-items: center; justify-content: center;"><div style="width: 7px; height: 7px; border-radius: 50%; background: {{ o.dot }};"></div></div>
+                      <span style="font-size: 12px; font-weight: {{ o.fw }};">{{ o.label }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="background: #ffffff; border: 1px solid #e5e5e5; padding: 18px 20px;">
+                  <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: #5a5a5a; margin-bottom: 10px;">Badge-Vorschau</div>
+                  <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 36px; height: 36px; border: 1px solid #e5e5e5; background: #f6f6f4; display: flex; align-items: center; justify-content: center; font-family: 'Antonio', sans-serif; font-weight: 600; font-size: 12px; color: #5a5a5a;">211</div>
+                    <div style="font-size: 11px; color: #7c7c7c;">Quadratisches BKP-Badge aus Feld «BKP-Nr.»</div>
+                  </div>
+                </div>
+                <button style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #ffffff; background: {{ accent }}; border: none; padding: 11px 24px; cursor: pointer; align-self: flex-start;" style-hover="opacity: 0.9;">Schema speichern</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ MOBILE ============ -->
+  <div style="display: flex; flex-direction: column; gap: 56px; width: 390px; flex: none;">
+    <div>
+      <div style="font-size: 12px; color: #7c7c7c; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px;">Mobile · Admin — Branding</div>
+      <div style="background: #f6f6f4; border: 1px solid #e5e5e5;">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 16px; height: 52px; background: #2b2b2b;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="color: #ffffff; font-size: 16px; cursor: pointer;">☰</span>
+            <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #ffffff;">Administration</div>
+          </div>
+          <div style="width: 26px; height: 26px; border: 1px solid #ffffff; display: flex; align-items: center; justify-content: center; font-family: 'Antonio', sans-serif; font-weight: 600; font-size: 13px; color: #ffffff;">B</div>
+        </div>
+        <div style="padding: 14px 16px 6px 16px; display: flex; align-items: center; gap: 8px; font-size: 11px; color: #7c7c7c;">
+          <span>Lindenhof</span><span>›</span><span style="color: #2b2b2b; font-weight: 600;">Branding</span>
+        </div>
+        <div style="padding: 8px 16px 24px 16px; display: flex; flex-direction: column; gap: 20px;">
+          <div>
+            <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #5a5a5a; border-bottom: 1px solid #e5e5e5; padding-bottom: 7px; margin-bottom: 2px;">Farben</div>
+            <sc-for list="{{ brandColors }}" as="c" hint-placeholder-count="5">
+              <div style="display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid #f1f1ef;">
+                <div style="width: 24px; height: 24px; flex: none; border: 1px solid #d9d9d6; background: {{ c.value }};"></div>
+                <div style="flex: 1; font-size: 12px; font-weight: 500;">{{ c.label }}</div>
+                <div style="font-size: 11px; font-variant-numeric: tabular-nums; color: #5a5a5a; border: 1px solid #e5e5e5; background: #ffffff; padding: 5px 8px;">{{ c.value }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div>
+              <div style="font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #7c7c7c; margin-bottom: 5px;">Titel-Schrift</div>
+              <div style="display: flex; align-items: center; justify-content: space-between; border: 1px solid #e5e5e5; background: #ffffff; padding: 10px 10px;"><span style="font-family: 'Antonio', sans-serif; font-size: 13px;">ANTONIO</span><span style="color: #7c7c7c; font-size: 10px;">▾</span></div>
+            </div>
+            <div>
+              <div style="font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: #7c7c7c; margin-bottom: 5px;">Text-Schrift</div>
+              <div style="display: flex; align-items: center; justify-content: space-between; border: 1px solid #e5e5e5; background: #ffffff; padding: 10px 10px;"><span style="font-size: 12px;">Montserrat</span><span style="color: #7c7c7c; font-size: 10px;">▾</span></div>
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1.6fr; gap: 12px;">
+            <div style="border: 1px dashed #c9c9c6; padding: 16px 8px; text-align: center;"><div style="font-size: 14px; color: #7c7c7c;">↑</div><div style="font-size: 10px; font-weight: 600; margin-top: 3px;">Logo</div></div>
+            <div style="border: 1px dashed #c9c9c6; padding: 16px 8px; text-align: center;"><div style="font-size: 14px; color: #7c7c7c;">↑</div><div style="font-size: 10px; font-weight: 600; margin-top: 3px;">Hero-Bild 21:9</div></div>
+          </div>
+          <div>
+            <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; color: #5a5a5a; border-bottom: 1px solid #e5e5e5; padding-bottom: 7px; margin-bottom: 10px;">Live-Vorschau</div>
+            <div style="border: 1px solid #d9d9d6; background: #f6f6f4; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e5e5e5; padding-bottom: 6px;">
+                <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase;">Wohnüberbauung Lindenhof</div>
+                <div style="width: 11px; height: 11px; border: 1px solid #2b2b2b; display: flex; align-items: center; justify-content: center; font-family: 'Antonio', sans-serif; font-size: 6px; font-weight: 600;">B</div>
+              </div>
+              <div style="border: 1px solid #e5e5e5; background: repeating-linear-gradient(45deg, #eeeeec, #eeeeec 5px, #f4f4f2 5px, #f4f4f2 10px); aspect-ratio: 21 / 9; display: flex; align-items: center; justify-content: center; font-family: monospace; font-size: 8px; color: #9a9a97;">hero 21:9</div>
+              <div style="width: 100%; height: 12px; background: {{ accent }};"></div>
+            </div>
+          </div>
+          <button style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #ffffff; background: {{ accent }}; border: none; padding: 13px 0; cursor: pointer;">Branding speichern</button>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div style="font-size: 12px; color: #7c7c7c; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px;">Mobile · Admin — Rollen</div>
+      <div style="background: #f6f6f4; border: 1px solid #e5e5e5;">
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0 16px; height: 52px; background: #2b2b2b;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="color: #ffffff; font-size: 16px; cursor: pointer;">☰</span>
+            <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 13px; letter-spacing: 0.14em; text-transform: uppercase; color: #ffffff;">Administration</div>
+          </div>
+          <div style="width: 26px; height: 26px; border: 1px solid #ffffff; display: flex; align-items: center; justify-content: center; font-family: 'Antonio', sans-serif; font-weight: 600; font-size: 13px; color: #ffffff;">B</div>
+        </div>
+        <div style="padding: 14px 16px 10px 16px; display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 8px; font-size: 11px; color: #7c7c7c;"><span>Lindenhof</span><span>›</span><span style="color: #2b2b2b; font-weight: 600;">Rollen</span></div>
+          <span style="font-size: 10px; color: #7c7c7c;">→ scrollen</span>
+        </div>
+        <div style="overflow-x: auto; border-top: 1px solid #e5e5e5;">
+          <div style="width: 720px;">
+            <div style="display: grid; grid-template-columns: 116px repeat(5, 76px) repeat(4, 56px); border-bottom: 1px solid #d9d9d6; background: #fafaf8;">
+              <div style="position: sticky; left: 0; z-index: 2; background: #fafaf8; border-right: 1px solid #d9d9d6; padding: 8px 10px; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: #5a5a5a;">Rolle</div>
+              <div style="padding: 8px 4px; text-align: center; font-family: 'Antonio', sans-serif; font-size: 8px; letter-spacing: 0.06em; text-transform: uppercase; color: #5a5a5a; border-left: 1px solid #eeeeec;">Übersicht</div>
+              <div style="padding: 8px 4px; text-align: center; font-family: 'Antonio', sans-serif; font-size: 8px; letter-spacing: 0.06em; text-transform: uppercase; color: #5a5a5a; border-left: 1px solid #eeeeec;">Pläne</div>
+              <div style="padding: 8px 4px; text-align: center; font-family: 'Antonio', sans-serif; font-size: 8px; letter-spacing: 0.06em; text-transform: uppercase; color: #5a5a5a; border-left: 1px solid #eeeeec;">Offerten</div>
+              <div style="padding: 8px 4px; text-align: center; font-family: 'Antonio', sans-serif; font-size: 8px; letter-spacing: 0.06em; text-transform: uppercase; color: #5a5a5a; border-left: 1px solid #eeeeec;">WV</div>
+              <div style="padding: 8px 4px; text-align: center; font-family: 'Antonio', sans-serif; font-size: 8px; letter-spacing: 0.06em; text-transform: uppercase; color: #5a5a5a; border-left: 1px solid #eeeeec;">Ausschr.</div>
+              <div style="padding: 8px 2px; text-align: center; font-family: 'Antonio', sans-serif; font-size: 8px; letter-spacing: 0.04em; text-transform: uppercase; color: #2b2b2b; border-left: 1px solid #d9d9d6;">BKK S</div>
+              <div style="padding: 8px 2px; text-align: center; font-family: 'Antonio', sans-serif; font-size: 8px; letter-spacing: 0.04em; text-transform: uppercase; color: #2b2b2b; border-left: 1px solid #eeeeec;">BKK B</div>
+              <div style="padding: 8px 2px; text-align: center; font-family: 'Antonio', sans-serif; font-size: 8px; letter-spacing: 0.04em; text-transform: uppercase; color: #2b2b2b; border-left: 1px solid #d9d9d6;">TB S</div>
+              <div style="padding: 8px 2px; text-align: center; font-family: 'Antonio', sans-serif; font-size: 8px; letter-spacing: 0.04em; text-transform: uppercase; color: #2b2b2b; border-left: 1px solid #eeeeec;">TB B</div>
+            </div>
+            <sc-for list="{{ roles }}" as="r" hint-placeholder-count="5">
+              <div style="display: grid; grid-template-columns: 116px repeat(5, 76px) repeat(4, 56px); align-items: center; border-bottom: 1px solid #eeeeec; background: #ffffff;">
+                <div style="position: sticky; left: 0; z-index: 1; background: #ffffff; border-right: 1px solid #d9d9d6; padding: 9px 10px;">
+                  <div style="font-size: 10px; font-weight: 700;">{{ r.name }}</div>
+                  <div style="font-size: 8px; color: #7c7c7c;">{{ r.sub }}</div>
+                </div>
+                <sc-for list="{{ r.cellsMobile }}" as="c" hint-placeholder-count="9">
+                  <div style="border-left: 1px solid {{ c.sep }}; display: flex; align-items: center; justify-content: center; align-self: stretch; padding: 8px 0; background: {{ c.zone }};">
+                    <div style="width: 15px; height: 15px; border: 1px solid {{ c.border }}; background: {{ c.bg }}; display: flex; align-items: center; justify-content: center; font-size: 9px; color: {{ c.color }};">{{ c.mark }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+        <div style="padding: 10px 16px 16px 16px; display: flex; justify-content: space-between; align-items: center;">
+          <span style="font-size: 10px; color: #7c7c7c;">Rollenspalte fixiert</span>
+          <button style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: #ffffff; background: {{ accent }}; border: none; padding: 9px 18px; cursor: pointer;">Speichern</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script type="text/x-dc" data-dc-script data-props="{
+  &quot;accentColor&quot;: { &quot;editor&quot;: &quot;color&quot;, &quot;default&quot;: &quot;#70ad47&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;options&quot;: [&quot;#70ad47&quot;, &quot;#3e7cb1&quot;, &quot;#c0713a&quot;, &quot;#5a5a5a&quot;], &quot;section&quot;: &quot;Theme (mandantenfähig)&quot; }
+}">
+class Component extends DCLogic {
+  nav(active) {
+    return ['Daten', 'Branding', 'Kategorien', 'Module', 'Rollen', 'Benutzer'].map(label => ({
+      label, fw: label === active ? 600 : 400,
+      color: label === active ? '#2b2b2b' : '#7c7c7c',
+      bg: label === active ? '#f6f6f4' : 'transparent'
+    }));
+  }
+  renderVals() {
+    const accent = this.props.accentColor ?? '#70ad47';
+    const brandColors = [
+      { label: 'Akzent', value: accent },
+      { label: 'Ink', value: '#2b2b2b' },
+      { label: 'Grau', value: '#7c7c7c' },
+      { label: 'Hintergrund', value: '#f6f6f4' },
+      { label: 'Linien', value: '#e5e5e5' }
+    ];
+    // Zellen: 1 = an, 0 = aus, '-' = nicht verfügbar. 5 Kategorien + 4 Modulspalten (BKK S/B, TB S/B)
+    const roleDefs = [
+      ['Bauleitung', 'Administrator', [1,1,1,1,1], [1,1,1,1]],
+      ['Bauherrschaft', '4 Benutzer', [1,1,1,1,1], [1,0,1,0]],
+      ['Architekt', '2 Benutzer', [1,1,1,1,1], [0,0,1,1]],
+      ['Fachplaner', '5 Benutzer', [1,1,1,0,0], [0,0,1,0]],
+      ['Unternehmer', '12 Benutzer', [0,1,0,0,1], ['-','-','-','-']]
+    ];
+    const cell = (v, i, modStart) => {
+      const isMod = i >= modStart;
+      const sep = isMod && i === modStart ? '#d9d9d6' : '#eeeeec';
+      const zone = isMod ? '#fafaf8' : 'transparent';
+      if (v === '-') return { mark: '–', color: '#c9c9c6', bg: 'transparent', border: 'transparent', sep, zone };
+      if (v === 1) return { mark: '✓', color: '#ffffff', bg: accent, border: accent, sep, zone };
+      return { mark: '', color: 'transparent', bg: '#ffffff', border: '#c9c9c6', sep, zone };
+    };
+    const roles = roleDefs.map(([name, sub, cats, mods]) => {
+      const all = [...cats, ...mods];
+      const cells = all.map((v, i) => cell(v, i, 5));
+      // Desktop hat eine Trennspalte (leer) zwischen Kategorien und Modulen — im Grid als eigene Spalte gerendert;
+      // die Zellliste enthält sie nicht, daher fügen wir einen Spacer ein.
+      const spacer = { mark: '', color: 'transparent', bg: 'transparent', border: 'transparent', sep: 'transparent', zone: '#f1f1ef' };
+      return { name, sub, cells: [...cells.slice(0, 5), spacer, ...cells.slice(5)], cellsMobile: cells };
+    });
+    const fields = [
+      { name: 'BKP-Nr.', typ: 'Text kurz', placeholder: 'z. B. 211', badge: 'BKP-Quadrat', req: true },
+      { name: 'Titel', typ: 'Text', placeholder: 'Dokumenttitel', badge: 'Kein Badge', req: true },
+      { name: 'Dokumenttyp', typ: 'Auswahl', placeholder: 'Plan / Offerte / WV', badge: 'Pille', req: true },
+      { name: 'Datei', typ: 'Upload', placeholder: 'PDF, max. 50 MB', badge: 'Format (PDF)', req: true },
+      { name: 'Datum', typ: 'Datum', placeholder: 'TT.MM.JJJJ', badge: 'Kein Badge', req: false },
+      { name: 'Notiz', typ: 'Text lang', placeholder: 'Interne Bemerkung', badge: 'Kein Badge', req: false }
+    ].map(f => ({ ...f,
+      reqMark: f.req ? '✓' : '', reqBg: f.req ? accent : '#ffffff', reqBorder: f.req ? accent : '#c9c9c6' }));
+    const sortOptions = [
+      { label: 'BKP-Nr. aufsteigend', sel: true },
+      { label: 'Datum absteigend', sel: false },
+      { label: 'Manuell (Drag & Drop)', sel: false }
+    ].map(o => ({ label: o.label, fw: o.sel ? 600 : 400, border: o.sel ? accent : '#c9c9c6', dot: o.sel ? accent : 'transparent' }));
+    return { accent, brandColors, roles, fields, sortOptions,
+      navBranding: this.nav('Branding'), navRollen: this.nav('Rollen'), navKategorien: this.nav('Kategorien') };
+  }
+}
+</script>
+</body>
+</html>

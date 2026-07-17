@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;500;600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  body { margin: 0; background: #ececea; font-family: 'Montserrat', sans-serif; color: #2b2b2b; }
+  a { color: #70ad47; text-decoration: none; }
+  a:hover { color: #5a8f38; text-decoration: underline; }
+  input::placeholder { color: #b0b0ae; }
+</style>
+</helmet>
+<div style="display: flex; align-items: flex-start; gap: 64px; padding: 48px; width: max-content;">
+
+  <!-- ============ DESKTOP 1440 ============ -->
+  <div style="width: 1440px; flex: none;">
+    <div style="font-family: 'Montserrat', sans-serif; font-size: 12px; color: #7c7c7c; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px;">Desktop · 1440</div>
+    <div style="background: #f6f6f4; border: 1px solid #e5e5e5; display: flex; flex-direction: column; min-height: 1024px;">
+
+      <!-- Header -->
+      <header style="display: flex; align-items: center; justify-content: space-between; padding: 32px 56px 28px 56px; border-bottom: 1px solid #e5e5e5;">
+        <div>
+          <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 30px; letter-spacing: 0.06em; text-transform: uppercase; color: #2b2b2b; line-height: 1.1;">Wohnüberbauung Lindenhof</div>
+          <div style="font-family: 'Antonio', sans-serif; font-weight: 400; font-size: 14px; letter-spacing: 0.28em; text-transform: uppercase; color: #7c7c7c; margin-top: 6px;">Neubau · 4 Mehrfamilienhäuser · Uster ZH</div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 14px;">
+          <div style="text-align: right;">
+            <div style="font-family: 'Antonio', sans-serif; font-weight: 600; font-size: 18px; letter-spacing: 0.12em; text-transform: uppercase; color: #2b2b2b;">Brunner</div>
+            <div style="font-family: 'Antonio', sans-serif; font-weight: 400; font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: #7c7c7c;">Baumanagement AG</div>
+          </div>
+          <div style="width: 40px; height: 40px; border: 1px solid #2b2b2b; display: flex; align-items: center; justify-content: center; font-family: 'Antonio', sans-serif; font-weight: 600; font-size: 18px; letter-spacing: 0.02em; color: #2b2b2b;">B</div>
+        </div>
+      </header>
+
+      <!-- Hero -->
+      <div style="padding: 40px 56px 0 56px;">
+        <div style="border: 1px solid #e5e5e5; padding: 8px; background: #ffffff;">
+          <div style="position: relative; width: 100%; aspect-ratio: 21 / 9;">
+            <image-slot id="hero-desktop" shape="rect" placeholder="Baustellenbild 21:9 hier ablegen"></image-slot>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 11px; letter-spacing: 0.06em; color: #7c7c7c;">
+          <span>Bauetappe 2 — Rohbau Haus C</span>
+          <span>Stand Juli 2026</span>
+        </div>
+      </div>
+
+      <!-- Info grid + Login -->
+      <div style="display: flex; gap: 40px; padding: 44px 56px 56px 56px; align-items: stretch; flex: 1;">
+        <div style="flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid #e5e5e5; border-left: 1px solid #e5e5e5;">
+          <div style="border-right: 1px solid #e5e5e5; border-bottom: 1px solid #e5e5e5; padding: 24px 22px;">
+            <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 14px; letter-spacing: 0.2em; text-transform: uppercase; color: {{ accent }}; margin-bottom: 14px;">Bauherrschaft</div>
+            <div style="font-size: 13px; line-height: 1.7; color: #5a5a5a;">
+              <div style="font-weight: 600; color: #2b2b2b;">Genossenschaft Lindenhof</div>
+              <div>Bahnhofstrasse 12</div>
+              <div>8610 Uster</div>
+            </div>
+          </div>
+          <div style="border-right: 1px solid #e5e5e5; border-bottom: 1px solid #e5e5e5; padding: 24px 22px;">
+            <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 14px; letter-spacing: 0.2em; text-transform: uppercase; color: {{ accent }}; margin-bottom: 14px;">Baumanagement</div>
+            <div style="font-size: 13px; line-height: 1.7; color: #5a5a5a;">
+              <div style="font-weight: 600; color: #2b2b2b;">Brunner Baumanagement AG</div>
+              <div>M. Brunner, dipl. Bauleiter</div>
+              <div>044 512 34 56</div>
+            </div>
+          </div>
+          <div style="border-right: 1px solid #e5e5e5; border-bottom: 1px solid #e5e5e5; padding: 24px 22px;">
+            <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 14px; letter-spacing: 0.2em; text-transform: uppercase; color: {{ accent }}; margin-bottom: 14px;">Standort</div>
+            <div style="font-size: 13px; line-height: 1.7; color: #5a5a5a;">
+              <div style="font-weight: 600; color: #2b2b2b;">Lindenhofweg 3–9</div>
+              <div>8610 Uster ZH</div>
+              <div>Parzelle 2841</div>
+            </div>
+          </div>
+          <div style="border-right: 1px solid #e5e5e5; border-bottom: 1px solid #e5e5e5; padding: 24px 22px;">
+            <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 14px; letter-spacing: 0.2em; text-transform: uppercase; color: {{ accent }}; margin-bottom: 14px;">Termine</div>
+            <div style="font-size: 13px; line-height: 1.7; color: #5a5a5a;">
+              <div>Baustart <span style="font-weight: 600; color: #2b2b2b;">03/2025</span></div>
+              <div>Aufrichte <span style="font-weight: 600; color: #2b2b2b;">09/2026</span></div>
+              <div>Bezug <span style="font-weight: 600; color: #2b2b2b;">06/2027</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Login card -->
+        <div style="width: 340px; flex: none; background: #ffffff; border: 1px solid #e5e5e5; padding: 28px 28px 24px 28px; display: flex; flex-direction: column; gap: 14px; align-self: flex-start;">
+          <div>
+            <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 16px; letter-spacing: 0.2em; text-transform: uppercase; color: #2b2b2b;">Projekt-Login</div>
+            <div style="font-size: 12px; color: #7c7c7c; margin-top: 4px;">Zugang für Bauherrschaft und Planer</div>
+          </div>
+          <label style="display: flex; flex-direction: column; gap: 6px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #7c7c7c;">E-Mail
+            <input type="email" placeholder="name@firma.ch" style="font-family: 'Montserrat', sans-serif; font-size: 13px; color: #2b2b2b; padding: 10px 12px; border: 1px solid #e5e5e5; background: #f6f6f4; outline: none;">
+          </label>
+          <label style="display: flex; flex-direction: column; gap: 6px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #7c7c7c;">Passwort
+            <input type="password" placeholder="••••••••" style="font-family: 'Montserrat', sans-serif; font-size: 13px; color: #2b2b2b; padding: 10px 12px; border: 1px solid #e5e5e5; background: #f6f6f4; outline: none;">
+          </label>
+          <button style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 15px; letter-spacing: 0.18em; text-transform: uppercase; color: #ffffff; background: {{ accent }}; border: none; padding: 12px 0; cursor: pointer; margin-top: 4px;" style-hover="opacity: 0.9;">Anmelden</button>
+          <a href="#" style="font-size: 12px; color: #7c7c7c; text-align: center;">Passwort vergessen?</a>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <footer style="display: flex; justify-content: space-between; align-items: center; padding: 20px 56px; border-top: 1px solid #e5e5e5; font-size: 11px; letter-spacing: 0.08em; color: #7c7c7c; text-transform: uppercase;">
+        <span>Projekt-Nr. 24-018</span>
+        <span>© 2026 Brunner Baumanagement AG</span>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ============ MOBILE 390 ============ -->
+  <div style="width: 390px; flex: none;">
+    <div style="font-family: 'Montserrat', sans-serif; font-size: 12px; color: #7c7c7c; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px;">Mobile · 390</div>
+    <div style="background: #f6f6f4; border: 1px solid #e5e5e5; display: flex; flex-direction: column;">
+
+      <header style="display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 22px 20px 18px 20px; border-bottom: 1px solid #e5e5e5;">
+        <div>
+          <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 20px; letter-spacing: 0.05em; text-transform: uppercase; color: #2b2b2b; line-height: 1.15;">Wohnüberbauung Lindenhof</div>
+          <div style="font-family: 'Antonio', sans-serif; font-weight: 400; font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; color: #7c7c7c; margin-top: 5px;">Neubau · Uster ZH</div>
+        </div>
+        <div style="width: 36px; height: 36px; flex: none; border: 1px solid #2b2b2b; display: flex; align-items: center; justify-content: center; font-family: 'Antonio', sans-serif; font-weight: 600; font-size: 16px; color: #2b2b2b;">B</div>
+      </header>
+
+      <div style="padding: 20px 20px 0 20px;">
+        <div style="border: 1px solid #e5e5e5; padding: 6px; background: #ffffff;">
+          <div style="position: relative; width: 100%; aspect-ratio: 16 / 10;">
+            <image-slot id="hero-mobile" shape="rect" placeholder="Baustellenbild hier ablegen"></image-slot>
+          </div>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-top: 8px; font-size: 10px; letter-spacing: 0.05em; color: #7c7c7c;">
+          <span>Rohbau Haus C</span>
+          <span>Juli 2026</span>
+        </div>
+      </div>
+
+      <!-- Login card -->
+      <div style="margin: 20px 20px 0 20px; background: #ffffff; border: 1px solid #e5e5e5; padding: 22px 20px 20px 20px; display: flex; flex-direction: column; gap: 12px;">
+        <div>
+          <div style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 15px; letter-spacing: 0.2em; text-transform: uppercase; color: #2b2b2b;">Projekt-Login</div>
+          <div style="font-size: 12px; color: #7c7c7c; margin-top: 4px;">Zugang für Bauherrschaft und Planer</div>
+        </div>
+        <label style="display: flex; flex-direction: column; gap: 6px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #7c7c7c;">E-Mail
+          <input type="email" placeholder="name@firma.ch" style="font-family: 'Montserrat', sans-serif; font-size: 14px; color: #2b2b2b; padding: 12px; border: 1px solid #e5e5e5; background: #f6f6f4; outline: none;">
+        </label>
+        <label style="display: flex; flex-direction: column; gap: 6px; font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: #7c7c7c;">Passwort
+          <input type="password" placeholder="••••••••" style="font-family: 'Montserrat', sans-serif; font-size: 14px; color: #2b2b2b; padding: 12px; border: 1px solid #e5e5e5; background: #f6f6f4; outline: none;">
+        </label>
+        <button style="font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 15px; letter-spacing: 0.18em; text-transform: uppercase; color: #ffffff; background: {{ accent }}; border: none; padding: 14px 0; cursor: pointer;" style-hover="opacity: 0.9;">Anmelden</button>
+        <a href="#" style="font-size: 12px; color: #7c7c7c; text-align: center;">Passwort vergessen?</a>
+      </div>
+
+      <!-- Info stack -->
+      <div style="margin: 20px 20px 24px 20px; border-top: 1px solid #e5e5e5;">
+        <div style="border-bottom: 1px solid #e5e5e5; padding: 16px 0; display: flex; gap: 16px;">
+          <div style="width: 118px; flex: none; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: {{ accent }};">Bauherrschaft</div>
+          <div style="font-size: 12px; line-height: 1.6; color: #5a5a5a;"><span style="font-weight: 600; color: #2b2b2b;">Genossenschaft Lindenhof</span><br>Bahnhofstrasse 12, 8610 Uster</div>
+        </div>
+        <div style="border-bottom: 1px solid #e5e5e5; padding: 16px 0; display: flex; gap: 16px;">
+          <div style="width: 118px; flex: none; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: {{ accent }};">Baumanagement</div>
+          <div style="font-size: 12px; line-height: 1.6; color: #5a5a5a;"><span style="font-weight: 600; color: #2b2b2b;">Brunner Baumanagement AG</span><br>M. Brunner · 044 512 34 56</div>
+        </div>
+        <div style="border-bottom: 1px solid #e5e5e5; padding: 16px 0; display: flex; gap: 16px;">
+          <div style="width: 118px; flex: none; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: {{ accent }};">Standort</div>
+          <div style="font-size: 12px; line-height: 1.6; color: #5a5a5a;"><span style="font-weight: 600; color: #2b2b2b;">Lindenhofweg 3–9</span><br>8610 Uster ZH · Parzelle 2841</div>
+        </div>
+        <div style="border-bottom: 1px solid #e5e5e5; padding: 16px 0; display: flex; gap: 16px;">
+          <div style="width: 118px; flex: none; font-family: 'Antonio', sans-serif; font-weight: 500; font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: {{ accent }};">Termine</div>
+          <div style="font-size: 12px; line-height: 1.6; color: #5a5a5a;">Baustart <span style="font-weight: 600; color: #2b2b2b;">03/2025</span> · Aufrichte <span style="font-weight: 600; color: #2b2b2b;">09/2026</span><br>Bezug <span style="font-weight: 600; color: #2b2b2b;">06/2027</span></div>
+        </div>
+      </div>
+
+      <footer style="display: flex; flex-direction: column; gap: 2px; align-items: center; padding: 16px 20px; border-top: 1px solid #e5e5e5; font-size: 10px; letter-spacing: 0.08em; color: #7c7c7c; text-transform: uppercase;">
+        <span>Projekt-Nr. 24-018</span>
+        <span>© 2026 Brunner Baumanagement AG</span>
+      </footer>
+    </div>
+  </div>
+</div>
+<div style="display: none;"><x-import component-from-global-scope="image-slot" from="./image-slot.js" hint-size="0,0"></x-import></div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;accentColor&quot;: { &quot;editor&quot;: &quot;color&quot;, &quot;default&quot;: &quot;#70ad47&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;options&quot;: [&quot;#70ad47&quot;, &quot;#3e7cb1&quot;, &quot;#c0713a&quot;, &quot;#5a5a5a&quot;], &quot;section&quot;: &quot;Theme (mandantenfähig)&quot; }
+}">
+class Component extends DCLogic {
+  renderVals() {
+    return { accent: this.props.accentColor ?? '#70ad47' };
+  }
+}
+</script>
+</body>
+</html>

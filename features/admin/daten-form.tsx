@@ -25,6 +25,15 @@ export function DatenForm({ project, heroPath }: DatenFormProps) {
   const [infoCells, setInfoCells] = useState<InfoCell[]>(
     project.landing.infoCells ?? [],
   );
+  const [heroCaptionLeft, setHeroCaptionLeft] = useState(
+    project.landing.heroCaptionLeft ?? '',
+  );
+  const [heroCaptionRight, setHeroCaptionRight] = useState(
+    project.landing.heroCaptionRight ?? '',
+  );
+  const [loginSubtext, setLoginSubtext] = useState(
+    project.landing.loginSubtext ?? '',
+  );
   const [hero, setHero] = useState(heroPath);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -46,6 +55,9 @@ export function DatenForm({ project, heroPath }: DatenFormProps) {
           subtitle,
           description,
           infoCells: infoCells.filter((c) => c.label || c.value),
+          heroCaptionLeft: heroCaptionLeft.trim(),
+          heroCaptionRight: heroCaptionRight.trim(),
+          loginSubtext: loginSubtext.trim(),
         },
       })
       .eq('id', project.id);
@@ -136,6 +148,49 @@ export function DatenForm({ project, heroPath }: DatenFormProps) {
             rows={3}
             className={inputClass}
           />
+        </label>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="flex flex-col gap-1">
+            <span className="text-xs font-medium text-primary-dark">
+              {texts.admin.daten.heroCaptionLeft}
+            </span>
+            <input
+              value={heroCaptionLeft}
+              onChange={(e) => setHeroCaptionLeft(e.target.value)}
+              className={inputClass}
+            />
+            <span className="text-xs text-primary">
+              {texts.admin.daten.optionalHint}
+            </span>
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-xs font-medium text-primary-dark">
+              {texts.admin.daten.heroCaptionRight}
+            </span>
+            <input
+              value={heroCaptionRight}
+              onChange={(e) => setHeroCaptionRight(e.target.value)}
+              className={inputClass}
+            />
+            <span className="text-xs text-primary">
+              {texts.admin.daten.optionalHint}
+            </span>
+          </label>
+        </div>
+
+        <label className="flex flex-col gap-1">
+          <span className="text-xs font-medium text-primary-dark">
+            {texts.admin.daten.loginSubtext}
+          </span>
+          <input
+            value={loginSubtext}
+            onChange={(e) => setLoginSubtext(e.target.value)}
+            className={inputClass}
+          />
+          <span className="text-xs text-primary">
+            {texts.admin.daten.optionalHint}
+          </span>
         </label>
 
         <fieldset className="border border-line p-3">

@@ -38,7 +38,7 @@ export function LoginForm({
       <div className="flex flex-col gap-3">
         <Link
           href="/hub"
-          className="block w-full bg-accent px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-accent-dark"
+          className="display-title block w-full bg-accent px-4 py-3 text-center text-[15px] font-medium tracking-[0.18em] text-white transition-opacity hover:opacity-90"
         >
           {texts.landing.toHub}
         </Link>
@@ -50,9 +50,9 @@ export function LoginForm({
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-3">
-      <label className="flex flex-col gap-1">
-        <span className="text-xs font-medium text-primary-dark">
+    <form action={formAction} className="flex flex-col gap-3.5">
+      <label className="flex flex-col gap-1.5">
+        <span className="text-[11px] uppercase tracking-[0.08em] text-primary">
           {texts.landing.loginEmail}
         </span>
         <input
@@ -60,11 +60,11 @@ export function LoginForm({
           name="email"
           required
           autoComplete="email"
-          className="border border-line bg-white px-3 py-2 text-sm text-ink outline-none focus:border-accent"
+          className="border border-line bg-bg px-3 py-2.5 text-sm text-ink outline-none focus:border-accent"
         />
       </label>
-      <label className="flex flex-col gap-1">
-        <span className="text-xs font-medium text-primary-dark">
+      <label className="flex flex-col gap-1.5">
+        <span className="text-[11px] uppercase tracking-[0.08em] text-primary">
           {texts.landing.loginPassword}
         </span>
         <input
@@ -72,7 +72,7 @@ export function LoginForm({
           name="password"
           required
           autoComplete="current-password"
-          className="border border-line bg-white px-3 py-2 text-sm text-ink outline-none focus:border-accent"
+          className="border border-line bg-bg px-3 py-2.5 text-sm text-ink outline-none focus:border-accent"
         />
       </label>
       {error && (
@@ -83,13 +83,13 @@ export function LoginForm({
       <button
         type="submit"
         disabled={pending}
-        className="bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-dark disabled:opacity-60"
+        className="display-title mt-1 bg-accent px-4 py-3 text-[15px] font-medium tracking-[0.18em] text-white transition-opacity hover:opacity-90 disabled:opacity-60"
       >
         {pending ? texts.landing.loginPending : texts.landing.loginButton}
       </button>
       <Link
         href="/passwort-vergessen"
-        className="text-xs text-primary underline-offset-2 hover:text-primary-dark hover:underline"
+        className="text-center text-xs text-primary underline-offset-2 hover:text-primary-dark hover:underline"
       >
         {texts.landing.forgotPassword}
       </Link>
