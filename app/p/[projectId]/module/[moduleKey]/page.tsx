@@ -141,6 +141,13 @@ export default async function ModulePage({
       <LvClient
         projectId={projectId}
         projectName={tenant?.project.name ?? ''}
+        projectNo={tenant?.project.project_no ?? null}
+        managementName={tenant?.branding?.management_name ?? null}
+        managementLogoUrl={
+          tenant?.branding?.management_logo_path
+            ? publicBrandingUrl(tenant.branding.management_logo_path)
+            : null
+        }
         canEdit={canEdit}
         initialUnits={units ?? []}
         initialSteps={steps ?? []}

@@ -190,10 +190,8 @@ export const texts = {
     kpiOff: 'Offerten erhalten',
     kpiWv: 'WV zurück',
     kpiOpen: 'Offen',
-    pctOf: 'von',
     colUnit: 'Vergabeeinheit',
     colStatus: 'Status',
-    cellOpen: 'offen',
     status: {
       offen: 'Offen',
       nach_aufwand: '⊘ Nach Aufwand',
@@ -224,6 +222,18 @@ export const texts = {
       'Als «nach Aufwand» gilt eine Einheit, wenn alle vier WV-Schritte den ⊘-Marker tragen.',
     emptyModule:
       'Noch keine Vergabeeinheiten erfasst. Die Daten kommen mit der Migration des bestehenden Tools (P2-M4) oder über «+ Vergabeeinheit».',
+    matrixTitle: 'Workflow-Matrix',
+    unitCountSuffix: 'Vergabeeinheiten',
+    scrollHint: '→ horizontal scrollen',
+    legend: {
+      title: 'Lesart',
+      last: 'letzter erledigter Schritt',
+      done: 'erledigt (tritt zurück)',
+      doneMarker: 'erledigt ohne Datum',
+      na: 'nach Aufwand',
+      open: 'offen',
+      dimmed: 'Abgeschlossene Zeilen sind gedimmt',
+    },
   },
   hub: {
     title: 'Dokumente',

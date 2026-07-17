@@ -4,6 +4,11 @@
  * CHF-Beträge zweistellig (CHF 1'250'000.00).
  */
 
+/** 2026-06-01 → «01.06.26» (kompakte Matrix-Zellen, Design-Referenz LV) */
+export function formatDateShort(value: string | Date): string {
+  return formatDate(value).replace(/\.(\d{2})(\d{2})$/, '.$2');
+}
+
 /** 2026-06-01 → «01.06.2026» */
 export function formatDate(value: string | Date): string {
   const date = typeof value === 'string' ? new Date(value) : value;
