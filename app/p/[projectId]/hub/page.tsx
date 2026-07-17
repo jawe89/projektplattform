@@ -112,6 +112,7 @@ export default async function HubPage({
     <HubClient
       projectId={projectId}
       projectName={tenant?.project.name ?? ''}
+      projectNo={tenant?.project.project_no ?? null}
       managementName={branding?.management_name ?? null}
       managementLogoUrl={
         branding?.management_logo_path

@@ -52,7 +52,7 @@ export const texts = {
   modules: {
     sectionTitle: 'Module',
     badge: 'Modul',
-    open: 'Öffnen',
+    open: 'Modul öffnen',
     comingSoon: 'Dieses Modul wird mit dem nächsten Ausbauschritt freigeschaltet.',
     baukostenkontrolle: {
       label: 'Baukostenkontrolle',
@@ -231,6 +231,10 @@ export const texts = {
   hub: {
     title: 'Dokumente',
     logout: 'Abmelden',
+    docCountSuffix: 'Dokumente',
+    docCountSuffixOne: 'Dokument',
+    moduleCountSuffix: 'Module',
+    moduleCountSuffixOne: 'Modul',
     loggedInAs: 'Angemeldet als',
     roleLabel: 'Rolle',
     emptyCategory: 'Noch keine Einträge.',

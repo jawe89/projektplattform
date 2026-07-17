@@ -20,6 +20,8 @@ export interface HubDoc {
 interface HubClientProps {
   projectId: string;
   projectName: string;
+  /** Projekt-Nr. für Kopfzeile und Footer (Design-Referenz) */
+  projectNo: string | null;
   managementName: string | null;
   managementLogoUrl: string | null;
   /** Hero-Bild aus dem Branding (öffentliche URL) oder null */
@@ -69,6 +71,7 @@ function cardParts(doc: HubDoc, category: Category) {
 export function HubClient({
   projectId,
   projectName,
+  projectNo,
   managementName,
   managementLogoUrl,
   heroUrl,
@@ -348,34 +351,31 @@ export function HubClient({
         <button
           type="button"
           onClick={() => toggleExpanded(parent.id)}
-          className="flex w-full items-center justify-between px-4 py-2 text-xs text-primary-dark hover:text-ink"
+          className="flex w-full items-center justify-between px-4 py-2 text-[11px] font-medium text-primary-dark hover:text-ink sm:px-5 sm:text-xs"
         >
           <span>
             {texts.hub.childrenLabel} ({children.length})
           </span>
           <span
-            className={`transition-transform ${isOpen ? 'rotate-90' : ''}`}
+            className={`text-primary transition-transform ${isOpen ? 'rotate-180' : ''}`}
           >
-            ›
+            ▾
           </span>
         </button>
         {isOpen && (
-          <ul>
+          <ul className="mb-3 ml-4 border-l border-line pr-3 sm:ml-5 sm:pr-4">
             {children.map((child) => {
               const parts = cardParts(child, category);
               return (
               <li
                 key={child.id}
                 {...dragProps(child, category)}
-                className="flex items-center gap-3 border-t border-line px-4 py-2"
+                className="flex items-center gap-2.5 py-1.5 pl-3 transition-colors hover:bg-bg"
               >
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center border border-line bg-bg text-[10px] font-semibold text-primary-dark">
-                  {parts.badge}
-                </span>
                 <span className="min-w-0 flex-1">
-                  {titleNode(child, parts.title, 'block truncate text-sm text-ink')}
+                  {titleNode(child, parts.title, 'block truncate text-xs font-medium text-ink')}
                   {parts.sub && (
-                    <span className="block truncate text-xs text-primary">
+                    <span className="block truncate text-[10px] text-primary sm:text-[11px]">
                       {parts.sub}
                     </span>
                   )}
@@ -387,7 +387,7 @@ export function HubClient({
                     target="_blank"
                     rel="noreferrer"
                     title={texts.hub.download}
-                    className="shrink-0 border border-line bg-white px-2 py-1 text-xs text-accent hover:border-accent"
+                    className="flex h-6.5 w-6.5 shrink-0 items-center justify-center border border-line bg-white text-xs text-primary-dark transition-colors hover:border-accent hover:text-accent"
                   >
                     ↓
                   </a>
@@ -396,13 +396,13 @@ export function HubClient({
               );
             })}
             {canUploadByCategory[category.id] && (
-              <li className="border-t border-line px-4 py-2">
+              <li className="py-1.5 pl-3">
                 <button
                   type="button"
                   onClick={() =>
                     setModal({ category, parentId: parent.id })
                   }
-                  className="w-full border border-dashed border-line px-3 py-1.5 text-xs text-primary hover:border-accent hover:text-accent"
+                  className="w-full border border-dashed border-line px-3 py-1.5 text-[11px] text-primary hover:border-primary hover:text-primary-dark"
                 >
                   {texts.hub.addChild}
                 </button>
@@ -421,20 +421,24 @@ export function HubClient({
       <article
         key={doc.id}
         {...dragProps(doc, category)}
-        className="flex flex-col border border-line bg-white"
+        className="flex flex-col border border-line bg-white transition-colors hover:border-primary"
       >
-        <div className="flex flex-1 flex-col gap-2 p-5">
+        <div className="flex flex-1 flex-col gap-2 p-4 sm:gap-2.5 sm:p-5">
           <div className="flex items-start justify-between gap-2">
-            <span className="display-title inline-block border border-accent px-2 py-0.5 text-[10px] text-accent">
-              {parts.badge}
-            </span>
+            {parts.badge ? (
+              <span className="display-title inline-block border border-accent px-2 py-0.5 text-[10px] font-medium tracking-[0.2em] text-accent">
+                {parts.badge}
+              </span>
+            ) : (
+              <span />
+            )}
             {editorControls(doc, category)}
           </div>
-          <h3 className="text-sm font-semibold">
+          <h3 className="display-title text-sm leading-snug font-medium tracking-[0.05em] sm:text-[17px] sm:tracking-[0.06em]">
             {titleNode(doc, parts.title, 'text-ink')}
           </h3>
           {parts.sub && (
-            <p className="text-xs leading-relaxed text-primary">
+            <p className="text-[11px] leading-relaxed text-primary sm:text-xs">
               {parts.sub}
             </p>
           )}
@@ -443,7 +447,7 @@ export function HubClient({
               href={href}
               target="_blank"
               rel="noreferrer"
-              className="mt-auto pt-2 text-xs font-medium text-accent hover:text-accent-dark"
+              className="mt-auto border-t border-line pt-2.5 text-xs font-medium text-accent hover:text-accent-dark"
             >
               {texts.hub.open} →
             </a>
@@ -461,15 +465,15 @@ export function HubClient({
       <li
         key={doc.id}
         {...dragProps(doc, category)}
-        className="flex items-center gap-3 border border-line bg-white px-4 py-3"
+        className="flex items-center gap-3 border-b border-line px-1 py-2.5 transition-colors hover:bg-white sm:gap-3.5"
       >
-        <span className="display-title flex h-10 w-10 shrink-0 items-center justify-center border border-line bg-bg text-xs text-primary-dark">
+        <span className="display-title flex h-9 w-9 shrink-0 items-center justify-center border border-line bg-white text-xs font-semibold text-primary-dark sm:h-10 sm:w-10 sm:text-[13px]">
           {parts.badge}
         </span>
         <span className="min-w-0 flex-1">
-          {titleNode(doc, parts.title, 'block truncate text-sm font-medium text-ink')}
+          {titleNode(doc, parts.title, 'block truncate text-xs font-semibold text-ink sm:text-[13px]')}
           {parts.sub && (
-            <span className="block truncate text-xs text-primary">
+            <span className="mt-0.5 block truncate text-[10px] text-primary sm:text-[11px]">
               {parts.sub}
             </span>
           )}
@@ -481,7 +485,7 @@ export function HubClient({
             target="_blank"
             rel="noreferrer"
             title={texts.hub.download}
-            className="shrink-0 border border-line bg-white px-2.5 py-1.5 text-sm text-accent hover:border-accent"
+            className="flex h-7 w-7 shrink-0 items-center justify-center border border-line bg-white text-[13px] text-primary-dark transition-colors hover:border-accent hover:text-accent sm:h-8 sm:w-8"
           >
             ↓
           </a>
@@ -492,33 +496,44 @@ export function HubClient({
 
   // -------------------------------------------------------------------------
 
+  const monogram = managementName?.trim().charAt(0).toUpperCase();
+  const docCountLabel = (n: number) =>
+    `${n} ${n === 1 ? texts.hub.docCountSuffixOne : texts.hub.docCountSuffix}`;
+
   return (
-    <div className="min-h-screen">
-      {/* Sticky Toolbar */}
+    <div className="flex min-h-screen flex-col">
+      {/* Sticky Toolbar (Design-Referenz: weiss, Monogramm/Logo + Firmen-
+          zeile links, Speicherstatus + Antonio-Buttons rechts) */}
       <header className="sticky top-0 z-30 border-b border-line bg-white">
-        <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-6 py-3">
+        <div className="mx-auto flex h-13 w-full max-w-7xl items-center justify-between gap-3 px-4 sm:h-14 sm:px-14">
           <div className="flex min-w-0 items-center gap-3">
             {managementLogoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element -- externe Storage-URL
               <img
                 src={managementLogoUrl}
                 alt={managementName ?? ''}
-                className="h-8 w-auto shrink-0"
+                className="h-7 w-auto shrink-0"
               />
             ) : (
-              <span className="display-title text-sm text-primary-dark">
-                {managementName}
-              </span>
+              monogram && (
+                <span className="display-title flex h-7 w-7 shrink-0 items-center justify-center border border-ink text-sm font-semibold text-ink">
+                  {monogram}
+                </span>
+              )
             )}
+            <span className="display-title hidden truncate text-[15px] font-medium tracking-[0.14em] text-ink lg:block">
+              {managementName}
+            </span>
+            <span className="hidden h-5 w-px shrink-0 bg-line sm:block" />
             <span className="hidden truncate text-xs text-primary sm:block">
               {projectName}
             </span>
           </div>
-          <div className="flex shrink-0 items-center gap-3">
+          <div className="flex shrink-0 items-center gap-2.5 sm:gap-5">
             {isEditor && (
               <>
                 <span
-                  className={`text-xs font-medium ${
+                  className={`text-[11px] font-semibold sm:text-xs ${
                     dirty ? 'text-warn' : 'text-accent'
                   }`}
                 >
@@ -528,7 +543,7 @@ export function HubClient({
                   type="button"
                   onClick={handleSave}
                   disabled={!dirty || saving}
-                  className="bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-dark disabled:opacity-50"
+                  className="display-title bg-accent px-3.5 py-2 text-[11px] font-medium tracking-[0.12em] text-white transition-opacity hover:opacity-90 disabled:opacity-50 sm:px-5 sm:text-[13px] sm:tracking-[0.14em]"
                 >
                   {texts.common.save}
                 </button>
@@ -539,12 +554,29 @@ export function HubClient({
         </div>
       </header>
 
-      {/* Hero-Bild aus dem Branding (entfällt ersatzlos ohne Bild).
-          Gleiche Ausschnittlogik wie die Landingpage (16:9 mobil, 21:9 ab sm),
-          nur kompakter gedeckelt – Banner-Charakter statt schmalem Streifen. */}
+      {/* Kompakte Kopfzeile: Titel + Projektzeile links, Dokumentzähler rechts */}
+      <div className="border-b border-line">
+        <div className="mx-auto flex w-full max-w-7xl items-end justify-between gap-4 px-5 py-5 sm:px-14 sm:py-7">
+          <div className="min-w-0">
+            <h1 className="display-title text-xl leading-tight font-medium tracking-[0.06em] text-ink sm:text-[26px]">
+              {texts.hub.title}
+            </h1>
+            <p className="display-title mt-1 truncate text-[10px] tracking-[0.22em] text-primary sm:text-xs sm:tracking-[0.26em]">
+              {projectName}
+              {projectNo &&
+                ` · ${texts.landing.projectNoPrefix} ${projectNo}`}
+            </p>
+          </div>
+          <span className="hidden shrink-0 text-xs text-primary sm:block">
+            {docCountLabel(docs.length)}
+          </span>
+        </div>
+      </div>
+
+      {/* Hero-Bild aus dem Branding (entfällt ersatzlos ohne Bild) */}
       {heroUrl && (
-        <div className="mx-auto max-w-5xl px-6 pt-6">
-          <figure className="border border-line bg-white p-1">
+        <div className="mx-auto w-full max-w-7xl px-5 pt-5 sm:px-14 sm:pt-7">
+          <figure className="border border-line bg-white p-1.5 sm:p-2">
             {/* eslint-disable-next-line @next/next/no-img-element -- externe Storage-URL */}
             <img
               src={heroUrl}
@@ -555,14 +587,14 @@ export function HubClient({
         </div>
       )}
 
-      {/* Sprungnavigation (Kategorien-Anker + Modul-Links) */}
-      <nav className="mt-6 border-y border-line bg-white">
-        <div className="mx-auto flex max-w-5xl gap-4 overflow-x-auto px-6 py-2">
+      {/* Sprungnavigation: Antonio-Einträge mit Zähler (mobil als Chips) */}
+      <nav className="mt-5 border-y border-line bg-bg sm:mt-7">
+        <div className="mx-auto flex w-full max-w-7xl items-center gap-2 overflow-x-auto px-5 py-2.5 sm:gap-7 sm:px-14 sm:py-0">
           {modules.map((module) => (
             <a
               key={module.key}
               href={`/module/${module.key}`}
-              className="display-title shrink-0 text-xs text-accent-dark hover:text-accent"
+              className="display-title shrink-0 py-3.5 text-[13px] font-medium tracking-[0.14em] text-ink transition-colors hover:text-accent-dark max-sm:border max-sm:border-line max-sm:bg-white max-sm:px-3 max-sm:py-1.5 max-sm:text-[11px] max-sm:tracking-[0.12em]"
             >
               {module.label}
             </a>
@@ -571,43 +603,50 @@ export function HubClient({
             <a
               key={category.id}
               href={`#${category.key}`}
-              className="display-title shrink-0 text-xs text-primary hover:text-accent"
+              className="display-title shrink-0 py-3.5 text-[13px] font-medium tracking-[0.14em] text-primary transition-colors hover:text-ink max-sm:border max-sm:border-line max-sm:bg-white max-sm:px-3 max-sm:py-1.5 max-sm:text-[11px] max-sm:tracking-[0.12em]"
             >
-              {category.label}
+              {category.label}{' '}
+              <span className="font-normal text-primary">
+                {docsOf(category, null).length}
+              </span>
             </a>
           ))}
         </div>
       </nav>
 
       {/* Kategorien-Abschnitte */}
-      <main className="mx-auto max-w-5xl px-6 pt-8 pb-16">
-        <h1 className="display-title mb-8 text-2xl text-ink">{projectName}</h1>
-
-        {/* Modul-Einstiegskarten (P2-M1) */}
+      <main className="mx-auto w-full max-w-7xl flex-1 px-5 pt-7 pb-14 sm:px-14 sm:pt-10">
+        {/* Modul-Einstiegskarten (P2-M1) – dunkle Karten gemäss Referenz */}
         {modules.length > 0 && (
-          <section className="mb-12">
-            <div className="mb-4 flex items-baseline justify-between border-b border-line pb-2">
-              <h2 className="display-title text-lg text-ink">
+          <section className="mb-10 sm:mb-12">
+            <div className="mb-4 flex items-baseline gap-3">
+              <h2 className="display-title text-[15px] font-medium tracking-[0.14em] text-ink sm:text-lg sm:tracking-[0.16em]">
                 {texts.modules.sectionTitle}
               </h2>
+              <span className="text-[11px] text-primary sm:text-xs">
+                {modules.length}{' '}
+                {modules.length === 1
+                  ? texts.hub.moduleCountSuffixOne
+                  : texts.hub.moduleCountSuffix}
+              </span>
             </div>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2 sm:gap-5">
               {modules.map((module) => (
                 <a
                   key={module.key}
                   href={`/module/${module.key}`}
-                  className="group flex flex-col gap-2 border border-line bg-white p-5 transition-colors hover:border-accent"
+                  className="group flex flex-col gap-2 bg-ink p-5 transition-colors hover:bg-ink/90 sm:gap-2.5 sm:p-7"
                 >
-                  <span className="display-title inline-block self-start border border-accent px-2 py-0.5 text-[10px] text-accent">
+                  <span className="display-title self-start bg-accent px-2.5 py-1 text-[9px] font-medium tracking-[0.22em] text-ink sm:text-[10px] sm:tracking-[0.24em]">
                     {texts.modules.badge}
                   </span>
-                  <span className="text-sm font-semibold text-ink group-hover:text-accent">
+                  <span className="display-title text-[17px] font-medium tracking-[0.07em] text-white sm:text-[22px] sm:tracking-[0.08em]">
                     {module.label}
                   </span>
-                  <span className="text-xs leading-relaxed text-primary">
+                  <span className="text-xs leading-relaxed text-white/60 sm:text-[13px]">
                     {module.description}
                   </span>
-                  <span className="mt-auto pt-2 text-xs font-medium text-accent">
+                  <span className="mt-1 text-[13px] text-accent">
                     {texts.modules.open} →
                   </span>
                 </a>
@@ -623,14 +662,14 @@ export function HubClient({
             <section
               key={category.id}
               id={category.key}
-              className="mb-12 scroll-mt-24"
+              className="mb-10 scroll-mt-24 sm:mb-12"
             >
-              <div className="mb-4 flex items-baseline justify-between border-b border-line pb-2">
-                <h2 className="display-title text-lg text-ink">
+              <div className="mb-4 flex items-baseline gap-3">
+                <h2 className="display-title text-[15px] font-medium tracking-[0.14em] text-ink sm:text-lg sm:tracking-[0.16em]">
                   {category.label}
                 </h2>
-                <span className="text-xs text-primary">
-                  {topDocs.length} {category.label}
+                <span className="text-[11px] text-primary sm:text-xs">
+                  {docCountLabel(topDocs.length)}
                 </span>
               </div>
 
@@ -641,38 +680,58 @@ export function HubClient({
               )}
 
               {category.layout === 'big' ? (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid gap-3 sm:grid-cols-2 sm:gap-5 lg:grid-cols-3 xl:grid-cols-4">
                   {topDocs.map((doc) => bigCard(doc, category))}
                   {canUpload && (
                     <button
                       type="button"
                       onClick={() => setModal({ category, parentId: null })}
-                      className="flex min-h-28 items-center justify-center border border-dashed border-line bg-transparent p-5 text-sm text-primary hover:border-accent hover:text-accent"
+                      className="group flex min-h-14 items-center justify-center gap-2 border border-dashed border-line bg-transparent p-4 text-primary transition-colors hover:border-primary hover:text-primary-dark sm:min-h-36 sm:flex-col sm:gap-1.5"
                     >
-                      {category.add_label ?? texts.hub.addFallback}
+                      <span className="text-lg font-light sm:text-[22px]">+</span>
+                      <span className="display-title text-[11px] font-medium tracking-[0.14em] sm:text-xs sm:tracking-[0.16em]">
+                        {(category.add_label ?? texts.hub.addFallback).replace(/^\+\s*/, '')}
+                      </span>
                     </button>
                   )}
                 </div>
               ) : (
-                <ul className="flex flex-col gap-2">
-                  {topDocs.map((doc) => listCard(doc, category))}
+                <>
+                  <ul className="border-t border-line lg:grid lg:grid-cols-2 lg:gap-x-10">
+                    {topDocs.map((doc) => listCard(doc, category))}
+                  </ul>
                   {canUpload && (
-                    <li>
-                      <button
-                        type="button"
-                        onClick={() => setModal({ category, parentId: null })}
-                        className="w-full border border-dashed border-line px-4 py-3 text-sm text-primary hover:border-accent hover:text-accent"
-                      >
-                        {category.add_label ?? texts.hub.addFallback}
-                      </button>
-                    </li>
+                    <button
+                      type="button"
+                      onClick={() => setModal({ category, parentId: null })}
+                      className="mt-4 inline-flex items-center gap-2.5 border border-dashed border-line px-5 py-3 text-primary transition-colors hover:border-primary hover:text-primary-dark"
+                    >
+                      <span className="text-base font-light">+</span>
+                      <span className="display-title text-[11px] font-medium tracking-[0.14em] sm:text-xs sm:tracking-[0.16em]">
+                        {(category.add_label ?? texts.hub.addFallback).replace(/^\+\s*/, '')}
+                      </span>
+                    </button>
                   )}
-                </ul>
+                </>
               )}
             </section>
           );
         })}
       </main>
+
+      {/* Footer mit Projekt-Nr. und ©-Zeile (Design-Referenz) */}
+      <footer className="border-t border-line">
+        <div className="mx-auto flex w-full max-w-7xl flex-col items-center gap-0.5 px-5 py-4 text-[10px] uppercase tracking-[0.08em] text-primary sm:flex-row sm:justify-between sm:px-14 sm:py-5 sm:text-[11px]">
+          <span>
+            {projectNo && `${texts.landing.projectNoPrefix} ${projectNo}`}
+          </span>
+          {managementName && (
+            <span>
+              © {new Date().getFullYear()} {managementName}
+            </span>
+          )}
+        </div>
+      </footer>
 
       {modal && (
         <DocumentModal

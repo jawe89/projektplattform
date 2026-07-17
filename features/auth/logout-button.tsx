@@ -11,7 +11,7 @@ export function LogoutButton() {
     <form action="/auth/signout" method="post">
       <button
         type="submit"
-        className="border border-line bg-white px-4 py-2 text-sm text-primary-dark transition-colors hover:border-primary"
+        className="display-title border border-line bg-transparent px-3.5 py-2 text-[11px] font-medium tracking-[0.12em] text-primary-dark transition-colors hover:border-primary-dark sm:px-5 sm:text-[13px] sm:tracking-[0.14em]"
       >
         {texts.hub.logout}
       </button>
