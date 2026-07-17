@@ -127,3 +127,46 @@ export interface RoleModuleAccess {
   can_view: boolean;
   can_edit: boolean;
 }
+
+// Modul Baukostenkontrolle (supabase/migrations/0007_bkk_schema.sql)
+
+export interface BkkGroup {
+  id: string;
+  project_id: string;
+  /** BKP-Hauptgruppe: '0', '1', '2', … */
+  digit: string;
+  name: string;
+  sort: number;
+}
+
+export interface BkkPosition {
+  id: string;
+  project_id: string;
+  group_id: string;
+  bkp: string;
+  name: string;
+  /** Originalbudget in Rappen (historisch fix) */
+  kv_orig_rp: number;
+  /** Mutiertes KV in Rappen; null = wie Original */
+  kv_mut_rp: number | null;
+  is_custom: boolean;
+  hidden: boolean;
+  notiz: string | null;
+  sort: number;
+}
+
+export type BkkEntryType = 'vertrag' | 'zahlung';
+
+export interface BkkEntry {
+  id: string;
+  project_id: string;
+  position_id: string;
+  entry_type: BkkEntryType;
+  /** Betrag in Rappen (exakt gespeichert, keine Rundung) */
+  betrag_rp: number;
+  /** ISO-Datum (YYYY-MM-DD) oder null */
+  datum: string | null;
+  unternehmer: string | null;
+  notiz: string | null;
+  source_id: string | null;
+}

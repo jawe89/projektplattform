@@ -17,6 +17,24 @@
   /* Semantische Statusfarben (nicht tenant-spezifisch) */
   --color-warn: #c07c1d;
   --color-error: #b3261e;
+  /* Modul Baukostenkontrolle: Spaltbereich-Töne (Referenz: Alt-Tool-CSS).
+     Original rot-getönt, Mutationen grün, Verträge blau, Zahlungen sand. */
+  --color-bkk-orig-head: #f9dcd8;
+  --color-bkk-orig-tint: #fdf2f0;
+  --color-bkk-orig-bord: #d97e76;
+  --color-bkk-orig-ink: #7a2c25;
+  --color-bkk-mut-head: #d8ecc6;
+  --color-bkk-mut-tint: #f1f8ea;
+  --color-bkk-mut-bord: #6fa54a;
+  --color-bkk-mut-ink: #2f5b1a;
+  --color-bkk-vert-head: #cfdff5;
+  --color-bkk-vert-tint: #ecf2fa;
+  --color-bkk-vert-bord: #4378c0;
+  --color-bkk-vert-ink: #1f3e6e;
+  --color-bkk-zahl-head: #e2cfaf;
+  --color-bkk-zahl-tint: #f5edd9;
+  --color-bkk-zahl-bord: #8b6f47;
+  --color-bkk-zahl-ink: #5a4221;
   --font-display: 'Antonio', sans-serif;
   --font-body: 'Montserrat', sans-serif;
 }
@@ -37,6 +55,22 @@
   --color-ink: var(--color-ink);
   --color-warn: var(--color-warn);
   --color-error: var(--color-error);
+  --color-bkk-orig-head: var(--color-bkk-orig-head);
+  --color-bkk-orig-tint: var(--color-bkk-orig-tint);
+  --color-bkk-orig-bord: var(--color-bkk-orig-bord);
+  --color-bkk-orig-ink: var(--color-bkk-orig-ink);
+  --color-bkk-mut-head: var(--color-bkk-mut-head);
+  --color-bkk-mut-tint: var(--color-bkk-mut-tint);
+  --color-bkk-mut-bord: var(--color-bkk-mut-bord);
+  --color-bkk-mut-ink: var(--color-bkk-mut-ink);
+  --color-bkk-vert-head: var(--color-bkk-vert-head);
+  --color-bkk-vert-tint: var(--color-bkk-vert-tint);
+  --color-bkk-vert-bord: var(--color-bkk-vert-bord);
+  --color-bkk-vert-ink: var(--color-bkk-vert-ink);
+  --color-bkk-zahl-head: var(--color-bkk-zahl-head);
+  --color-bkk-zahl-tint: var(--color-bkk-zahl-tint);
+  --color-bkk-zahl-bord: var(--color-bkk-zahl-bord);
+  --color-bkk-zahl-ink: var(--color-bkk-zahl-ink);
   --color-white: #ffffff;
   --font-display: var(--font-display);
   --font-body: var(--font-body);

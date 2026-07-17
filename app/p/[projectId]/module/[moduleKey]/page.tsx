@@ -1,19 +1,28 @@
 import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { LogoutButton } from '@/features/auth/logout-button';
+import { BkkClient } from '@/features/bkk/bkk-client';
+import { formatDate } from '@/lib/format';
 import { isModuleKey, MODULES } from '@/lib/modules';
 import { createClient } from '@/lib/supabase/server';
 import { getTenantData } from '@/lib/tenant';
 import { texts } from '@/lib/texts';
-import type { ProjectModule, RoleModuleAccess } from '@/lib/types';
+import type {
+  BkkEntry,
+  BkkGroup,
+  BkkPosition,
+  ProjectModule,
+  RoleModuleAccess,
+} from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
 
 /**
- * Modul-Seite (P2-M1: Platzhalter, Inhalte folgen mit P2-M2/M3).
- * Serverseitige Prüfkette: Login → Projektmitgliedschaft → Modul aktiviert →
- * Rollen-Freigabe (can_view) bzw. Projekt-Admin. Nicht freigegebene oder
- * deaktivierte Module sind schlicht «nicht gefunden».
+ * Modul-Seite. Serverseitige Prüfkette: Login → Projektmitgliedschaft →
+ * Modul aktiviert → Rollen-Freigabe (can_view) bzw. Projekt-Admin. Nicht
+ * freigegebene oder deaktivierte Module sind schlicht «nicht gefunden».
+ * Baukostenkontrolle rendert die BKK-Oberfläche (P2-M2), das
+ * Leistungsverzeichnis bleibt bis P2-M3 ein Platzhalter.
  */
 export default async function ModulePage({
   params,
@@ -67,6 +76,57 @@ export default async function ModulePage({
   if (!canView) notFound();
 
   const tenant = await getTenantData(projectId);
+
+  if (moduleKey === 'baukostenkontrolle') {
+    // RLS filtert zusätzlich (can_view_module); Reihenfolge: Gruppen nach
+    // sort/digit, Positionen nach sort (Anzeige sortiert natürlich nach BKP),
+    // Einträge nach Datum (ohne Datum zuletzt) und Erfassungszeit.
+    const [{ data: groups }, { data: positions }, { data: entries }] =
+      await Promise.all([
+        supabase
+          .from('bkk_groups')
+          .select('*')
+          .eq('project_id', projectId)
+          .order('sort')
+          .order('digit')
+          .returns<BkkGroup[]>(),
+        supabase
+          .from('bkk_positions')
+          .select('*')
+          .eq('project_id', projectId)
+          .order('sort')
+          .returns<BkkPosition[]>(),
+        supabase
+          .from('bkk_entries')
+          .select('*')
+          .eq('project_id', projectId)
+          .order('datum', { ascending: true, nullsFirst: false })
+          .order('created_at')
+          .returns<BkkEntry[]>(),
+      ]);
+
+    const settings = projectModule.settings ?? {};
+    const kvOrigDatum =
+      typeof settings.kv_orig_datum === 'string' && settings.kv_orig_datum
+        ? formatDate(settings.kv_orig_datum)
+        : null;
+    // 5-Rappen-Regel: Default aktiv (Alt-Tool-Verhalten), abschaltbar über
+    // project_modules.settings.round5_totals = false
+    const round5 = settings.round5_totals !== false;
+
+    return (
+      <BkkClient
+        projectId={projectId}
+        projectName={tenant?.project.name ?? ''}
+        canEdit={canEdit}
+        kvOrigDatum={kvOrigDatum}
+        round5={round5}
+        groups={groups ?? []}
+        initialPositions={positions ?? []}
+        initialEntries={entries ?? []}
+      />
+    );
+  }
 
   return (
     <div className="mx-auto flex min-h-screen max-w-5xl flex-col px-6">

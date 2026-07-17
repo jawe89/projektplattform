@@ -27,3 +27,26 @@ export function formatNumber(value: number, fractionDigits = 0): string {
 export function formatChf(value: number): string {
   return `CHF ${formatNumber(value, 2)}`;
 }
+
+/** Rappen (125000000) → «1'250'000.00» */
+export function formatRappen(rp: number): string {
+  return formatNumber(rp / 100, 2);
+}
+
+/** Rappen (125000000) → «CHF 1'250'000.00» */
+export function formatChfRappen(rp: number): string {
+  return `CHF ${formatRappen(rp)}`;
+}
+
+/**
+ * CHF-Eingabe → Ganzzahl-Rappen (exakt, keine 5-Rappen-Rundung – die ist
+ * reine Anzeige-/Totalisierungsregel). Akzeptiert Apostrophe, Leerzeichen
+ * und Komma als Dezimaltrennzeichen; ungültige Eingaben → null.
+ */
+export function parseChfToRappen(input: string): number | null {
+  const cleaned = input.replace(/['’\s]/g, '').replace(',', '.');
+  if (cleaned === '') return null;
+  const n = Number(cleaned);
+  if (!Number.isFinite(n)) return null;
+  return Math.round(n * 100);
+}
