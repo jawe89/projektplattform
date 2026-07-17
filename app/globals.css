@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+/*
+ * Theming-Grundlage (siehe CLAUDE.md):
+ * Sämtliche Farben und Schriften laufen über CSS-Variablen. Die Werte hier
+ * sind das Default-Theme; pro Tenant werden sie serverseitig
+ * aus `project_branding` überschrieben (features/theming/theme.ts).
+ */
+:root {
+  --color-primary: #7c7c7c;
+  --color-primary-dark: #5a5a5a;
+  --color-accent: #70ad47;
+  --color-accent-dark: #5a9036;
+  --color-bg: #f6f6f4;
+  --color-line: #e5e5e5;
+  --color-ink: #2b2b2b;
+  /* Semantische Statusfarben (nicht tenant-spezifisch) */
+  --color-warn: #c07c1d;
+  --color-error: #b3261e;
+  --font-display: 'Antonio', sans-serif;
+  --font-body: 'Montserrat', sans-serif;
+}
+
+/*
+ * Tailwind-Tokens referenzieren die Laufzeit-Variablen («inline», damit die
+ * Utilities var(--…) direkt einsetzen und Tenant-Overrides greifen).
+ * Ergibt Utilities wie bg-primary, text-ink, border-line, font-display.
+ */
+@theme inline {
+  --color-*: initial;
+  --color-primary: var(--color-primary);
+  --color-primary-dark: var(--color-primary-dark);
+  --color-accent: var(--color-accent);
+  --color-accent-dark: var(--color-accent-dark);
+  --color-bg: var(--color-bg);
+  --color-line: var(--color-line);
+  --color-ink: var(--color-ink);
+  --color-warn: var(--color-warn);
+  --color-error: var(--color-error);
+  --color-white: #ffffff;
+  --font-display: var(--font-display);
+  --font-body: var(--font-body);
+}
+
+body {
+  background-color: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
+
+/* Titel-Standard: Antonio, Versalien, letter-spacing 0.02em */
+.display-title {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
