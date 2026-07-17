@@ -71,6 +71,7 @@ npm run dev      # Dev-Server (http://localhost:3000, Tenants via slug.localhost
 npm run build    # Produktions-Build (vorher Dev-Server stoppen – teilt .next!)
 npm run lint     # ESLint
 npm run seed     # Seed – Standard: Dev-Umgebung
+npm run seed:demo-showcase # Demo-Projekt als Vorführkulisse (docs/DEMO-PROJEKT.md)
 npm run import:wattwil # M4: Import der bestehenden Projektübersicht (idempotent)
 npm run import:bkk-wattwil # P2-M4: BKK-Import aus HTML-Snapshot (idempotent, Abgleich)
 npm run import:lv-wattwil  # P2-M4: LV-Import aus HTML-Snapshot (idempotent, Abgleich)

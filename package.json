@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "seed": "tsx scripts/seed.ts",
+    "seed:demo-showcase": "tsx scripts/seed-demo-showcase.ts",
     "import:wattwil": "tsx scripts/import-mcd-wattwil.ts",
     "import:bkk-wattwil": "tsx scripts/import-bkk-wattwil.ts",
     "import:lv-wattwil": "tsx scripts/import-lv-wattwil.ts",

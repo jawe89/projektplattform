@@ -102,6 +102,10 @@ der Provider-Aufruf serverseitig zu ergänzen.
 
 ## 7. Demo-Befüllungsskript
 
+**Status: umgesetzt (18.07.2026).** `scripts/seed-demo-showcase.ts`
+(`npm run seed:demo-showcase`, TARGET=prod-fähig, idempotent) – Details
+und Demo-Konto in `docs/DEMO-PROJEKT.md`.
+
 **Was:** Skript, das das Demo-Projekt (Bürohaus Demo Frauenfeld) mit
 repräsentativen, konsistenten Inhalten füllt – Hub-Dokumente über alle
 Kategorien, BKK mit allen Status-/Ampelfällen, LV-Matrix mit gemischten
