@@ -536,7 +536,9 @@ export function HubClient({
         </div>
       </header>
 
-      {/* Hero-Bild aus dem Branding (entfällt ersatzlos ohne Bild) */}
+      {/* Hero-Bild aus dem Branding (entfällt ersatzlos ohne Bild).
+          Gleiche Ausschnittlogik wie die Landingpage (16:9 mobil, 21:9 ab sm),
+          nur kompakter gedeckelt – Banner-Charakter statt schmalem Streifen. */}
       {heroUrl && (
         <div className="mx-auto max-w-5xl px-6 pt-6">
           <figure className="border border-line bg-white p-1">
@@ -544,7 +546,7 @@ export function HubClient({
             <img
               src={heroUrl}
               alt={projectName}
-              className="h-32 w-full object-cover sm:h-40"
+              className="aspect-[16/9] w-full object-cover sm:aspect-[21/9] sm:max-h-72"
             />
           </figure>
         </div>

@@ -55,14 +55,15 @@ export function LandingPage({
       </header>
 
       <main className="flex-1 py-8">
-        {/* Hero-Bild mit feinem Rahmen */}
+        {/* Hero-Bild mit feinem Rahmen – gleiche Ausschnittlogik wie im Hub
+            (16:9 mobil, 21:9 ab sm), hier grosszügiger gedeckelt. */}
         {branding?.hero_path && (
           <figure className="mb-8 border border-line bg-white p-1">
             {/* eslint-disable-next-line @next/next/no-img-element -- externe Storage-URL, Grösse variabel */}
             <img
               src={publicBrandingUrl(branding.hero_path)}
               alt={project.name}
-              className="h-56 w-full object-cover sm:h-72 md:h-80"
+              className="aspect-[16/9] w-full object-cover sm:aspect-[21/9] sm:max-h-80"
             />
           </figure>
         )}
