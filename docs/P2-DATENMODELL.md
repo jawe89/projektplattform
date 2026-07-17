@@ -1,9 +1,9 @@
 # Phase 2 – Datenstruktur-Bericht und Schema-Entwürfe
 
 Analyse der eingebetteten Daten und der Berechnungslogik der beiden
-HTML-Tools (Stand der Abzüge: 16.07.2026). Die Schema-Entwürfe unten sind
-**zur Prüfung** – sie werden erst nach Freigabe als Migrationen umgesetzt
-(P2-M2/P2-M3).
+HTML-Tools (Stand der Abzüge: 16.07.2026). **Freigegeben am 17.07.2026**
+mit den Entscheiden aus Abschnitt 4 – die Schemas unten sind der
+verbindliche Stand für die Migrationen (BKK: `0007`, LV: folgt mit P2-M3).
 
 ---
 
@@ -86,12 +86,16 @@ create table bkk_groups (
 create table bkk_positions (
   id uuid primary key default gen_random_uuid(),
   project_id uuid not null references projects(id) on delete cascade,
+  group_id uuid not null references bkk_groups(id), -- beim Anlegen/Import mit
+                                       -- der ersten BKP-Ziffer vorbelegt,
+                                       -- danach pro Position übersteuerbar
   bkp text not null,                   -- '211', '211.9', '297.3a'
   name text not null,
   kv_orig_rp bigint not null default 0, -- Originalbudget (Rappen)
   kv_mut_rp bigint,                    -- mutiertes KV; null = wie Original
   is_custom boolean not null default false, -- zählt nicht ins KV-orig-Total
   hidden boolean not null default false,    -- ausgeblendet (zählt nur ins KV orig.)
+  notiz text,                          -- Freitext (Nachträge, Rückbehalte, …)
   sort int not null default 0,
   unique (project_id, bkp)
 );
@@ -102,19 +106,29 @@ create table bkk_entries (
   project_id uuid not null references projects(id) on delete cascade,
   position_id uuid not null references bkk_positions(id) on delete cascade,
   entry_type text not null check (entry_type in ('vertrag', 'zahlung')),
-  betrag_rp bigint not null,
+  betrag_rp bigint not null,           -- exakt gespeichert, keine Rundung
   datum date,
   unternehmer text,
+  notiz text,                          -- Freitext (z.B. Rückbehalt-Begründung)
   source_id text,                      -- Alt-Tool-ID (idempotenter Import)
   created_at timestamptz default now()
 );
 ```
 
 Kein Speichern berechneter Werte – Zwischentotale, Gesamttotal, Δ%, Status
-werden wie im Alt-Tool live berechnet (Logik aus 1.2 wird 1:1 portiert).
-Das Datum «KV orig. 23.01.2026» aus dem Spaltenkopf wird als
-Moduleinstellung geführt (z.B. `project_modules.settings jsonb`, siehe
-P2-M1).
+werden wie im Alt-Tool live berechnet; die Logik aus 1.2 ist 1:1 nach
+`lib/bkk-calc.ts` portiert (reine Funktionen, abgesichert durch
+`tests/bkk-calc.test.ts`, siehe `npm run test:unit`).
+
+**Moduleinstellungen** (`project_modules.settings`, jsonb):
+
+- `kv_orig_datum` (ISO-Datum) – das «KV orig. 23.01.2026» aus dem
+  Spaltenkopf des Alt-Tools.
+- `round5_totals` (boolean) – 5-Rappen-Rundung als **Anzeige-/
+  Totalisierungsregel**: Beträge werden exakt in Rappen gespeichert; bei
+  aktiver Regel wird jeder Betrag für Anzeige und Summierung auf 5 Rappen
+  gerundet (Totale = Summe der gerundeten Beträge – identisch zum
+  Alt-Tool, das bereits bei der Eingabe rundete). Default Wattwil: aktiv.
 
 ---
 
@@ -172,17 +186,28 @@ create table lv_units (
   unique (project_id, bkp)
 );
 
--- Workflow-Stand je Einheit und Schritt (nur ausgefüllte Schritte als Zeile)
+-- Workflow-Stand je Einheit und Schritt (nur ausgefüllte Schritte als Zeile).
+-- Pro Schritt ein Datumsfeld PLUS separates Freitextfeld (Entscheid 3):
+-- Der Import parst strikte TT.MM.JJJJ-Werte ins Datumsfeld; alles andere
+-- («✓ erledigt», «⊘ nach Aufwand», KW-Angaben, Freitext) landet unverändert
+-- im Freitextfeld – kein Wert geht verloren, kein Import-Abbruch.
 create table lv_unit_steps (
   unit_id uuid not null references lv_units(id) on delete cascade,
   step_key text not null check (step_key in (
     'lv_erstellt','lv_versendet','off_erhalten','av_erstellt','av_bh',
     'wv_erstellt','wv_unt','wv_bh','wv_zurueck')),
-  status text not null default 'erledigt'
-    check (status in ('erledigt', 'nach_aufwand')),
-  datum date,                          -- null = «✓ erledigt» ohne Datum
-  primary key (unit_id, step_key)
+  datum date,                          -- strikt geparste TT.MM.JJJJ-Werte
+  freitext text,                       -- alles Übrige, unverändert übernommen
+  primary key (unit_id, step_key),
+  check (datum is not null or freitext is not null)
 );
+```
+
+Die «nach Aufwand»-Erkennung (alle 4 WV-Schritte mit NA-Marker) arbeitet
+auf dem Freitext-Marker `⊘ nach Aufwand`; das Modul-UI setzt die
+Standard-Marker per Schnellaktion, Freitext bleibt daneben frei möglich.
+
+```sql
 
 -- Offerten je Einheit (neues Feature – Migration lässt die Tabelle leer)
 create table lv_offers (
@@ -215,12 +240,25 @@ konfigurierbare Workflows wären Ausbau, nicht Funktionsparität.
 - Import-Referenzen: deterministische UUIDs aus den Alt-IDs
   (`emr1lfbn2yzpdw`, …) wie beim M4-Import, plus `source_id` als Spalte.
 
-## 4. Offene Punkte zur Prüfung
+## 4. Entscheide (Freigabe 17.07.2026)
 
-1. **LV-Offerten**: Schema wie oben vorsehen (leer migriert)?
-2. **BKK-Zwischentotale**: Gruppierung strikt über die erste BKP-Ziffer
-   (wie Alt-Tool) – ausreichend, oder braucht es frei zuweisbare Gruppen?
-3. **`bkk_entries.datum`**: Alt-Daten sind `TT.MM.JJJJ`-Strings; Import
-   parst nach `date`. Einträge ohne/mit ungültigem Datum → `null`.
-4. **Rundung**: Eingaben im Modul weiterhin auf 5 Rappen runden
-   (`round5Rp`-Verhalten), gespeichert wird der gerundete Rappenwert.
+1. **LV-Offerten**: `lv_offers` wird angelegt (Offertbeträge je
+   Vergabeeinheit als künftiges Feature); der Import befüllt sie nicht.
+2. **BKK-Gruppierung**: `group_id` pro Position – beim Anlegen und beim
+   Import mit der ersten BKP-Ziffer vorbelegt, danach pro Position
+   übersteuerbar. Keine reine Laufzeit-Ableitung.
+3. **LV-Datumsfelder**: Pro Workflow-Schritt ein Datumsfeld (`TT.MM.JJJJ`)
+   plus separates Freitextfeld. Der Import parst strikte
+   `TT.MM.JJJJ`-Werte ins Datumsfeld; alles andere («✓ erledigt»,
+   «⊘ nach Aufwand», KW-Angaben, Freitext) landet unverändert im
+   Freitextfeld – kein Wert darf verloren gehen oder den Import abbrechen.
+4. **Rundung**: Beträge exakt in Ganzzahl-Rappen speichern, keine Rundung
+   beim Speichern. Die 5-Rappen-Rundung ist reine Anzeige-/
+   Totalisierungsregel, pro Projekt konfigurierbar
+   (`project_modules.settings.round5_totals`; Default Wattwil: aktiv).
+   Der Import übernimmt die Alt-Tool-Werte unverändert; die
+   Abgleichstabelle vergleicht gegen die Alt-Tool-Totale unter derselben
+   Totalisierungsregel.
+5. **Notizfelder** (Ergänzung): Freitext-Notiz pro BKK-Position und pro
+   Vertrag/Zahlung (`notiz text`, optional) – für Nachtragsbegründungen,
+   Rückbehalte und Ähnliches, was bisher in Nebenlisten landete.

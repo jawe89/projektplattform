@@ -12,7 +12,8 @@
     "migrate:wattwil": "tsx scripts/migrate-files-wattwil.ts",
     "create:admin": "tsx scripts/create-admin.ts",
     "cleanup:testusers": "tsx scripts/cleanup-test-users.ts",
-    "test:rls": "tsx scripts/rls-test.ts"
+    "test:rls": "tsx scripts/rls-test.ts",
+    "test:unit": "tsx --test \"tests/**/*.test.ts\""
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.3",

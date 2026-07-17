@@ -1,0 +1,302 @@
+/**
+ * Unit-Tests der BKK-Berechnungslogik (lib/bkk-calc.ts).
+ *
+ * Sichert die dokumentierten Feinheiten des Alt-Tools ab, BEVOR die
+ * Oberfläche entsteht (P2-M2): KV orig. historisch fix (zählt auch
+ * ausgeblendete Positionen), Custom-Positionen ohne KV-orig.-Anteil,
+ * Status-Ampel-Reihenfolge mit Toleranzfaktoren, 5-Rappen-Rundung als
+ * Totalisierungsregel. Ausführen mit: npm run test:unit
+ */
+import assert from 'node:assert/strict';
+import { describe, it } from 'node:test';
+import {
+  type BkkCalcEntry,
+  type BkkCalcOptions,
+  type BkkCalcPosition,
+  type BkkPositionWithEntries,
+  deltaPct,
+  deltaTone,
+  displayRp,
+  effectiveKvMutRp,
+  entrySums,
+  groupSubtotals,
+  kvMutKpi,
+  offenRp,
+  positionStatus,
+  round5Rp,
+  sharePct,
+  shareTone,
+  totals,
+  vertragKpiAmpel,
+  zahlungKpiAmpel,
+} from '../lib/bkk-calc';
+
+const exact: BkkCalcOptions = { round5: false };
+const rounded: BkkCalcOptions = { round5: true };
+
+function position(overrides: Partial<BkkCalcPosition> = {}): BkkCalcPosition {
+  return {
+    bkp: '211',
+    kvOrigRp: 100_000_00,
+    kvMutRp: null,
+    isCustom: false,
+    hidden: false,
+    ...overrides,
+  };
+}
+
+function vertrag(betragRp: number): BkkCalcEntry {
+  return { entryType: 'vertrag', betragRp };
+}
+function zahlung(betragRp: number): BkkCalcEntry {
+  return { entryType: 'zahlung', betragRp };
+}
+
+describe('round5Rp / displayRp', () => {
+  it('rundet auf die nächsten 5 Rappen', () => {
+    assert.equal(round5Rp(121), 120);
+    assert.equal(round5Rp(122), 120);
+    assert.equal(round5Rp(123), 125);
+    assert.equal(round5Rp(125), 125);
+    assert.equal(round5Rp(0), 0);
+    assert.equal(round5Rp(-123), -125);
+  });
+
+  it('displayRp rundet nur bei aktiver Regel', () => {
+    assert.equal(displayRp(123, rounded), 125);
+    assert.equal(displayRp(123, exact), 123);
+  });
+});
+
+describe('effectiveKvMutRp', () => {
+  it('null = wie Original', () => {
+    assert.equal(effectiveKvMutRp(position(), exact), 100_000_00);
+  });
+
+  it('Überschreibung gewinnt – auch der Wert 0 ist eine gültige Mutation', () => {
+    assert.equal(effectiveKvMutRp(position({ kvMutRp: 150_000_00 }), exact), 150_000_00);
+    assert.equal(effectiveKvMutRp(position({ kvMutRp: 0 }), exact), 0);
+  });
+});
+
+describe('entrySums', () => {
+  it('summiert Verträge und Zahlungen getrennt', () => {
+    const sums = entrySums(
+      [vertrag(100_00), vertrag(200_00), zahlung(50_00)],
+      exact,
+    );
+    assert.deepEqual(sums, { vertragRp: 300_00, zahlungRp: 50_00 });
+  });
+});
+
+describe('positionStatus – Reihenfolge und Toleranzen wie im Alt-Tool', () => {
+  const pos = position({ kvOrigRp: 100_000_00 }); // kvm = 10'000'000 Rp
+
+  it('keine Einträge → offen', () => {
+    assert.equal(positionStatus(pos, [], exact), 'offen');
+  });
+
+  it('Verträge über KV erst ab +0.1 % Toleranz → ueber_kv', () => {
+    // knapp über KV (+0.05 %) liegt innerhalb der Toleranz …
+    assert.equal(positionStatus(pos, [vertrag(10_005_000)], exact), 'vertrag');
+    // … deutlich darüber (+0.2 %) nicht mehr
+    assert.equal(positionStatus(pos, [vertrag(10_020_000)], exact), 'ueber_kv');
+  });
+
+  it('kvm = 0 (Mutation auf 0) → nie ueber_kv, Vertrag bleibt «vertrag»', () => {
+    const zeroKv = position({ kvMutRp: 0 });
+    assert.equal(positionStatus(zeroKv, [vertrag(100_00)], exact), 'vertrag');
+  });
+
+  it('Zahlungen ab 99.9 % der Verträge → bezahlt', () => {
+    assert.equal(
+      positionStatus(pos, [vertrag(100_000_00), zahlung(99_900_00)], exact),
+      'bezahlt',
+    );
+    assert.equal(
+      positionStatus(pos, [vertrag(100_000_00), zahlung(99_899_99)], exact),
+      'teilbezahlt',
+    );
+  });
+
+  it('ueber_kv gewinnt vor bezahlt (Prüfreihenfolge)', () => {
+    assert.equal(
+      positionStatus(pos, [vertrag(20_000_000), zahlung(20_000_000)], exact),
+      'ueber_kv',
+    );
+  });
+
+  it('nur Zahlung ohne Vertrag → teilbezahlt', () => {
+    assert.equal(positionStatus(pos, [zahlung(100_00)], exact), 'teilbezahlt');
+  });
+
+  it('nur Vertrag innerhalb KV → vertrag', () => {
+    assert.equal(positionStatus(pos, [vertrag(100_00)], exact), 'vertrag');
+  });
+});
+
+describe('totals – KV orig. historisch fix, Customs ohne KV-orig.-Anteil', () => {
+  const rows: BkkPositionWithEntries[] = [
+    {
+      position: position({ bkp: '211', kvOrigRp: 100_000_00, kvMutRp: 120_000_00 }),
+      entries: [vertrag(110_000_00), zahlung(40_000_00)],
+    },
+    {
+      // ausgeblendet: zählt NUR ins KV orig.
+      position: position({ bkp: '224', kvOrigRp: 50_000_00, hidden: true }),
+      entries: [vertrag(1_000_00)],
+    },
+    {
+      // Custom: zählt NICHT ins KV orig., aber in alles andere
+      position: position({ bkp: '273.0', kvOrigRp: 65_000_00, isCustom: true }),
+      entries: [vertrag(60_000_00), zahlung(30_000_00)],
+    },
+  ];
+
+  it('zählt exakt wie das Alt-Tool', () => {
+    const t = totals(rows, exact);
+    // KV orig.: 211 + ausgeblendete 224, Custom nie
+    assert.equal(t.kvOrigRp, 150_000_00);
+    // KV mutiert: 211 (mutiert) + Custom, ausgeblendete nicht
+    assert.equal(t.kvMutRp, 120_000_00 + 65_000_00);
+    // Verträge/Zahlungen: sichtbare + Custom, ausgeblendete nicht
+    assert.equal(t.vertragRp, 110_000_00 + 60_000_00);
+    assert.equal(t.zahlungRp, 40_000_00 + 30_000_00);
+    // Custom-Aufschlüsselung
+    assert.equal(t.customKvRp, 65_000_00);
+    assert.equal(t.customMutRp, 65_000_00);
+    assert.equal(t.customVertragRp, 60_000_00);
+    assert.equal(t.customZahlungRp, 30_000_00);
+    assert.equal(offenRp(t), t.vertragRp - t.zahlungRp);
+  });
+
+  it('Custom-Positionen zählen unabhängig von hidden (wie Alt-Tool)', () => {
+    const t = totals(
+      [
+        {
+          position: position({ bkp: 'c1', kvOrigRp: 10_000_00, isCustom: true, hidden: true }),
+          entries: [vertrag(5_000_00)],
+        },
+      ],
+      exact,
+    );
+    assert.equal(t.kvOrigRp, 0);
+    assert.equal(t.kvMutRp, 10_000_00);
+    assert.equal(t.vertragRp, 5_000_00);
+  });
+});
+
+describe('groupSubtotals', () => {
+  it('Custom-KV zählt nicht ins KV orig. der Gruppe', () => {
+    const sub = groupSubtotals(
+      [
+        { position: position({ bkp: '211', kvOrigRp: 100_000_00 }), entries: [vertrag(80_000_00)] },
+        {
+          position: position({ bkp: '273.0', kvOrigRp: 65_000_00, isCustom: true }),
+          entries: [zahlung(10_000_00)],
+        },
+      ],
+      exact,
+    );
+    assert.deepEqual(sub, {
+      kvOrigRp: 100_000_00,
+      kvMutRp: 165_000_00,
+      vertragRp: 80_000_00,
+      zahlungRp: 10_000_00,
+    });
+  });
+});
+
+describe('5-Rappen-Rundung als Totalisierungsregel', () => {
+  it('rundet jeden Einzelbetrag vor der Summierung', () => {
+    const rows: BkkPositionWithEntries[] = [
+      {
+        position: position({ kvOrigRp: 101 }),
+        entries: [vertrag(101), vertrag(102), zahlung(103)],
+      },
+    ];
+    const tExact = totals(rows, exact);
+    assert.equal(tExact.vertragRp, 203);
+    assert.equal(tExact.zahlungRp, 103);
+    assert.equal(tExact.kvOrigRp, 101);
+
+    const tRounded = totals(rows, rounded);
+    assert.equal(tRounded.vertragRp, 200); // 100 + 100, nicht round5(203)=205
+    assert.equal(tRounded.zahlungRp, 105);
+    assert.equal(tRounded.kvOrigRp, 100);
+  });
+
+  it('Alt-Tool-Werte (bereits Vielfache von 5) bleiben mit und ohne Regel identisch', () => {
+    const rows: BkkPositionWithEntries[] = [
+      {
+        position: position({ kvOrigRp: 140_000_000, kvMutRp: 150_000_000 }),
+        entries: [vertrag(143_800_000), zahlung(44_300_000)],
+      },
+    ];
+    assert.deepEqual(totals(rows, exact), totals(rows, rounded));
+  });
+});
+
+describe('KPI «KV mutiert» (Δ%-Ampel)', () => {
+  it('unter ±0.05 % → neutral', () => {
+    const kpi = kvMutKpi({ kvOrigRp: 100_000_00, kvMutRp: 100_004_00 });
+    assert.equal(kpi.ampel, 'neutral');
+    assert.equal(kpi.einsparung, false);
+  });
+
+  it('negativ → grün mit Einsparung', () => {
+    const kpi = kvMutKpi({ kvOrigRp: 100_000_00, kvMutRp: 95_000_00 });
+    assert.equal(kpi.ampel, 'green');
+    assert.equal(kpi.einsparung, true);
+    assert.equal(kpi.deltaPct, -5);
+  });
+
+  it('0–5 % → gelb, über 5 % → rot', () => {
+    assert.equal(kvMutKpi({ kvOrigRp: 100_000_00, kvMutRp: 103_000_00 }).ampel, 'amber');
+    assert.equal(kvMutKpi({ kvOrigRp: 100_000_00, kvMutRp: 105_000_00 }).ampel, 'amber');
+    assert.equal(kvMutKpi({ kvOrigRp: 100_000_00, kvMutRp: 105_100_00 }).ampel, 'red');
+  });
+
+  it('KV orig. 0 → Δ 0, neutral', () => {
+    assert.equal(kvMutKpi({ kvOrigRp: 0, kvMutRp: 50_000_00 }).ampel, 'neutral');
+  });
+});
+
+describe('KPI-Ampeln Verträge/Zahlungen', () => {
+  it('Verträge: neutral ohne Vergabe, grün mit, rot über KV mutiert (+0.1 %)', () => {
+    assert.equal(vertragKpiAmpel({ kvMutRp: 100_000_00, vertragRp: 0 }), 'neutral');
+    assert.equal(vertragKpiAmpel({ kvMutRp: 100_000_00, vertragRp: 80_000_00 }), 'green');
+    assert.equal(vertragKpiAmpel({ kvMutRp: 100_000_00, vertragRp: 10_010_001 }), 'red');
+    // KV mutiert 0 mit Verträgen → rot (wie Alt-Tool: vertrag > 0·1.001)
+    assert.equal(vertragKpiAmpel({ kvMutRp: 0, vertragRp: 1 }), 'red');
+  });
+
+  it('Zahlungen: neutral ohne Verträge, grün mit, rot über den Verträgen (+0.1 %)', () => {
+    assert.equal(zahlungKpiAmpel({ vertragRp: 0, zahlungRp: 0 }), 'neutral');
+    assert.equal(zahlungKpiAmpel({ vertragRp: 100_000_00, zahlungRp: 50_000_00 }), 'green');
+    assert.equal(zahlungKpiAmpel({ vertragRp: 100_000_00, zahlungRp: 10_010_001 }), 'red');
+  });
+});
+
+describe('Zellen-Einfärbung (deltaTone/shareTone)', () => {
+  it('deltaPct/sharePct liefern null ohne Referenz (Anzeige «–»)', () => {
+    assert.equal(deltaPct(100, 0), null);
+    assert.equal(sharePct(0, 100), null);
+    assert.equal(sharePct(100, 0), null);
+  });
+
+  it('deltaTone: > +0.05 neg, < −0.05 pos, dazwischen zero', () => {
+    assert.equal(deltaTone(0.06), 'neg');
+    assert.equal(deltaTone(-0.06), 'pos');
+    assert.equal(deltaTone(0.05), 'zero');
+    assert.equal(deltaTone(null), 'zero');
+  });
+
+  it('shareTone: > 100.05 % neg, ab 80 % pos, sonst zero', () => {
+    assert.equal(shareTone(100.06), 'neg');
+    assert.equal(shareTone(100.05), 'pos');
+    assert.equal(shareTone(80), 'pos');
+    assert.equal(shareTone(79.9), 'zero');
+    assert.equal(shareTone(null), 'zero');
+  });
+});

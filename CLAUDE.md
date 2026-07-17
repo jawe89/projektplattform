@@ -76,6 +76,7 @@ npm run migrate:wattwil # M5: Datei-Migration vom Alt-Server (LEGACY_BASIC_AUTH)
 npm run create:admin   # Plattform-Admin anlegen
 npm run cleanup:testusers # example.com-Testbenutzer löschen (mit Sicherung)
 npm run test:rls # RLS-Nachweis – nur gegen Dev (braucht Seed-Testbenutzer)
+npm run test:unit # Unit-Tests (node:test via tsx), z.B. BKK-Berechnungslogik
 ```
 
 ## Umgebungen Dev/Prod (seit P2-M0, siehe docs/DEV-UMGEBUNG.md)
