@@ -25,6 +25,7 @@ import {
   displayRp,
   effectiveKvMutRp,
   entrySums,
+  groupDeltaPct,
   groupSubtotals,
   kvMutKpi,
   offenRp,
@@ -739,9 +740,11 @@ export function BkkClient({
   function subtotalRow(group: BkkGroup) {
     // Zwischentotal mit identischer Zählregel wie das Gesamttotal
     // (Fachblick-Korrektur): Baseline-Spalte inkl. ausgeblendeter
-    // Positionen, übrige Spalten nur sichtbare.
-    const sub = groupSubtotals(positionsOf(group.id).map(toCalcRow), opts);
-    const dPct = deltaPct(sub.kvMutRp, sub.kvBaselineRp);
+    // Positionen, übrige Spalten nur sichtbare. Δ% nur, wenn die Gruppe
+    // mindestens eine sichtbare Position hat.
+    const calcRows = positionsOf(group.id).map(toCalcRow);
+    const sub = groupSubtotals(calcRows, opts);
+    const dPct = groupDeltaPct(calcRows, opts);
     return (
       <tr key={`${group.id}-subtotal`} className="text-sm font-medium">
         <td className="sticky left-0 z-10 border-b border-line bg-white px-3 py-2 text-xs text-primary-dark">

@@ -22,6 +22,7 @@ import {
   displayRp,
   effectiveKvMutRp,
   entrySums,
+  groupDeltaPct,
   groupSubtotals,
   kvMutKpi,
   offenRp,
@@ -250,6 +251,28 @@ describe('groupSubtotals – Zählregel pro Spalte identisch mit dem Gesamttotal
       vertragRp: 0,
       zahlungRp: 0,
     });
+  });
+
+  it('Gruppen-Δ%: «–» ohne sichtbare Position, sonst wie berechnet', () => {
+    const hiddenOnly = [
+      {
+        position: position({ bkp: '112', kvBaselineRp: 20_000_00, hidden: true }),
+        entries: [],
+      },
+    ];
+    // keine sichtbare Position → null («–») statt −100 %
+    assert.equal(groupDeltaPct(hiddenOnly, exact), null);
+
+    // mit einer sichtbaren Position → Δ% aus den Zwischentotal-Spalten:
+    // Baseline 20'000 (versteckt) + 80'000 = 100'000, Mut 110'000 → +10 %
+    const withVisible = [
+      ...hiddenOnly,
+      {
+        position: position({ bkp: '211', kvBaselineRp: 80_000_00, kvMutRp: 110_000_00 }),
+        entries: [],
+      },
+    ];
+    assert.equal(groupDeltaPct(withVisible, exact), 10);
   });
 
   it('Summenprobe: Zwischentotale addieren sich pro Spalte exakt zum Gesamttotal', () => {

@@ -149,6 +149,21 @@ export function groupSubtotals(
 }
 
 /**
+ * Δ% des Gruppen-Zwischentotals (KV mutiert vs. Baseline). Hat die Gruppe
+ * keine sichtbare Position, liefert sie null («–») statt −100 % – die
+ * Mut-Spalte zählt dort systembedingt 0 (Fachblick-Nachtrag 17.07.2026);
+ * sobald mindestens eine sichtbare Position existiert, Δ% wie berechnet.
+ */
+export function groupDeltaPct(
+  rows: BkkPositionWithEntries[],
+  opts: BkkCalcOptions,
+): number | null {
+  if (!rows.some((row) => !row.position.hidden)) return null;
+  const sub = groupSubtotals(rows, opts);
+  return deltaPct(sub.kvMutRp, sub.kvBaselineRp);
+}
+
+/**
  * Gesamttotal über ALLE Zeilen (inkl. ausgeblendeter) – Zähllogik wie im
  * Alt-Tool (totals), baseline-bezogen:
  *  * Baseline-Total: alle Positionen, auch ausgeblendete (historisch fix
