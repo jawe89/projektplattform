@@ -507,6 +507,8 @@ export function HubClient({
       <header className="sticky top-0 z-30 border-b border-line bg-white">
         <div className="mx-auto flex h-13 w-full max-w-7xl items-center justify-between gap-3 px-4 sm:h-14 sm:px-14">
           <div className="flex min-w-0 items-center gap-3">
+            {/* Logo ODER Firmenname: mit Logo entfällt der Text (Alt-Text
+                bleibt der Firmenname), ohne Logo Monogramm + Firmenzeile */}
             {managementLogoUrl ? (
               // eslint-disable-next-line @next/next/no-img-element -- externe Storage-URL
               <img
@@ -515,15 +517,17 @@ export function HubClient({
                 className="h-7 w-auto shrink-0"
               />
             ) : (
-              monogram && (
-                <span className="display-title flex h-7 w-7 shrink-0 items-center justify-center border border-ink text-sm font-semibold text-ink">
-                  {monogram}
+              <>
+                {monogram && (
+                  <span className="display-title flex h-7 w-7 shrink-0 items-center justify-center border border-ink text-sm font-semibold text-ink">
+                    {monogram}
+                  </span>
+                )}
+                <span className="display-title hidden truncate text-[15px] font-medium tracking-[0.14em] text-ink lg:block">
+                  {managementName}
                 </span>
-              )
+              </>
             )}
-            <span className="display-title hidden truncate text-[15px] font-medium tracking-[0.14em] text-ink lg:block">
-              {managementName}
-            </span>
             <span className="hidden h-5 w-px shrink-0 bg-line sm:block" />
             <span className="hidden truncate text-xs text-primary sm:block">
               {projectName}
