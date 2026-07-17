@@ -1,5 +1,7 @@
 import { ModuleEinstellungen } from '@/features/admin/module-einstellungen';
 import { requirePlatformAdmin } from '@/features/admin/require-admin';
+import { AdminSectionHeader } from '@/features/admin/section-header';
+import { texts } from '@/lib/texts';
 import type { ProjectModule } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
@@ -26,5 +28,13 @@ export default async function ProjectModulePage({
     .filter((m) => m.enabled)
     .map((m) => m.module_key);
 
-  return <ModuleEinstellungen projectId={id} enabledKeys={enabledKeys} />;
+  return (
+    <>
+      <AdminSectionHeader
+        title={texts.admin.module.title}
+        description={texts.admin.sections.module}
+      />
+      <ModuleEinstellungen projectId={id} enabledKeys={enabledKeys} />
+    </>
+  );
 }

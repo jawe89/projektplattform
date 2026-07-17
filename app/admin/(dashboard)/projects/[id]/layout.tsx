@@ -1,10 +1,14 @@
 import { notFound } from 'next/navigation';
-import { ProjectTabs } from '@/features/admin/project-tabs';
 import { requirePlatformAdmin } from '@/features/admin/require-admin';
 import { texts } from '@/lib/texts';
 
 export const dynamic = 'force-dynamic';
 
+/**
+ * Projekt-Rahmen im Adminbereich: schmale Kontextzeile (Projekt-Nr. + Name,
+ * Domain-Link, Export) – die Navigation übernimmt die Sidebar, den grossen
+ * Titel der Sektionskopf der jeweiligen Seite (Design-Referenz).
+ */
 export default async function AdminProjectLayout({
   children,
   params,
@@ -24,35 +28,32 @@ export default async function AdminProjectLayout({
 
   return (
     <div>
-      <div className="mb-4 flex items-end justify-between gap-4">
-        <div>
-          <p className="display-title text-xs tracking-[0.2em] text-primary">
-            {project.project_no}
-          </p>
-          <h1 className="display-title text-2xl text-ink">{project.name}</h1>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
+        <p className="display-title min-w-0 truncate text-[11px] font-medium tracking-[0.18em] text-primary sm:text-xs sm:tracking-[0.2em]">
+          {project.project_no && `${project.project_no} · `}
+          {project.name}
+        </p>
+        <div className="flex shrink-0 items-center gap-2">
           {/* Nur die öffentliche Projekt-Domain anzeigen – keine internen
               Entwicklungs-URLs im Produktivbetrieb. */}
           {project.domain && (
-            <p className="mt-1 text-xs text-primary">
-              <a
-                href={`https://${project.domain}`}
-                target="_blank"
-                rel="noreferrer"
-                className="underline-offset-2 hover:text-ink hover:underline"
-              >
-                https://{project.domain}
-              </a>
-            </p>
+            <a
+              href={`https://${project.domain}`}
+              target="_blank"
+              rel="noreferrer"
+              className="hidden border border-line bg-white px-3 py-1.5 text-xs text-primary-dark transition-colors hover:border-primary sm:block"
+            >
+              {project.domain} ↗
+            </a>
           )}
+          <a
+            href={`/projects/${id}/export`}
+            className="border border-line bg-white px-3 py-1.5 text-xs text-primary-dark transition-colors hover:border-primary"
+          >
+            {texts.admin.exportLabel}
+          </a>
         </div>
-        <a
-          href={`/projects/${id}/export`}
-          className="shrink-0 border border-line bg-white px-3 py-1.5 text-xs text-primary-dark hover:border-primary"
-        >
-          {texts.admin.exportLabel}
-        </a>
       </div>
-      <ProjectTabs projectId={id} />
       {children}
     </div>
   );

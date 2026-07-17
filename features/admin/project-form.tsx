@@ -31,19 +31,19 @@ export function ProjectForm({ templates }: ProjectFormProps) {
   return (
     <form action={formAction} className="flex max-w-lg flex-col gap-4">
       <label className="flex flex-col gap-1">
-        <span className="text-xs font-medium text-primary-dark">
+        <span className="display-title text-[10px] font-medium tracking-[0.12em] text-primary-dark">
           {texts.admin.nameLabel} *
         </span>
         <input type="text" name="name" required className={inputClass} />
       </label>
       <label className="flex flex-col gap-1">
-        <span className="text-xs font-medium text-primary-dark">
+        <span className="display-title text-[10px] font-medium tracking-[0.12em] text-primary-dark">
           {texts.admin.projectNoLabel}
         </span>
         <input type="text" name="projectNo" className={inputClass} />
       </label>
       <label className="flex flex-col gap-1">
-        <span className="text-xs font-medium text-primary-dark">
+        <span className="display-title text-[10px] font-medium tracking-[0.12em] text-primary-dark">
           {texts.admin.slugLabel} *
         </span>
         <input
@@ -56,13 +56,13 @@ export function ProjectForm({ templates }: ProjectFormProps) {
         <span className="text-xs text-primary">{texts.admin.slugHint}</span>
       </label>
       <label className="flex flex-col gap-1">
-        <span className="text-xs font-medium text-primary-dark">
+        <span className="display-title text-[10px] font-medium tracking-[0.12em] text-primary-dark">
           {texts.admin.domainLabel}
         </span>
         <input type="text" name="domain" className={inputClass} />
       </label>
       <label className="flex flex-col gap-1">
-        <span className="text-xs font-medium text-primary-dark">
+        <span className="display-title text-[10px] font-medium tracking-[0.12em] text-primary-dark">
           {texts.admin.templateLabel}
         </span>
         <select name="templateId" defaultValue="" className={inputClass}>
@@ -85,7 +85,7 @@ export function ProjectForm({ templates }: ProjectFormProps) {
       <button
         type="submit"
         disabled={pending}
-        className="self-start bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-dark disabled:opacity-60"
+        className="display-title self-start bg-accent px-5 py-2.5 text-[12px] font-medium tracking-[0.14em] text-white transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         {pending ? texts.admin.creating : texts.admin.create}
       </button>

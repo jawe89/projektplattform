@@ -92,7 +92,7 @@ export function DatenForm({ project, heroPath }: DatenFormProps) {
       <div className="flex flex-col gap-4 border border-line bg-white p-6">
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-primary-dark">
+            <span className="display-title text-[10px] font-medium tracking-[0.12em] text-primary-dark">
               {texts.admin.nameLabel}
             </span>
             <input
@@ -102,7 +102,7 @@ export function DatenForm({ project, heroPath }: DatenFormProps) {
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-primary-dark">
+            <span className="display-title text-[10px] font-medium tracking-[0.12em] text-primary-dark">
               {texts.admin.projectNoLabel}
             </span>
             <input
@@ -114,7 +114,7 @@ export function DatenForm({ project, heroPath }: DatenFormProps) {
         </div>
 
         <label className="flex flex-col gap-1">
-          <span className="text-xs font-medium text-primary-dark">
+          <span className="display-title text-[10px] font-medium tracking-[0.12em] text-primary-dark">
             {texts.admin.statusLabel}
           </span>
           <select
@@ -128,7 +128,7 @@ export function DatenForm({ project, heroPath }: DatenFormProps) {
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="text-xs font-medium text-primary-dark">
+          <span className="display-title text-[10px] font-medium tracking-[0.12em] text-primary-dark">
             {texts.admin.daten.subtitle}
           </span>
           <input
@@ -139,7 +139,7 @@ export function DatenForm({ project, heroPath }: DatenFormProps) {
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="text-xs font-medium text-primary-dark">
+          <span className="display-title text-[10px] font-medium tracking-[0.12em] text-primary-dark">
             {texts.admin.daten.description}
           </span>
           <textarea
@@ -152,7 +152,7 @@ export function DatenForm({ project, heroPath }: DatenFormProps) {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-primary-dark">
+            <span className="display-title text-[10px] font-medium tracking-[0.12em] text-primary-dark">
               {texts.admin.daten.heroCaptionLeft}
             </span>
             <input
@@ -165,7 +165,7 @@ export function DatenForm({ project, heroPath }: DatenFormProps) {
             </span>
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-primary-dark">
+            <span className="display-title text-[10px] font-medium tracking-[0.12em] text-primary-dark">
               {texts.admin.daten.heroCaptionRight}
             </span>
             <input
@@ -180,7 +180,7 @@ export function DatenForm({ project, heroPath }: DatenFormProps) {
         </div>
 
         <label className="flex flex-col gap-1">
-          <span className="text-xs font-medium text-primary-dark">
+          <span className="display-title text-[10px] font-medium tracking-[0.12em] text-primary-dark">
             {texts.admin.daten.loginSubtext}
           </span>
           <input
@@ -194,7 +194,7 @@ export function DatenForm({ project, heroPath }: DatenFormProps) {
         </label>
 
         <fieldset className="border border-line p-3">
-          <legend className="px-1 text-xs font-medium text-primary-dark">
+          <legend className="display-title px-1 text-[10px] font-medium tracking-[0.16em] text-primary-dark">
             {texts.admin.daten.infoCells}
           </legend>
           <div className="flex flex-col gap-2">
@@ -242,7 +242,7 @@ export function DatenForm({ project, heroPath }: DatenFormProps) {
               onClick={() =>
                 setInfoCells((cells) => [...cells, { label: '', value: '' }])
               }
-              className="self-start border border-dashed border-line px-3 py-1.5 text-xs text-primary hover:border-accent hover:text-accent"
+              className="display-title self-start border border-dashed border-line px-3.5 py-1.5 text-[11px] font-medium tracking-[0.12em] text-primary transition-colors hover:border-primary hover:text-primary-dark"
             >
               {texts.admin.daten.addInfoCell}
             </button>
@@ -253,7 +253,7 @@ export function DatenForm({ project, heroPath }: DatenFormProps) {
           type="button"
           onClick={handleSave}
           disabled={saving}
-          className="self-start bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-dark disabled:opacity-60"
+          className="display-title self-start bg-accent px-5 py-2.5 text-[12px] font-medium tracking-[0.14em] text-white transition-opacity hover:opacity-90 disabled:opacity-50"
         >
           {texts.common.save}
         </button>
@@ -261,7 +261,7 @@ export function DatenForm({ project, heroPath }: DatenFormProps) {
 
       {/* Hero-Bild */}
       <div className="h-fit border border-line bg-white p-6">
-        <h2 className="display-title mb-3 text-sm text-ink">
+        <h2 className="display-title mb-3 border-b border-line pb-2 text-[11px] font-medium tracking-[0.18em] text-primary-dark">
           {texts.admin.daten.hero}
         </h2>
         {hero && (
@@ -272,7 +272,7 @@ export function DatenForm({ project, heroPath }: DatenFormProps) {
             className="mb-3 w-full border border-line object-cover"
           />
         )}
-        <label className="block cursor-pointer border border-dashed border-line px-3 py-3 text-center text-sm text-primary hover:border-accent hover:text-accent">
+        <label className="display-title block cursor-pointer border border-dashed border-line px-3 py-3 text-center text-[11px] font-medium tracking-[0.12em] text-primary transition-colors hover:border-primary hover:text-primary-dark">
           {uploading
             ? texts.admin.daten.uploading
             : texts.admin.daten.heroUpload}

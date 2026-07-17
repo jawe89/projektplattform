@@ -281,7 +281,21 @@ export const texts = {
   },
   admin: {
     title: 'Adminbereich',
+    headerTitle: 'Administration',
     projects: 'Projekte',
+    sections: {
+      projects: 'Alle Bauprojekte der Plattform.',
+      daten: 'Name, Nummer, Status und Inhalte der Landingpage.',
+      branding:
+        'Farben, Schriften und Bilder dieses Projekts. Statusfarben und BKK-Spaltentöne sind systemweit fix.',
+      kategorien:
+        'Das Feld-Schema definiert die Eingabemaske beim Erfassen von Dokumenten dieser Kategorie.',
+      module:
+        'Aktivierte Module erscheinen im Dokumenten-Hub – sichtbar nur für Rollen mit Freigabe (Bereich «Rollen»).',
+      rollen:
+        'Sichtbarkeit pro Dokumentkategorie · Modul-Zugriff getrennt in Sehen / Bearbeiten.',
+      benutzer: 'Projektmitglieder einladen, Rollen zuweisen und deaktivieren.',
+    },
     loginTitle: 'Admin-Anmeldung',
     noAccess: 'Dieses Konto hat keinen Adminzugriff.',
     newProject: '+ Neues Projekt',

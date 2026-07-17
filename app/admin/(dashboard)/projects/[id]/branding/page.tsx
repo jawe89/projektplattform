@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
 import { BrandingForm } from '@/features/admin/branding-form';
 import { requirePlatformAdmin } from '@/features/admin/require-admin';
+import { AdminSectionHeader } from '@/features/admin/section-header';
+import { texts } from '@/lib/texts';
 import type { Project, ProjectBranding } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
@@ -27,11 +29,17 @@ export default async function ProjectBrandingPage({
     .maybeSingle<ProjectBranding>();
 
   return (
-    <BrandingForm
-      projectId={id}
-      projectName={project.name}
-      landing={project.landing ?? {}}
-      branding={branding}
-    />
+    <>
+      <AdminSectionHeader
+        title={texts.admin.branding.title}
+        description={texts.admin.sections.branding}
+      />
+      <BrandingForm
+        projectId={id}
+        projectName={project.name}
+        landing={project.landing ?? {}}
+        branding={branding}
+      />
+    </>
   );
 }

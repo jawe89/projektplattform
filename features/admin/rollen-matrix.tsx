@@ -218,34 +218,41 @@ export function RollenMatrix({
     }
   }
 
+  // Subzeilen (Sehen/Hochladen bzw. Sehen/Bearbeiten) in Textschrift –
+  // die Spaltentitel laufen in Antonio (Design-Referenz)
+  const subheadClass =
+    'mt-1 flex justify-center gap-3 text-[9px] normal-case tracking-normal text-primary [font-family:var(--font-body)]';
+
   return (
     <div className="flex flex-col gap-4">
       <div className="overflow-x-auto border border-line bg-white">
-        <table className="w-full text-sm">
+        <table className="w-full min-w-[44rem] text-sm">
           <thead>
-            <tr className="border-b border-line">
-              <th className="display-title px-4 py-3 text-left text-xs font-normal text-primary">
+            <tr className="border-b border-line bg-bg">
+              <th className="display-title sticky left-0 z-10 border-r border-line bg-bg px-4 py-3 text-left text-[11px] font-medium tracking-[0.16em] text-primary-dark">
                 {texts.admin.rollen.roleName}
               </th>
               {categories.map((category) => (
                 <th
                   key={category.id}
-                  className="display-title px-3 py-3 text-center text-xs font-normal text-primary"
+                  className="display-title border-l border-line/60 px-3 py-3 text-center text-[10px] font-medium tracking-[0.12em] text-primary-dark"
                 >
                   {category.label}
-                  <span className="mt-1 flex justify-center gap-3 text-[9px] normal-case">
+                  <span className={subheadClass}>
                     <span>{texts.admin.rollen.view}</span>
                     <span>{texts.admin.rollen.upload}</span>
                   </span>
                 </th>
               ))}
-              {modules.map((module) => (
+              {modules.map((module, moduleIndex) => (
                 <th
                   key={module.key}
-                  className="display-title border-l border-line px-3 py-3 text-center text-xs font-normal text-accent-dark"
+                  className={`display-title px-3 py-3 text-center text-[10px] font-semibold tracking-[0.12em] text-ink ${
+                    moduleIndex === 0 ? 'border-l-2 border-line' : 'border-l border-line/60'
+                  }`}
                 >
                   {module.label}
-                  <span className="mt-1 flex justify-center gap-3 text-[9px] normal-case text-primary">
+                  <span className={subheadClass}>
                     <span>{texts.admin.rollen_module.view}</span>
                     <span>{texts.admin.rollen_module.edit}</span>
                   </span>
@@ -257,11 +264,16 @@ export function RollenMatrix({
           <tbody>
             {items.map((role) => (
               <tr key={role.id} className="border-b border-line last:border-b-0">
-                <td className="px-4 py-2 font-medium text-ink">{role.name}</td>
+                <td className="sticky left-0 z-10 border-r border-line bg-white px-4 py-2.5 text-[13px] font-semibold text-ink">
+                  {role.name}
+                </td>
                 {categories.map((category) => {
                   const value = entry(role.id, category.id);
                   return (
-                    <td key={category.id} className="px-3 py-2 text-center">
+                    <td
+                      key={category.id}
+                      className="border-l border-line/60 px-3 py-2.5 text-center"
+                    >
                       <span className="flex justify-center gap-4">
                         <input
                           type="checkbox"
@@ -272,6 +284,7 @@ export function RollenMatrix({
                               view: e.target.checked,
                             })
                           }
+                          className="accent-accent"
                         />
                         <input
                           type="checkbox"
@@ -282,17 +295,20 @@ export function RollenMatrix({
                               upload: e.target.checked,
                             })
                           }
+                          className="accent-accent"
                         />
                       </span>
                     </td>
                   );
                 })}
-                {modules.map((module) => {
+                {modules.map((module, moduleIndex) => {
                   const value = moduleEntry(role.id, module.key);
                   return (
                     <td
                       key={module.key}
-                      className="border-l border-line px-3 py-2 text-center"
+                      className={`bg-bg/60 px-3 py-2.5 text-center ${
+                        moduleIndex === 0 ? 'border-l-2 border-line' : 'border-l border-line/60'
+                      }`}
                     >
                       <span className="flex justify-center gap-4">
                         <input
@@ -304,6 +320,7 @@ export function RollenMatrix({
                               view: e.target.checked,
                             })
                           }
+                          className="accent-accent"
                         />
                         <input
                           type="checkbox"
@@ -314,12 +331,13 @@ export function RollenMatrix({
                               edit: e.target.checked,
                             })
                           }
+                          className="accent-accent"
                         />
                       </span>
                     </td>
                   );
                 })}
-                <td className="px-3 py-2 text-center">
+                <td className="px-3 py-2.5 text-center">
                   <button
                     type="button"
                     title={texts.common.delete}
@@ -335,7 +353,7 @@ export function RollenMatrix({
         </table>
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex flex-wrap items-center gap-3">
         <input
           value={newRoleName}
           onChange={(e) => setNewRoleName(e.target.value)}
@@ -345,7 +363,7 @@ export function RollenMatrix({
         <button
           type="button"
           onClick={addRole}
-          className="border border-dashed border-line px-4 py-2 text-sm text-primary hover:border-accent hover:text-accent"
+          className="display-title border border-dashed border-line px-4 py-2.5 text-[11px] font-medium tracking-[0.14em] text-primary transition-colors hover:border-primary hover:text-primary-dark"
         >
           {texts.admin.rollen.add}
         </button>
@@ -353,7 +371,7 @@ export function RollenMatrix({
           type="button"
           onClick={handleSave}
           disabled={saving}
-          className="bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-dark disabled:opacity-60"
+          className="display-title ml-auto bg-accent px-5 py-2.5 text-[12px] font-medium tracking-[0.14em] text-white transition-opacity hover:opacity-90 disabled:opacity-50"
         >
           {texts.common.save}
         </button>

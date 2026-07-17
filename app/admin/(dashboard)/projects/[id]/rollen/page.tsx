@@ -1,6 +1,8 @@
 import { requirePlatformAdmin } from '@/features/admin/require-admin';
 import { RollenMatrix } from '@/features/admin/rollen-matrix';
+import { AdminSectionHeader } from '@/features/admin/section-header';
 import { MODULES } from '@/lib/modules';
+import { texts } from '@/lib/texts';
 import type {
   Category,
   ProjectModule,
@@ -62,13 +64,19 @@ export default async function ProjectRollenPage({
     : { data: [] as RoleModuleAccess[] };
 
   return (
-    <RollenMatrix
-      projectId={id}
-      roles={roles ?? []}
-      categories={categories ?? []}
-      access={access ?? []}
-      modules={enabledModules}
-      moduleAccess={moduleAccess ?? []}
-    />
+    <>
+      <AdminSectionHeader
+        title={texts.admin.rollen.title}
+        description={texts.admin.sections.rollen}
+      />
+      <RollenMatrix
+        projectId={id}
+        roles={roles ?? []}
+        categories={categories ?? []}
+        access={access ?? []}
+        modules={enabledModules}
+        moduleAccess={moduleAccess ?? []}
+      />
+    </>
   );
 }

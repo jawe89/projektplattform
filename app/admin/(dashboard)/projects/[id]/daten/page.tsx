@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation';
 import { DatenForm } from '@/features/admin/daten-form';
 import { requirePlatformAdmin } from '@/features/admin/require-admin';
+import { AdminSectionHeader } from '@/features/admin/section-header';
+import { texts } from '@/lib/texts';
 import type { Project, ProjectBranding } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
@@ -26,5 +28,13 @@ export default async function ProjectDatenPage({
     .eq('project_id', id)
     .maybeSingle<ProjectBranding>();
 
-  return <DatenForm project={project} heroPath={branding?.hero_path ?? null} />;
+  return (
+    <>
+      <AdminSectionHeader
+        title={texts.admin.daten.title}
+        description={texts.admin.sections.daten}
+      />
+      <DatenForm project={project} heroPath={branding?.hero_path ?? null} />
+    </>
+  );
 }

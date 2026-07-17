@@ -30,7 +30,7 @@ export function AdminLoginForm({
       <div className="flex flex-col gap-3">
         <Link
           href="/"
-          className="block w-full bg-accent px-4 py-2 text-center text-sm font-medium text-white transition-colors hover:bg-accent-dark"
+          className="display-title block w-full bg-accent px-4 py-2.5 text-center text-[12px] font-medium tracking-[0.14em] text-white transition-opacity hover:opacity-90"
         >
           {texts.admin.projects}
         </Link>
@@ -44,7 +44,7 @@ export function AdminLoginForm({
   return (
     <form action={formAction} className="flex flex-col gap-3">
       <label className="flex flex-col gap-1">
-        <span className="text-xs font-medium text-primary-dark">
+        <span className="display-title text-[10px] font-medium tracking-[0.12em] text-primary-dark">
           {texts.landing.loginEmail}
         </span>
         <input
@@ -52,11 +52,11 @@ export function AdminLoginForm({
           name="email"
           required
           autoComplete="email"
-          className="border border-line bg-white px-3 py-2 text-sm text-ink outline-none focus:border-accent"
+          className="border border-line bg-bg px-3 py-2.5 text-sm text-ink outline-none focus:border-accent"
         />
       </label>
       <label className="flex flex-col gap-1">
-        <span className="text-xs font-medium text-primary-dark">
+        <span className="display-title text-[10px] font-medium tracking-[0.12em] text-primary-dark">
           {texts.landing.loginPassword}
         </span>
         <input
@@ -64,7 +64,7 @@ export function AdminLoginForm({
           name="password"
           required
           autoComplete="current-password"
-          className="border border-line bg-white px-3 py-2 text-sm text-ink outline-none focus:border-accent"
+          className="border border-line bg-bg px-3 py-2.5 text-sm text-ink outline-none focus:border-accent"
         />
       </label>
       {state.error && (
@@ -75,7 +75,7 @@ export function AdminLoginForm({
       <button
         type="submit"
         disabled={pending}
-        className="bg-accent px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-dark disabled:opacity-60"
+        className="display-title bg-accent px-4 py-2.5 text-[12px] font-medium tracking-[0.14em] text-white transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         {pending ? texts.landing.loginPending : texts.landing.loginButton}
       </button>

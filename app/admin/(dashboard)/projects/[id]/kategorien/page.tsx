@@ -1,5 +1,7 @@
 import { KategorienEditor } from '@/features/admin/kategorien-editor';
 import { requirePlatformAdmin } from '@/features/admin/require-admin';
+import { AdminSectionHeader } from '@/features/admin/section-header';
+import { texts } from '@/lib/texts';
 import type { Category } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
@@ -19,5 +21,13 @@ export default async function ProjectKategorienPage({
     .order('sort')
     .returns<Category[]>();
 
-  return <KategorienEditor projectId={id} categories={categories ?? []} />;
+  return (
+    <>
+      <AdminSectionHeader
+        title={texts.admin.kategorien.title}
+        description={texts.admin.sections.kategorien}
+      />
+      <KategorienEditor projectId={id} categories={categories ?? []} />
+    </>
+  );
 }

@@ -201,7 +201,7 @@ export function KategorienEditor({
         <div key={category.id} className="border border-line bg-white p-4">
           <div className="mb-3 flex flex-wrap items-end gap-3">
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-primary">
+              <span className="display-title text-[10px] font-medium tracking-[0.12em] text-primary-dark">
                 {texts.admin.kategorien.label}
               </span>
               <input
@@ -211,7 +211,7 @@ export function KategorienEditor({
               />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-primary">
+              <span className="display-title text-[10px] font-medium tracking-[0.12em] text-primary-dark">
                 {texts.admin.kategorien.addLabel}
               </span>
               <input
@@ -221,7 +221,7 @@ export function KategorienEditor({
               />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-primary">
+              <span className="display-title text-[10px] font-medium tracking-[0.12em] text-primary-dark">
                 {texts.admin.kategorien.layout}
               </span>
               <select
@@ -244,11 +244,12 @@ export function KategorienEditor({
                 onChange={(e) =>
                   update(index, { allowChildren: e.target.checked })
                 }
+                className="accent-accent"
               />
               {texts.admin.kategorien.allowChildren}
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-primary">
+              <span className="display-title text-[10px] font-medium tracking-[0.12em] text-primary-dark">
                 {texts.admin.kategorien.sortMode}
               </span>
               <select
@@ -275,7 +276,7 @@ export function KategorienEditor({
             {category.sortMode === 'field' && (
               <>
                 <label className="flex flex-col gap-1">
-                  <span className="text-xs text-primary">
+                  <span className="display-title text-[10px] font-medium tracking-[0.12em] text-primary-dark">
                     {texts.admin.kategorien.sortField}
                   </span>
                   <select
@@ -291,7 +292,7 @@ export function KategorienEditor({
                   </select>
                 </label>
                 <label className="flex flex-col gap-1">
-                  <span className="text-xs text-primary">
+                  <span className="display-title text-[10px] font-medium tracking-[0.12em] text-primary-dark">
                     {texts.admin.kategorien.sortDirection}
                   </span>
                   <select
@@ -343,7 +344,7 @@ export function KategorienEditor({
 
           {/* Feld-Schema */}
           <fieldset className="border border-line p-3">
-            <legend className="px-1 text-xs font-medium text-primary-dark">
+            <legend className="display-title px-1 text-[10px] font-medium tracking-[0.16em] text-primary-dark">
               {texts.admin.kategorien.fields}
             </legend>
             <div className="flex flex-col gap-2">
@@ -376,6 +377,7 @@ export function KategorienEditor({
                           required: e.target.checked,
                         })
                       }
+                      className="accent-accent"
                     />
                     {texts.admin.kategorien.fieldRequired}
                   </label>
@@ -388,6 +390,7 @@ export function KategorienEditor({
                           badge: e.target.checked,
                         })
                       }
+                      className="accent-accent"
                     />
                     {texts.admin.kategorien.fieldBadge}
                   </label>
@@ -447,7 +450,7 @@ export function KategorienEditor({
                     ],
                   });
                 }}
-                className="self-start border border-dashed border-line px-3 py-1 text-xs text-primary hover:border-accent hover:text-accent"
+                className="display-title self-start border border-dashed border-line px-3.5 py-1.5 text-[11px] font-medium tracking-[0.12em] text-primary transition-colors hover:border-primary hover:text-primary-dark"
               >
                 {texts.admin.kategorien.addField}
               </button>
@@ -480,7 +483,7 @@ export function KategorienEditor({
               },
             ])
           }
-          className="border border-dashed border-line px-4 py-2 text-sm text-primary hover:border-accent hover:text-accent"
+          className="display-title border border-dashed border-line px-4 py-2.5 text-[11px] font-medium tracking-[0.14em] text-primary transition-colors hover:border-primary hover:text-primary-dark"
         >
           {texts.admin.kategorien.add}
         </button>
@@ -488,7 +491,7 @@ export function KategorienEditor({
           type="button"
           onClick={handleSave}
           disabled={saving}
-          className="bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-dark disabled:opacity-60"
+          className="display-title ml-auto bg-accent px-5 py-2.5 text-[12px] font-medium tracking-[0.14em] text-white transition-opacity hover:opacity-90 disabled:opacity-50"
         >
           {texts.common.save}
         </button>

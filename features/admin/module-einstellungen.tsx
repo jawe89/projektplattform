@@ -69,9 +69,7 @@ export function ModuleEinstellungen({
 
   return (
     <div className="max-w-2xl">
-      <p className="mb-4 text-sm text-primary-dark">
-        {texts.admin.module.intro}
-      </p>
+      {/* Der frühere Intro-Text steht jetzt als Beschreibung im Sektionskopf */}
       <div className="flex flex-col gap-3">
         {MODULES.map((module) => (
           <label
@@ -86,11 +84,12 @@ export function ModuleEinstellungen({
                 {module.description}
               </span>
             </span>
-            <span className="flex shrink-0 items-center gap-2 text-xs text-primary-dark">
+            <span className="display-title flex shrink-0 items-center gap-2 text-[10px] font-medium tracking-[0.12em] text-primary-dark">
               <input
                 type="checkbox"
                 checked={enabled.has(module.key)}
                 onChange={() => toggle(module.key)}
+                className="accent-accent"
               />
               {texts.admin.module.enabled}
             </span>
@@ -102,7 +101,7 @@ export function ModuleEinstellungen({
         type="button"
         onClick={handleSave}
         disabled={saving}
-        className="mt-4 bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-dark disabled:opacity-60"
+        className="display-title mt-4 bg-accent px-5 py-2.5 text-[12px] font-medium tracking-[0.14em] text-white transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         {texts.common.save}
       </button>

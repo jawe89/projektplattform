@@ -1,5 +1,6 @@
 import { ProjectForm } from '@/features/admin/project-form';
 import { requirePlatformAdmin } from '@/features/admin/require-admin';
+import { AdminSectionHeader } from '@/features/admin/section-header';
 import { texts } from '@/lib/texts';
 
 export const dynamic = 'force-dynamic';
@@ -14,9 +15,9 @@ export default async function NewProjectPage() {
 
   return (
     <div>
-      <h1 className="display-title mb-6 text-2xl text-ink">
-        {texts.admin.newProject.replace(/^\+\s*/, '')}
-      </h1>
+      <AdminSectionHeader
+        title={texts.admin.newProject.replace(/^\+\s*/, '')}
+      />
       <div className="border border-line bg-white p-6">
         <ProjectForm templates={templates ?? []} />
       </div>

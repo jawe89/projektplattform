@@ -70,14 +70,14 @@ export function BenutzerVerwaltung({
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-line text-left">
-                <th className="display-title px-4 py-3 text-xs font-normal text-primary">
+              <tr className="border-b border-line bg-bg text-left">
+                <th className="display-title px-4 py-3 text-[11px] font-medium tracking-[0.16em] text-primary-dark">
                   {texts.admin.benutzer.email}
                 </th>
-                <th className="display-title px-4 py-3 text-xs font-normal text-primary">
+                <th className="display-title px-4 py-3 text-[11px] font-medium tracking-[0.16em] text-primary-dark">
                   {texts.admin.benutzer.role}
                 </th>
-                <th className="display-title px-4 py-3 text-xs font-normal text-primary">
+                <th className="display-title px-4 py-3 text-[11px] font-medium tracking-[0.16em] text-primary-dark">
                   {texts.admin.benutzer.projectAdmin}
                 </th>
                 <th className="w-28" />
@@ -115,19 +115,19 @@ export function BenutzerVerwaltung({
 
       {/* Einladung */}
       <div className="h-fit border border-line bg-white p-5">
-        <h2 className="display-title mb-4 text-sm text-ink">
+        <h2 className="display-title mb-4 border-b border-line pb-2 text-[11px] font-medium tracking-[0.18em] text-primary-dark">
           {texts.admin.benutzer.invite}
         </h2>
         <form action={formAction} className="flex flex-col gap-3">
           <input type="hidden" name="projectId" value={projectId} />
           <label className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-primary-dark">
+            <span className="display-title text-[10px] font-medium tracking-[0.12em] text-primary-dark">
               {texts.admin.benutzer.email}
             </span>
             <input type="email" name="email" required className={inputClass} />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs font-medium text-primary-dark">
+            <span className="display-title text-[10px] font-medium tracking-[0.12em] text-primary-dark">
               {texts.admin.benutzer.role}
             </span>
             <select name="roleId" required className={inputClass}>
@@ -139,7 +139,11 @@ export function BenutzerVerwaltung({
             </select>
           </label>
           <label className="flex items-center gap-2 text-xs text-primary-dark">
-            <input type="checkbox" name="isProjectAdmin" />
+            <input
+              type="checkbox"
+              name="isProjectAdmin"
+              className="accent-accent"
+            />
             {texts.admin.benutzer.projectAdmin}
           </label>
           {state.error && (
@@ -168,7 +172,7 @@ export function BenutzerVerwaltung({
           <button
             type="submit"
             disabled={pending}
-            className="bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-dark disabled:opacity-60"
+            className="display-title bg-accent px-5 py-2.5 text-[12px] font-medium tracking-[0.14em] text-white transition-opacity hover:opacity-90 disabled:opacity-50"
           >
             {pending
               ? texts.admin.benutzer.inviting

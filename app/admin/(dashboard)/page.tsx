@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { requirePlatformAdmin } from '@/features/admin/require-admin';
+import { AdminSectionHeader } from '@/features/admin/section-header';
 import { texts } from '@/lib/texts';
 import type { Project } from '@/lib/types';
 
@@ -17,35 +18,36 @@ export default async function AdminProjectsPage() {
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="display-title text-2xl text-ink">
-          {texts.admin.projects}
-        </h1>
+      <div className="mb-6 flex flex-wrap items-start justify-between gap-3">
+        <AdminSectionHeader
+          title={texts.admin.projects}
+          description={texts.admin.sections.projects}
+        />
         <Link
           href="/projects/new"
-          className="bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-dark"
+          className="display-title bg-accent px-5 py-2.5 text-[12px] font-medium tracking-[0.14em] text-white transition-opacity hover:opacity-90"
         >
           {texts.admin.newProject}
         </Link>
       </div>
 
-      <div className="border border-line bg-white">
-        <table className="w-full text-sm">
+      <div className="overflow-x-auto border border-line bg-white">
+        <table className="w-full min-w-[36rem] text-sm">
           <thead>
-            <tr className="border-b border-line text-left">
-              <th className="display-title px-4 py-3 text-xs font-normal text-primary">
+            <tr className="border-b border-line bg-bg text-left">
+              <th className="display-title px-4 py-3 text-[11px] font-medium tracking-[0.16em] text-primary-dark">
                 {texts.admin.nameLabel}
               </th>
-              <th className="display-title px-4 py-3 text-xs font-normal text-primary">
+              <th className="display-title px-4 py-3 text-[11px] font-medium tracking-[0.16em] text-primary-dark">
                 {texts.admin.projectNoLabel}
               </th>
-              <th className="display-title px-4 py-3 text-xs font-normal text-primary">
+              <th className="display-title px-4 py-3 text-[11px] font-medium tracking-[0.16em] text-primary-dark">
                 {texts.admin.slugLabel}
               </th>
-              <th className="display-title px-4 py-3 text-xs font-normal text-primary">
+              <th className="display-title px-4 py-3 text-[11px] font-medium tracking-[0.16em] text-primary-dark">
                 {texts.admin.domainLabel}
               </th>
-              <th className="display-title px-4 py-3 text-xs font-normal text-primary">
+              <th className="display-title px-4 py-3 text-[11px] font-medium tracking-[0.16em] text-primary-dark">
                 {texts.admin.statusLabel}
               </th>
             </tr>
@@ -70,11 +72,11 @@ export default async function AdminProjectsPage() {
                 </td>
                 <td className="px-4 py-3">
                   <span
-                    className={
+                    className={`inline-block rounded-full border px-2.5 py-0.5 text-[10px] font-bold tracking-[0.04em] uppercase ${
                       project.status === 'active'
-                        ? 'text-accent'
-                        : 'text-primary'
-                    }
+                        ? 'border-accent text-accent'
+                        : 'border-primary text-primary'
+                    }`}
                   >
                     {project.status === 'active'
                       ? texts.admin.statusActive

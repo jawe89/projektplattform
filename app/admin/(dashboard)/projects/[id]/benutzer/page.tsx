@@ -3,7 +3,9 @@ import {
   type MemberRow,
 } from '@/features/admin/benutzer-verwaltung';
 import { requirePlatformAdmin } from '@/features/admin/require-admin';
+import { AdminSectionHeader } from '@/features/admin/section-header';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { texts } from '@/lib/texts';
 import type { Role } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
@@ -50,6 +52,12 @@ export default async function ProjectBenutzerPage({
   }));
 
   return (
-    <BenutzerVerwaltung projectId={id} roles={roles ?? []} members={members} />
+    <>
+      <AdminSectionHeader
+        title={texts.admin.benutzer.title}
+        description={texts.admin.sections.benutzer}
+      />
+      <BenutzerVerwaltung projectId={id} roles={roles ?? []} members={members} />
+    </>
   );
 }

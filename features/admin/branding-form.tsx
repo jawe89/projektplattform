@@ -128,12 +128,12 @@ export function BrandingForm({
       <div className="flex flex-col gap-5 border border-line bg-white p-6">
         {/* Baumanagement */}
         <fieldset className="border border-line p-3">
-          <legend className="px-1 text-xs font-medium text-primary-dark">
+          <legend className="display-title px-1 text-[10px] font-medium tracking-[0.16em] text-primary-dark">
             {texts.admin.branding.management}
           </legend>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-primary">
+              <span className="display-title text-[10px] font-medium tracking-[0.12em] text-primary-dark">
                 {texts.admin.branding.managementName}
               </span>
               <input
@@ -143,7 +143,7 @@ export function BrandingForm({
               />
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-primary">
+              <span className="display-title text-[10px] font-medium tracking-[0.12em] text-primary-dark">
                 {texts.admin.branding.managementSuffix}
               </span>
               <input
@@ -162,7 +162,7 @@ export function BrandingForm({
                 className="h-10 border border-line"
               />
             )}
-            <label className="cursor-pointer border border-dashed border-line px-3 py-2 text-xs text-primary hover:border-accent hover:text-accent">
+            <label className="display-title cursor-pointer border border-dashed border-line px-3.5 py-2 text-[11px] font-medium tracking-[0.12em] text-primary transition-colors hover:border-primary hover:text-primary-dark">
               {uploading
                 ? texts.admin.daten.uploading
                 : texts.admin.branding.logoUpload}
@@ -182,28 +182,30 @@ export function BrandingForm({
 
         {/* Farben */}
         <fieldset className="border border-line p-3">
-          <legend className="px-1 text-xs font-medium text-primary-dark">
+          <legend className="display-title px-1 text-[10px] font-medium tracking-[0.16em] text-primary-dark">
             {texts.admin.branding.colors}
           </legend>
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {/* Farbzeilen wie in der Design-Referenz: Swatch · Name · Hex-Wert */}
+          <div className="sm:columns-2 sm:gap-8">
             {COLOR_KEYS.map((key) => (
-              <label key={key} className="flex flex-col gap-1">
-                <span className="text-xs text-primary">
+              <label
+                key={key}
+                className="flex break-inside-avoid cursor-pointer items-center gap-3 border-b border-line/60 py-2"
+              >
+                <input
+                  type="color"
+                  value={colors[key]}
+                  onChange={(e) =>
+                    setColors((c) => ({ ...c, [key]: e.target.value }))
+                  }
+                  className="h-7 w-9 shrink-0 cursor-pointer border border-line bg-white p-0.5"
+                />
+                <span className="min-w-0 flex-1 truncate text-[12.5px] font-medium text-ink">
                   {texts.admin.branding.colorLabels[key]}
                 </span>
-                <span className="flex items-center gap-2">
-                  <input
-                    type="color"
-                    value={colors[key]}
-                    onChange={(e) =>
-                      setColors((c) => ({ ...c, [key]: e.target.value }))
-                    }
-                    className="h-8 w-10 cursor-pointer border border-line bg-white p-0.5"
-                  />
-                  <code className="text-xs text-primary-dark">
-                    {colors[key]}
-                  </code>
-                </span>
+                <code className="border border-line bg-white px-2 py-1 text-xs text-primary-dark tabular-nums">
+                  {colors[key]}
+                </code>
               </label>
             ))}
           </div>
@@ -211,12 +213,12 @@ export function BrandingForm({
 
         {/* Schriften */}
         <fieldset className="border border-line p-3">
-          <legend className="px-1 text-xs font-medium text-primary-dark">
+          <legend className="display-title px-1 text-[10px] font-medium tracking-[0.16em] text-primary-dark">
             {texts.admin.branding.fonts}
           </legend>
           <div className="grid gap-3 sm:grid-cols-2">
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-primary">
+              <span className="display-title text-[10px] font-medium tracking-[0.12em] text-primary-dark">
                 {texts.admin.branding.fontDisplay}
               </span>
               <select
@@ -232,7 +234,7 @@ export function BrandingForm({
               </select>
             </label>
             <label className="flex flex-col gap-1">
-              <span className="text-xs text-primary">
+              <span className="display-title text-[10px] font-medium tracking-[0.12em] text-primary-dark">
                 {texts.admin.branding.fontBody}
               </span>
               <select
@@ -254,7 +256,7 @@ export function BrandingForm({
           type="button"
           onClick={handleSave}
           disabled={saving}
-          className="self-start bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-dark disabled:opacity-60"
+          className="display-title self-start bg-accent px-5 py-2.5 text-[12px] font-medium tracking-[0.14em] text-white transition-opacity hover:opacity-90 disabled:opacity-50"
         >
           {texts.common.save}
         </button>
@@ -262,7 +264,7 @@ export function BrandingForm({
 
       {/* Live-Vorschau */}
       <div className="h-fit border border-line bg-white p-4">
-        <h2 className="display-title mb-3 text-sm text-ink">
+        <h2 className="display-title mb-3 border-b border-line pb-2 text-[11px] font-medium tracking-[0.18em] text-primary-dark">
           {texts.admin.branding.preview}
         </h2>
         <link rel="stylesheet" href={previewFontsUrl} />
