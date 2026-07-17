@@ -4,6 +4,7 @@ import { LogoutButton } from '@/features/auth/logout-button';
 import { BkkClient } from '@/features/bkk/bkk-client';
 import { LvClient, type WerkvertragDoc } from '@/features/lv/lv-client';
 import { isModuleKey, MODULES } from '@/lib/modules';
+import { publicBrandingUrl } from '@/lib/storage';
 import { createClient } from '@/lib/supabase/server';
 import { getTenantData } from '@/lib/tenant';
 import { texts } from '@/lib/texts';
@@ -217,6 +218,13 @@ export default async function ModulePage({
       <BkkClient
         projectId={projectId}
         projectName={tenant?.project.name ?? ''}
+        projectNo={tenant?.project.project_no ?? null}
+        managementName={tenant?.branding?.management_name ?? null}
+        managementLogoUrl={
+          tenant?.branding?.management_logo_path
+            ? publicBrandingUrl(tenant.branding.management_logo_path)
+            : null
+        }
         canEdit={canEdit}
         round5={round5}
         groups={groups ?? []}

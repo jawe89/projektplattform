@@ -17,24 +17,31 @@
   /* Semantische Statusfarben (nicht tenant-spezifisch) */
   --color-warn: #c07c1d;
   --color-error: #b3261e;
-  /* Modul Baukostenkontrolle: Spaltbereich-Töne (Referenz: Alt-Tool-CSS).
-     Original rot-getönt, Mutationen grün, Verträge blau, Zahlungen sand. */
-  --color-bkk-orig-head: #f9dcd8;
-  --color-bkk-orig-tint: #fdf2f0;
-  --color-bkk-orig-bord: #d97e76;
-  --color-bkk-orig-ink: #7a2c25;
-  --color-bkk-mut-head: #d8ecc6;
-  --color-bkk-mut-tint: #f1f8ea;
-  --color-bkk-mut-bord: #6fa54a;
-  --color-bkk-mut-ink: #2f5b1a;
-  --color-bkk-vert-head: #cfdff5;
-  --color-bkk-vert-tint: #ecf2fa;
-  --color-bkk-vert-bord: #4378c0;
-  --color-bkk-vert-ink: #1f3e6e;
-  --color-bkk-zahl-head: #e2cfaf;
-  --color-bkk-zahl-tint: #f5edd9;
-  --color-bkk-zahl-bord: #8b6f47;
-  --color-bkk-zahl-ink: #5a4221;
+  /* Modul Baukostenkontrolle: Spaltbereich-Töne (Design-Referenz, fix und
+     tenant-unabhängig). Vier Familien Rot/Grün/Blau/Sand mit Kopf- (head),
+     Flächen- (tint), Rand- (bord) und Akzentton (ink: KPI-Oberkante,
+     Detail-Titel). */
+  --color-bkk-orig-head: #f0dcd9;
+  --color-bkk-orig-tint: #f9f0ee;
+  --color-bkk-orig-bord: #e0c5c0;
+  --color-bkk-orig-ink: #c9958d;
+  --color-bkk-mut-head: #e0ecd6;
+  --color-bkk-mut-tint: #f1f7ea;
+  --color-bkk-mut-bord: #c9dcb9;
+  --color-bkk-mut-ink: #93b878;
+  --color-bkk-vert-head: #dbe6f0;
+  --color-bkk-vert-tint: #eef3f8;
+  --color-bkk-vert-bord: #c1d3e3;
+  --color-bkk-vert-ink: #7ba2c4;
+  --color-bkk-zahl-head: #eee5d3;
+  --color-bkk-zahl-tint: #f8f3e8;
+  --color-bkk-zahl-bord: #dccfb4;
+  --color-bkk-zahl-ink: #c2ab7d;
+  /* Status-Pillenfarben (Design-Referenz, fix): offen nutzt --color-primary */
+  --color-status-vertrag: #3e7cb1;
+  --color-status-teilbezahlt: #d9a400;
+  --color-status-bezahlt: #4d9a3f;
+  --color-status-ueber: #c0392b;
   --font-display: 'Antonio', sans-serif;
   --font-body: 'Montserrat', sans-serif;
 }
@@ -71,6 +78,10 @@
   --color-bkk-zahl-tint: var(--color-bkk-zahl-tint);
   --color-bkk-zahl-bord: var(--color-bkk-zahl-bord);
   --color-bkk-zahl-ink: var(--color-bkk-zahl-ink);
+  --color-status-vertrag: var(--color-status-vertrag);
+  --color-status-teilbezahlt: var(--color-status-teilbezahlt);
+  --color-status-bezahlt: var(--color-status-bezahlt);
+  --color-status-ueber: var(--color-status-ueber);
   --color-white: #ffffff;
   --font-display: var(--font-display);
   --font-body: var(--font-body);

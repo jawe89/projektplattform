@@ -30,11 +30,7 @@ import {
   kvMutKpi,
   offenRp,
   positionStatus,
-  sharePct,
-  shareTone,
   totals,
-  vertragKpiAmpel,
-  zahlungKpiAmpel,
 } from '@/lib/bkk-calc';
 import { formatDate, formatRappen, parseChfToRappen } from '@/lib/format';
 import { createClient } from '@/lib/supabase/client';
@@ -50,6 +46,10 @@ import type {
 interface BkkClientProps {
   projectId: string;
   projectName: string;
+  /** Projekt-Nr. für Kopfzeile und Footer (Design-Referenz) */
+  projectNo: string | null;
+  managementName: string | null;
+  managementLogoUrl: string | null;
   /** Bearbeitung (Rollen-Freigabe «Bearbeiten» oder Projekt-Admin) */
   canEdit: boolean;
   /** 5-Rappen-Anzeige-/Totalisierungsregel (Moduleinstellung) */
@@ -68,30 +68,40 @@ interface BkkClientProps {
 }
 
 /** Spaltenzahl der Tabelle (für colSpan der Gruppen-/Detailzeilen) */
-const COLS = 10;
+const COLS = 7;
 
-/* Ampel-/Statusfarben semantisch wie im Alt-Tool (grün/gelb/rot) – bewusst
-   die fixen BKK-Töne statt der Tenant-Akzentfarbe, damit die Ampellogik in
-   jedem Branding lesbar bleibt. */
-const AMPEL_BORDER: Record<BkkAmpel, string> = {
-  neutral: 'border-line',
-  green: 'border-bkk-mut-bord',
-  amber: 'border-warn',
-  red: 'border-error',
-};
+/* Status-Pillen und Ampeln mit den fixen Statusfarben der Design-Referenz –
+   bewusst tenant-unabhängig, damit die Ampellogik in jedem Branding lesbar
+   bleibt. */
+const PILL_BASE =
+  'inline-block whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.05em]';
 
 const STATUS_PILL: Record<BkkStatus, string> = {
-  offen: 'border-line bg-white text-primary',
-  vertrag: 'border-bkk-mut-bord bg-white text-bkk-mut-ink',
-  bezahlt: 'border-bkk-mut-bord bg-bkk-mut-bord text-white',
-  teilbezahlt: 'border-warn bg-white text-warn',
-  ueber_kv: 'border-error bg-error text-white',
+  offen: 'border-primary text-primary',
+  vertrag: 'border-status-vertrag text-status-vertrag',
+  bezahlt: 'border-status-bezahlt text-status-bezahlt',
+  teilbezahlt: 'border-status-teilbezahlt text-status-teilbezahlt',
+  ueber_kv: 'border-status-ueber text-status-ueber',
 };
 
 const TONE_TEXT: Record<'pos' | 'neg' | 'zero', string> = {
-  pos: 'text-bkk-mut-ink',
-  neg: 'text-error',
+  pos: 'text-status-bezahlt',
+  neg: 'text-status-ueber',
   zero: 'text-primary',
+};
+
+const AMPEL_TEXT: Record<BkkAmpel, string> = {
+  neutral: 'text-primary',
+  green: 'text-status-bezahlt',
+  amber: 'text-status-teilbezahlt',
+  red: 'text-status-ueber',
+};
+
+const AMPEL_DOT: Record<BkkAmpel, string> = {
+  neutral: 'bg-primary',
+  green: 'bg-status-bezahlt',
+  amber: 'bg-status-teilbezahlt',
+  red: 'bg-status-ueber',
 };
 
 /** «+3.0 %» / «−5.0 %» */
@@ -124,6 +134,7 @@ function KvMutInput({
       inputMode="decimal"
       value={text}
       placeholder={placeholderRp !== null ? formatRappen(placeholderRp) : ''}
+      onClick={(e) => e.stopPropagation()}
       onFocus={(e) => {
         setText((t) => t.replace(/['’\s]/g, ''));
         e.target.select();
@@ -134,7 +145,7 @@ function KvMutInput({
         setText(rp !== null ? formatRappen(rp) : '');
         if (rp !== valueRp) onCommit(rp);
       }}
-      className="w-28 border border-transparent bg-transparent px-1 py-0.5 text-right text-sm text-ink outline-none hover:border-bkk-mut-bord focus:border-bkk-mut-bord focus:bg-white"
+      className="w-28 border border-transparent bg-transparent px-1 py-0.5 text-right text-[12.5px] font-semibold text-ink tabular-nums outline-none hover:border-bkk-mut-ink focus:border-bkk-mut-ink focus:bg-white"
     />
   );
 }
@@ -151,6 +162,9 @@ function KvMutInput({
 export function BkkClient({
   projectId,
   projectName,
+  projectNo,
+  managementName,
+  managementLogoUrl,
   canEdit,
   round5,
   groups,
@@ -185,6 +199,7 @@ export function BkkClient({
 
   // In der Ansicht einer alten Baseline ist ALLES read-only
   const editing = canEdit && isActiveBaselineView;
+  const monogram = managementName?.trim().charAt(0).toUpperCase();
   const opts: BkkCalcOptions = useMemo(() => ({ round5 }), [round5]);
 
   // Warnung bei ungespeicherten Änderungen (wie Hub)
@@ -516,46 +531,40 @@ export function BkkClient({
   // -------------------------------------------------------------------------
   // Rendering
 
-  function pctCell(pct: number | null, extra: string) {
-    return (
-      <td className={`px-3 py-2 text-right text-xs ${TONE_TEXT[shareTone(pct)]} ${extra}`}>
-        {pct !== null ? `${pct.toFixed(1)} %` : '–'}
-      </td>
-    );
-  }
-
   function entryList(position: BkkPosition, kind: BkkEntryType) {
     const list = entriesOf(position.id, kind);
     const headClass =
       kind === 'vertrag' ? 'text-bkk-vert-ink' : 'text-bkk-zahl-ink';
     return (
       <div>
-        <h4 className={`display-title mb-2 text-xs ${headClass}`}>
+        <h4
+          className={`display-title mb-2 text-[11px] font-medium tracking-[0.18em] ${headClass}`}
+        >
           {kind === 'vertrag' ? texts.bkk.detailVertraege : texts.bkk.detailZahlungen}
         </h4>
         {list.length === 0 && (
           <p className="text-xs text-primary">{texts.bkk.emptyEntries}</p>
         )}
-        <ul className="flex flex-col gap-1">
+        <ul>
           {list.map((entry) => (
             <li
               key={entry.id}
-              className="flex items-start gap-3 border border-line bg-white px-3 py-1.5"
+              className="flex items-center gap-3 border-b border-line py-1.5 text-xs"
             >
-              <span className="w-20 shrink-0 text-xs text-primary-dark">
+              <span className="w-[74px] shrink-0 text-primary tabular-nums">
                 {entry.datum ? formatDate(entry.datum) : '–'}
               </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-xs text-ink">
+              <span className="min-w-0 flex-1 truncate">
+                <span className="font-semibold text-ink">
                   {entry.unternehmer ?? '–'}
                 </span>
                 {entry.notiz && (
-                  <span className="block text-[11px] text-primary">
-                    {entry.notiz}
-                  </span>
+                  <span className="text-primary-dark"> · {entry.notiz}</span>
                 )}
               </span>
-              <span className="shrink-0 text-xs font-medium text-ink">
+              <span
+                className={`shrink-0 text-ink tabular-nums ${kind === 'vertrag' ? 'font-semibold' : ''}`}
+              >
                 {formatRappen(displayRp(entry.betrag_rp, opts))}
               </span>
               {editing && (
@@ -587,7 +596,7 @@ export function BkkClient({
           <button
             type="button"
             onClick={() => setEntryModal({ positionId: position.id, kind })}
-            className="mt-2 w-full border border-dashed border-line px-3 py-1 text-xs text-primary hover:border-accent hover:text-accent"
+            className="mt-2 w-full border border-dashed border-line px-3 py-1 text-xs text-primary hover:border-primary hover:text-primary-dark"
           >
             {kind === 'vertrag' ? texts.bkk.addVertrag : texts.bkk.addZahlung}
           </button>
@@ -608,48 +617,43 @@ export function BkkClient({
 
     return (
       <Fragment key={position.id}>
-        <tr className={position.hidden ? 'opacity-50' : ''}>
-          <td className="sticky left-0 z-10 min-w-56 border-b border-line bg-white px-3 py-2">
+        {/* Zeile klickbar (Details); interaktive Elemente stoppen den Klick */}
+        <tr
+          onClick={() => toggleExpanded(position.id)}
+          className={`cursor-pointer ${position.hidden ? 'opacity-50' : ''}`}
+        >
+          <td className="sticky left-0 z-10 min-w-44 border-r border-b border-line bg-white px-3 py-2 sm:min-w-56 sm:px-4 sm:py-2.5">
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => toggleExpanded(position.id)}
-                aria-expanded={isOpen}
-                className="flex min-w-0 flex-1 items-center gap-2 text-left"
-              >
-                <span
-                  className={`shrink-0 text-primary transition-transform ${isOpen ? 'rotate-90' : ''}`}
-                >
-                  ›
-                </span>
-                <span className="min-w-0">
-                  <span className="block truncate text-sm text-ink">
-                    <span className="font-medium">{position.bkp}</span>{' '}
-                    {position.name}
-                    {position.is_custom && (
-                      <span className="ml-1 text-[10px] text-accent-dark">
-                        {texts.bkk.customBadge}
-                      </span>
-                    )}
-                    {position.hidden && (
-                      <span className="ml-1 text-[10px] text-primary">
-                        {texts.bkk.hiddenBadge}
-                      </span>
-                    )}
-                  </span>
-                  {position.notiz && (
-                    <span className="block truncate text-[11px] text-primary">
-                      {position.notiz}
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[13px] text-ink">
+                  <span className="font-bold tabular-nums">{position.bkp}</span>{' '}
+                  <span className="font-medium">{position.name}</span>
+                  {position.is_custom && (
+                    <span className="ml-1 text-[10px] text-accent-dark">
+                      {texts.bkk.customBadge}
+                    </span>
+                  )}
+                  {position.hidden && (
+                    <span className="ml-1 text-[10px] text-primary">
+                      {texts.bkk.hiddenBadge}
                     </span>
                   )}
                 </span>
-              </button>
+                {position.notiz && (
+                  <span className="mt-0.5 block truncate text-[11px] text-primary">
+                    {position.notiz}
+                  </span>
+                )}
+              </span>
               {editing && (
                 <span className="flex shrink-0 items-center gap-1">
                   <button
                     type="button"
                     title={texts.common.edit}
-                    onClick={() => setPositionModal({ position })}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPositionModal({ position });
+                    }}
                     className="border border-line bg-white px-1.5 py-0.5 text-[11px] text-primary-dark hover:border-primary"
                   >
                     ✎
@@ -658,7 +662,10 @@ export function BkkClient({
                     <button
                       type="button"
                       title={texts.common.delete}
-                      onClick={() => removePosition(position)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removePosition(position);
+                      }}
                       className="border border-line bg-white px-1.5 py-0.5 text-[11px] text-primary-dark hover:border-error hover:text-error"
                     >
                       ✕
@@ -668,7 +675,7 @@ export function BkkClient({
               )}
             </div>
           </td>
-          <td className="border-b border-line bg-bkk-orig-tint px-3 py-2 text-right text-sm text-ink">
+          <td className="border-b border-l border-line border-l-bkk-orig-bord bg-bkk-orig-tint px-3.5 py-2.5 text-right text-[12.5px] text-primary-dark tabular-nums">
             {inBaseline ? (
               formatRappen(base)
             ) : (
@@ -680,7 +687,7 @@ export function BkkClient({
               </span>
             )}
           </td>
-          <td className="border-b border-l-2 border-line border-l-primary bg-bkk-mut-tint px-3 py-2 text-right text-sm text-ink">
+          <td className="border-b border-l border-line border-l-bkk-mut-bord bg-bkk-mut-tint px-3.5 py-2.5 text-right">
             {editing ? (
               <KvMutInput
                 key={`${position.id}:${position.kv_mut_rp ?? ''}`}
@@ -689,44 +696,40 @@ export function BkkClient({
                 onCommit={(rp) => updatePosition(position.id, { kv_mut_rp: rp })}
               />
             ) : (
-              formatRappen(kvm)
+              <span className="text-[12.5px] font-semibold text-ink tabular-nums">
+                {formatRappen(kvm)}
+              </span>
+            )}
+            {dPct !== null && (
+              <span
+                className={`block text-[10px] font-semibold tabular-nums ${TONE_TEXT[deltaTone(dPct)]}`}
+              >
+                {formatPctSigned(dPct)}
+              </span>
             )}
           </td>
-          <td
-            className={`border-b border-line bg-bkk-mut-tint px-3 py-2 text-right text-xs ${TONE_TEXT[deltaTone(dPct)]}`}
-          >
-            {dPct !== null ? formatPctSigned(dPct) : '–'}
-          </td>
-          <td className="border-b border-l-2 border-line border-l-primary bg-bkk-vert-tint px-3 py-2 text-right text-sm text-ink">
+          <td className="border-b border-l border-line border-l-bkk-vert-bord bg-bkk-vert-tint px-3.5 py-2.5 text-right text-[12.5px] text-ink tabular-nums">
             {sums.vertragRp !== 0 ? formatRappen(sums.vertragRp) : '–'}
           </td>
-          {pctCell(
-            sharePct(sums.vertragRp, kvm),
-            'border-b border-line bg-bkk-vert-tint',
-          )}
-          <td className="border-b border-l-2 border-line border-l-primary bg-bkk-zahl-tint px-3 py-2 text-right text-sm text-ink">
+          <td className="border-r border-b border-l border-line border-r-bkk-zahl-bord border-l-bkk-zahl-bord bg-bkk-zahl-tint px-3.5 py-2.5 text-right text-[12.5px] text-primary-dark tabular-nums">
             {sums.zahlungRp !== 0 ? formatRappen(sums.zahlungRp) : '–'}
           </td>
-          {pctCell(
-            sharePct(sums.zahlungRp, kvm),
-            'border-b border-line bg-bkk-zahl-tint',
-          )}
-          {pctCell(
-            sharePct(sums.zahlungRp, sums.vertragRp),
-            'border-b border-line bg-bkk-zahl-tint',
-          )}
-          <td className="border-b border-l-2 border-line border-l-primary bg-white px-3 py-2 text-center">
-            <span
-              className={`inline-block border px-2 py-0.5 text-[11px] ${STATUS_PILL[status]}`}
-            >
+          <td className="border-b border-line bg-white px-3 py-2.5 align-top">
+            <span className={`${PILL_BASE} ${STATUS_PILL[status]}`}>
               {texts.bkk.status[status]}
             </span>
+          </td>
+          <td className="border-b border-line bg-white px-2 py-2.5 text-center text-[11px] text-primary">
+            {isOpen ? '▴' : '▾'}
           </td>
         </tr>
         {isOpen && (
           <tr>
-            <td colSpan={COLS} className="border-b border-line bg-bg px-4 py-3">
-              <div className="grid gap-4 sm:grid-cols-2">
+            <td
+              colSpan={COLS}
+              className="border-b border-line bg-bg px-4 py-3.5 sm:px-8"
+            >
+              <div className="grid gap-5 sm:grid-cols-2 sm:gap-8">
                 {entryList(position, 'vertrag')}
                 {entryList(position, 'zahlung')}
               </div>
@@ -746,37 +749,33 @@ export function BkkClient({
     const sub = groupSubtotals(calcRows, opts);
     const dPct = groupDeltaPct(calcRows, opts);
     return (
-      <tr key={`${group.id}-subtotal`} className="text-sm font-medium">
-        <td className="sticky left-0 z-10 border-b border-line bg-white px-3 py-2 text-xs text-primary-dark">
-          {texts.bkk.groupTotal}
+      <tr key={`${group.id}-subtotal`}>
+        <td className="sticky left-0 z-10 border-r border-b border-line bg-white px-3 py-2 text-xs font-semibold text-primary-dark sm:px-4">
+          {texts.bkk.groupTotal} {group.digit} {group.name}
         </td>
-        <td className="border-b border-line bg-bkk-orig-head px-3 py-2 text-right text-bkk-orig-ink">
+        <td className="border-b border-l border-line border-l-bkk-orig-bord bg-bkk-orig-head px-3.5 py-2 text-right text-[12.5px] font-semibold text-ink tabular-nums">
           {formatRappen(sub.kvBaselineRp)}
         </td>
-        <td className="border-b border-l-2 border-line border-l-primary bg-bkk-mut-head px-3 py-2 text-right text-bkk-mut-ink">
-          {formatRappen(sub.kvMutRp)}
+        <td className="border-b border-l border-line border-l-bkk-mut-bord bg-bkk-mut-head px-3.5 py-2 text-right">
+          <span className="text-[12.5px] font-semibold text-ink tabular-nums">
+            {formatRappen(sub.kvMutRp)}
+          </span>
+          {dPct !== null && (
+            <span
+              className={`block text-[10px] font-semibold tabular-nums ${TONE_TEXT[deltaTone(dPct)]}`}
+            >
+              {formatPctSigned(dPct)}
+            </span>
+          )}
         </td>
-        <td className="border-b border-line bg-bkk-mut-head px-3 py-2 text-right text-xs text-bkk-mut-ink">
-          {dPct !== null ? formatPctSigned(dPct) : '–'}
-        </td>
-        <td className="border-b border-l-2 border-line border-l-primary bg-bkk-vert-head px-3 py-2 text-right text-bkk-vert-ink">
+        <td className="border-b border-l border-line border-l-bkk-vert-bord bg-bkk-vert-head px-3.5 py-2 text-right text-[12.5px] font-semibold text-ink tabular-nums">
           {formatRappen(sub.vertragRp)}
         </td>
-        <td className="border-b border-line bg-bkk-vert-head px-3 py-2 text-right text-xs text-bkk-vert-ink">
-          {sub.kvMutRp > 0 && sub.vertragRp > 0
-            ? `${((sub.vertragRp / sub.kvMutRp) * 100).toFixed(1)} %`
-            : '–'}
-        </td>
-        <td className="border-b border-l-2 border-line border-l-primary bg-bkk-zahl-head px-3 py-2 text-right text-bkk-zahl-ink">
+        <td className="border-r border-b border-l border-line border-r-bkk-zahl-bord border-l-bkk-zahl-bord bg-bkk-zahl-head px-3.5 py-2 text-right text-[12.5px] font-semibold text-ink tabular-nums">
           {formatRappen(sub.zahlungRp)}
         </td>
-        <td className="border-b border-line bg-bkk-zahl-head px-3 py-2 text-right text-xs text-bkk-zahl-ink">
-          {sub.kvMutRp > 0 && sub.zahlungRp > 0
-            ? `${((sub.zahlungRp / sub.kvMutRp) * 100).toFixed(1)} %`
-            : '–'}
-        </td>
-        <td className="border-b border-line bg-bkk-zahl-head px-3 py-2" />
-        <td className="border-b border-l-2 border-line border-l-primary bg-white px-3 py-2" />
+        <td className="border-b border-line bg-white" />
+        <td className="border-b border-line bg-white" />
       </tr>
     );
   }
@@ -800,29 +799,41 @@ export function BkkClient({
   );
 
   return (
-    <div className="min-h-screen">
-      {/* Sticky Toolbar mit Speicherstatus (analog Hub) */}
+    <div className="flex min-h-screen flex-col">
+      {/* Sticky Toolbar (Design-Referenz, analog Hub) mit «← Dokumente» */}
       <header className="sticky top-0 z-30 border-b border-line bg-white">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-6 py-3">
+        <div className="mx-auto flex h-13 w-full max-w-7xl items-center justify-between gap-3 px-4 sm:h-14 sm:px-14">
           <div className="flex min-w-0 items-center gap-3">
+            {managementLogoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element -- externe Storage-URL
+              <img
+                src={managementLogoUrl}
+                alt={managementName ?? ''}
+                className="h-7 w-auto shrink-0"
+              />
+            ) : (
+              monogram && (
+                <span className="display-title flex h-7 w-7 shrink-0 items-center justify-center border border-ink text-sm font-semibold text-ink">
+                  {monogram}
+                </span>
+              )
+            )}
+            <span className="display-title hidden truncate text-[15px] font-medium tracking-[0.14em] text-ink lg:block">
+              {managementName}
+            </span>
+            <span className="hidden h-5 w-px shrink-0 bg-line sm:block" />
             <Link
               href="/hub"
-              className="shrink-0 border border-line bg-white px-3 py-1.5 text-xs text-primary-dark hover:border-primary"
+              className="shrink-0 text-xs text-primary transition-colors hover:text-ink"
             >
               ← {texts.hub.title}
             </Link>
-            <span className="display-title truncate text-sm text-ink">
-              {texts.modules.baukostenkontrolle.label}
-            </span>
-            <span className="hidden truncate text-xs text-primary sm:block">
-              {projectName}
-            </span>
           </div>
-          <div className="flex shrink-0 items-center gap-3">
+          <div className="flex shrink-0 items-center gap-2.5 sm:gap-5">
             {editing && (
               <>
                 <span
-                  className={`text-xs font-medium ${dirty ? 'text-warn' : 'text-accent'}`}
+                  className={`text-[11px] font-semibold sm:text-xs ${dirty ? 'text-warn' : 'text-accent'}`}
                 >
                   {dirty ? texts.common.unsaved : texts.common.saved}
                 </span>
@@ -830,7 +841,7 @@ export function BkkClient({
                   type="button"
                   onClick={handleSave}
                   disabled={!dirty || saving}
-                  className="bg-accent px-4 py-2 text-sm font-medium text-white hover:bg-accent-dark disabled:opacity-50"
+                  className="display-title bg-accent px-3.5 py-2 text-[11px] font-medium tracking-[0.12em] text-white transition-opacity hover:opacity-90 disabled:opacity-50 sm:px-5 sm:text-[13px] sm:tracking-[0.14em]"
                 >
                   {texts.common.save}
                 </button>
@@ -841,7 +852,25 @@ export function BkkClient({
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-6 py-6">
+      {/* Modul-Kopfzeile: MODUL-Badge + Titel, Projektzeile darunter */}
+      <div className="border-b border-line">
+        <div className="mx-auto w-full max-w-7xl px-5 py-5 sm:px-14 sm:py-7">
+          <div className="flex items-center gap-2.5 sm:gap-3">
+            <span className="display-title bg-ink px-2 py-1 text-[9px] font-medium tracking-[0.22em] text-white sm:px-2.5 sm:text-[10px] sm:tracking-[0.24em]">
+              {texts.modules.badge}
+            </span>
+            <h1 className="display-title text-lg leading-tight font-medium tracking-[0.05em] text-ink sm:text-[26px] sm:tracking-[0.06em]">
+              {texts.modules.baukostenkontrolle.label}
+            </h1>
+          </div>
+          <p className="display-title mt-1.5 truncate text-[10px] tracking-[0.2em] text-primary sm:text-xs sm:tracking-[0.26em]">
+            {projectName}
+            {projectNo && ` · ${texts.landing.projectNoPrefix} ${projectNo}`}
+          </p>
+        </div>
+      </div>
+
+      <main className="mx-auto w-full max-w-7xl flex-1 px-5 py-6 sm:px-14 sm:py-8">
         {/* Banner: Read-only-Ansicht einer nicht aktiven Baseline */}
         {!isActiveBaselineView && viewedBaseline && (
           <div className="mb-4 flex flex-wrap items-center justify-between gap-2 border border-warn bg-white px-4 py-2">
@@ -859,66 +888,81 @@ export function BkkClient({
           </div>
         )}
 
-        {/* KPI-Karten mit Ampeln */}
-        <section className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
-          <div className="border border-line bg-white p-4">
-            <p className="display-title text-xs text-primary">
-              {baselineLabel(viewedBaseline)}
+        {/* KPI-Karten: Familienränder mit Akzent-Oberkante (Design-Referenz),
+            KV-mutiert-Ampel als Punkt in der Subline; mobil horizontal
+            scrollbar */}
+        <section className="-mx-5 flex gap-2.5 overflow-x-auto px-5 sm:mx-0 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-0 lg:grid-cols-5">
+          <div className="w-40 shrink-0 border border-bkk-orig-bord border-t-[3px] border-t-bkk-orig-ink bg-white p-3.5 sm:w-auto sm:p-4">
+            <p className="display-title text-[10px] font-medium tracking-[0.16em] text-primary-dark sm:text-[11px] sm:tracking-[0.18em]">
+              {viewedBaseline?.bezeichnung ?? texts.bkk.colOrig}
             </p>
-            <p className="mt-1 text-lg font-semibold text-ink">
+            <p className="mt-1.5 text-sm font-semibold text-ink tabular-nums sm:mt-2 sm:text-[19px]">
               {formatRappen(grandTotals.kvBaselineRp)}
             </p>
+            {viewedBaseline && (
+              <p className="mt-1 truncate text-[9px] text-primary sm:mt-1.5 sm:text-[10px]">
+                {texts.bkk.baselinePrefix} «{viewedBaseline.bezeichnung}» ·{' '}
+                {formatDate(viewedBaseline.datum)}
+              </p>
+            )}
           </div>
-          <div className={`border bg-white p-4 ${AMPEL_BORDER[kpiMut.ampel]}`}>
-            <p className="display-title text-xs text-primary">{texts.bkk.kpiMut}</p>
-            <p className="mt-1 text-lg font-semibold text-ink">
+          <div className="w-40 shrink-0 border border-bkk-mut-bord border-t-[3px] border-t-bkk-mut-ink bg-white p-3.5 sm:w-auto sm:p-4">
+            <p className="display-title text-[10px] font-medium tracking-[0.16em] text-primary-dark sm:text-[11px] sm:tracking-[0.18em]">
+              {texts.bkk.kpiMut}
+            </p>
+            <p className="mt-1.5 text-sm font-semibold text-ink tabular-nums sm:mt-2 sm:text-[19px]">
               {formatRappen(grandTotals.kvMutRp)}
             </p>
-            <p className="mt-0.5 text-[11px] text-primary-dark">
-              {kpiMut.ampel === 'neutral'
-                ? texts.bkk.deltaNeutral
-                : `${formatPctSigned(kpiMut.deltaPct)} ${texts.bkk.deltaVsOrig}${kpiMut.einsparung ? ` · ${texts.bkk.einsparung}` : ''}`}
+            <p
+              className={`mt-1 flex items-center gap-1.5 text-[9px] font-semibold sm:mt-1.5 sm:text-[10px] ${AMPEL_TEXT[kpiMut.ampel]}`}
+            >
+              {kpiMut.ampel !== 'neutral' && (
+                <span
+                  className={`h-2 w-2 shrink-0 rounded-full ${AMPEL_DOT[kpiMut.ampel]}`}
+                />
+              )}
+              <span className="truncate">
+                {kpiMut.ampel === 'neutral'
+                  ? texts.bkk.deltaNeutral
+                  : `Δ ${formatPctSigned(kpiMut.deltaPct)} ${texts.bkk.deltaVsOrig}${kpiMut.einsparung ? ` · ${texts.bkk.einsparung}` : ''}`}
+              </span>
             </p>
           </div>
-          <div
-            className={`border bg-white p-4 ${AMPEL_BORDER[vertragKpiAmpel(grandTotals)]}`}
-          >
-            <p className="display-title text-xs text-primary">
+          <div className="w-40 shrink-0 border border-bkk-vert-bord border-t-[3px] border-t-bkk-vert-ink bg-white p-3.5 sm:w-auto sm:p-4">
+            <p className="display-title text-[10px] font-medium tracking-[0.16em] text-primary-dark sm:text-[11px] sm:tracking-[0.18em]">
               {texts.bkk.kpiVertrag}
             </p>
-            <p className="mt-1 text-lg font-semibold text-ink">
+            <p className="mt-1.5 text-sm font-semibold text-ink tabular-nums sm:mt-2 sm:text-[19px]">
               {formatRappen(grandTotals.vertragRp)}
             </p>
-            <p className="mt-0.5 text-[11px] text-primary-dark">
+            <p className="mt-1 truncate text-[9px] text-primary sm:mt-1.5 sm:text-[10px]">
               {grandTotals.vertragRp > 0
                 ? `${vPct.toFixed(1)} ${texts.bkk.vertragPctSuffix}`
                 : texts.bkk.noVertraege}
             </p>
           </div>
-          <div
-            className={`border bg-white p-4 ${AMPEL_BORDER[zahlungKpiAmpel(grandTotals)]}`}
-          >
-            <p className="display-title text-xs text-primary">
+          <div className="w-40 shrink-0 border border-bkk-zahl-bord border-t-[3px] border-t-bkk-zahl-ink bg-white p-3.5 sm:w-auto sm:p-4">
+            <p className="display-title text-[10px] font-medium tracking-[0.16em] text-primary-dark sm:text-[11px] sm:tracking-[0.18em]">
               {texts.bkk.kpiZahlung}
             </p>
-            <p className="mt-1 text-lg font-semibold text-ink">
+            <p className="mt-1.5 text-sm font-semibold text-ink tabular-nums sm:mt-2 sm:text-[19px]">
               {formatRappen(grandTotals.zahlungRp)}
             </p>
-            <p className="mt-0.5 text-[11px] text-primary-dark">
+            <p className="mt-1 truncate text-[9px] text-primary sm:mt-1.5 sm:text-[10px]">
               {grandTotals.vertragRp > 0
                 ? `${zPct.toFixed(1)} ${texts.bkk.zahlungPctSuffix}`
                 : texts.bkk.noVertraegeYet}
             </p>
           </div>
-          <div className="border border-line bg-white p-4">
-            <p className="display-title text-xs text-primary">{texts.bkk.kpiOffen}</p>
-            <p className="mt-1 text-lg font-semibold text-ink">
+          <div className="w-40 shrink-0 border border-line border-t-[3px] border-t-primary-dark bg-white p-3.5 sm:w-auto sm:p-4">
+            <p className="display-title text-[10px] font-medium tracking-[0.16em] text-primary-dark sm:text-[11px] sm:tracking-[0.18em]">
+              {texts.bkk.kpiOffen}
+            </p>
+            <p className="mt-1.5 text-sm font-semibold text-ink tabular-nums sm:mt-2 sm:text-[19px]">
               {formatRappen(offenRp(grandTotals))}
             </p>
-            <p className="mt-0.5 text-[11px] text-primary-dark">
-              {grandTotals.vertragRp > 0
-                ? `${(100 - zPct).toFixed(1)} ${texts.bkk.offenPctSuffix}`
-                : texts.bkk.noOffen}
+            <p className="mt-1 truncate text-[9px] text-primary sm:mt-1.5 sm:text-[10px]">
+              {texts.bkk.offenSubline}
             </p>
           </div>
         </section>
@@ -931,39 +975,28 @@ export function BkkClient({
             </p>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full min-w-[64rem] border-collapse text-sm">
+              <table className="w-full min-w-[46rem] border-collapse text-sm">
                 <thead>
-                  <tr className="display-title text-[11px]">
-                    <th className="sticky left-0 z-10 min-w-56 border-b border-line bg-white px-3 py-2 text-left text-primary-dark">
+                  <tr className="display-title text-[10px] font-medium sm:text-xs">
+                    <th className="sticky left-0 z-10 min-w-44 border-r border-b border-line bg-white px-3 py-3 text-left tracking-[0.14em] text-primary-dark sm:min-w-56 sm:px-4 sm:tracking-[0.16em]">
                       {texts.bkk.colPosition}
                     </th>
-                    <th className="border-b border-line bg-bkk-orig-head px-3 py-2 text-right text-bkk-orig-ink">
-                      {baselineLabel(viewedBaseline)}
+                    <th className="border-b border-l border-line border-l-bkk-orig-bord bg-bkk-orig-head px-3.5 py-3 text-right tracking-[0.12em] text-primary-dark sm:tracking-[0.14em]">
+                      {viewedBaseline?.bezeichnung ?? texts.bkk.colOrig}
                     </th>
-                    <th className="border-b border-l-2 border-line border-l-primary bg-bkk-mut-head px-3 py-2 text-right text-bkk-mut-ink">
+                    <th className="border-b border-l border-line border-l-bkk-mut-bord bg-bkk-mut-head px-3.5 py-3 text-right tracking-[0.12em] text-primary-dark sm:tracking-[0.14em]">
                       {texts.bkk.colMut}
                     </th>
-                    <th className="border-b border-line bg-bkk-mut-head px-3 py-2 text-right text-bkk-mut-ink">
-                      {texts.bkk.colDelta}
-                    </th>
-                    <th className="border-b border-l-2 border-line border-l-primary bg-bkk-vert-head px-3 py-2 text-right text-bkk-vert-ink">
+                    <th className="border-b border-l border-line border-l-bkk-vert-bord bg-bkk-vert-head px-3.5 py-3 text-right tracking-[0.12em] text-primary-dark sm:tracking-[0.14em]">
                       {texts.bkk.colVertrag}
                     </th>
-                    <th className="border-b border-line bg-bkk-vert-head px-3 py-2 text-right text-bkk-vert-ink">
-                      {texts.bkk.colPctKv}
-                    </th>
-                    <th className="border-b border-l-2 border-line border-l-primary bg-bkk-zahl-head px-3 py-2 text-right text-bkk-zahl-ink">
+                    <th className="border-r border-b border-l border-line border-r-bkk-zahl-bord border-l-bkk-zahl-bord bg-bkk-zahl-head px-3.5 py-3 text-right tracking-[0.12em] text-primary-dark sm:tracking-[0.14em]">
                       {texts.bkk.colZahlung}
                     </th>
-                    <th className="border-b border-line bg-bkk-zahl-head px-3 py-2 text-right text-bkk-zahl-ink">
-                      {texts.bkk.colPctKv}
-                    </th>
-                    <th className="border-b border-line bg-bkk-zahl-head px-3 py-2 text-right text-bkk-zahl-ink">
-                      {texts.bkk.colPctVertrag}
-                    </th>
-                    <th className="border-b border-l-2 border-line border-l-primary bg-white px-3 py-2 text-center text-primary-dark">
+                    <th className="border-b border-line bg-white px-3 py-3 text-left tracking-[0.12em] text-primary-dark sm:tracking-[0.14em]">
                       {texts.bkk.colStatus}
                     </th>
+                    <th className="w-9 border-b border-line bg-white" />
                   </tr>
                 </thead>
                 <tbody>
@@ -979,8 +1012,8 @@ export function BkkClient({
                     return (
                       <Fragment key={group.id}>
                         <tr>
-                          <td className="display-title sticky left-0 z-10 border-b border-line bg-bg px-3 py-2 text-xs text-ink">
-                            {group.digit} — {group.name}
+                          <td className="display-title sticky left-0 z-10 border-r border-b border-line bg-bg px-3 pt-3 pb-2 text-[11px] font-medium tracking-[0.14em] text-primary sm:px-4 sm:text-[13px] sm:tracking-[0.16em]">
+                            {group.digit} · {group.name}
                           </td>
                           <td
                             colSpan={COLS - 1}
@@ -994,47 +1027,33 @@ export function BkkClient({
                   })}
                 </tbody>
                 <tfoot>
-                  <tr className="font-semibold">
-                    <td className="display-title sticky left-0 z-10 bg-white px-3 py-2.5 text-xs text-ink">
+                  <tr className="border-t-2 border-t-ink">
+                    <td className="display-title sticky left-0 z-10 border-r border-line bg-white px-3 py-3 text-xs font-semibold tracking-[0.14em] text-ink sm:px-4 sm:text-sm sm:tracking-[0.16em]">
                       {texts.bkk.grandTotal}
                     </td>
-                    <td className="bg-bkk-orig-head px-3 py-2.5 text-right text-bkk-orig-ink">
+                    <td className="border-l border-l-bkk-orig-bord bg-bkk-orig-head px-3.5 py-3 text-right text-[13px] font-bold text-ink tabular-nums">
                       {formatRappen(grandTotals.kvBaselineRp)}
                     </td>
-                    <td className="border-l-2 border-l-primary bg-bkk-mut-head px-3 py-2.5 text-right text-bkk-mut-ink">
-                      {formatRappen(grandTotals.kvMutRp)}
+                    <td className="border-l border-l-bkk-mut-bord bg-bkk-mut-head px-3.5 py-3 text-right">
+                      <span className="text-[13px] font-bold text-ink tabular-nums">
+                        {formatRappen(grandTotals.kvMutRp)}
+                      </span>
+                      {grandTotals.kvBaselineRp > 0 && (
+                        <span
+                          className={`block text-[10px] font-bold tabular-nums ${AMPEL_TEXT[kpiMut.ampel]}`}
+                        >
+                          {formatPctSigned(kpiMut.deltaPct)}
+                        </span>
+                      )}
                     </td>
-                    <td className="bg-bkk-mut-head px-3 py-2.5 text-right text-xs text-bkk-mut-ink">
-                      {grandTotals.kvBaselineRp > 0
-                        ? formatPctSigned(
-                            ((grandTotals.kvMutRp - grandTotals.kvBaselineRp) /
-                              grandTotals.kvBaselineRp) *
-                              100,
-                          )
-                        : '–'}
-                    </td>
-                    <td className="border-l-2 border-l-primary bg-bkk-vert-head px-3 py-2.5 text-right text-bkk-vert-ink">
+                    <td className="border-l border-l-bkk-vert-bord bg-bkk-vert-head px-3.5 py-3 text-right text-[13px] font-bold text-ink tabular-nums">
                       {formatRappen(grandTotals.vertragRp)}
                     </td>
-                    <td className="bg-bkk-vert-head px-3 py-2.5 text-right text-xs text-bkk-vert-ink">
-                      {grandTotals.kvMutRp > 0 && grandTotals.vertragRp > 0
-                        ? `${vPct.toFixed(1)} %`
-                        : '–'}
-                    </td>
-                    <td className="border-l-2 border-l-primary bg-bkk-zahl-head px-3 py-2.5 text-right text-bkk-zahl-ink">
+                    <td className="border-r border-l border-r-bkk-zahl-bord border-l-bkk-zahl-bord bg-bkk-zahl-head px-3.5 py-3 text-right text-[13px] font-bold text-ink tabular-nums">
                       {formatRappen(grandTotals.zahlungRp)}
                     </td>
-                    <td className="bg-bkk-zahl-head px-3 py-2.5 text-right text-xs text-bkk-zahl-ink">
-                      {grandTotals.kvMutRp > 0 && grandTotals.zahlungRp > 0
-                        ? `${((grandTotals.zahlungRp / grandTotals.kvMutRp) * 100).toFixed(1)} %`
-                        : '–'}
-                    </td>
-                    <td className="bg-bkk-zahl-head px-3 py-2.5 text-right text-xs text-bkk-zahl-ink">
-                      {grandTotals.vertragRp > 0 && grandTotals.zahlungRp > 0
-                        ? `${zPct.toFixed(1)} %`
-                        : '–'}
-                    </td>
-                    <td className="border-l-2 border-l-primary bg-white px-3 py-2.5" />
+                    <td className="bg-white" />
+                    <td className="bg-white" />
                   </tr>
                 </tfoot>
               </table>
@@ -1042,13 +1061,30 @@ export function BkkClient({
           )}
         </section>
 
+        {/* Status-Legende (fixe Pillenfarben) */}
+        <div className="mt-4 flex flex-wrap items-center gap-3 sm:gap-4">
+          <span className="display-title text-[11px] font-medium tracking-[0.16em] text-primary-dark">
+            {texts.bkk.colStatus}
+          </span>
+          {(['offen', 'vertrag', 'teilbezahlt', 'bezahlt', 'ueber_kv'] as const).map(
+            (status) => (
+              <span key={status} className={`${PILL_BASE} ${STATUS_PILL[status]}`}>
+                {texts.bkk.status[status]}
+              </span>
+            ),
+          )}
+        </div>
+
         {editing && (
           <button
             type="button"
             onClick={() => setPositionModal({})}
-            className="mt-4 w-full border border-dashed border-line px-4 py-2.5 text-sm text-primary hover:border-accent hover:text-accent"
+            className="mt-5 inline-flex items-center gap-2.5 border border-dashed border-line px-5 py-3 text-primary transition-colors hover:border-primary hover:text-primary-dark"
           >
-            {texts.bkk.addPosition}
+            <span className="text-base font-light">+</span>
+            <span className="display-title text-[11px] font-medium tracking-[0.14em] sm:text-xs sm:tracking-[0.16em]">
+              {texts.bkk.addPosition.replace(/^\+\s*/, '')}
+            </span>
           </button>
         )}
 
@@ -1185,6 +1221,20 @@ export function BkkClient({
           </section>
         )}
       </main>
+
+      {/* Footer mit Projekt-Nr. und ©-Zeile (Design-Referenz) */}
+      <footer className="border-t border-line">
+        <div className="mx-auto flex w-full max-w-7xl flex-col items-center gap-0.5 px-5 py-4 text-[10px] uppercase tracking-[0.08em] text-primary sm:flex-row sm:justify-between sm:px-14 sm:py-5 sm:text-[11px]">
+          <span>
+            {projectNo && `${texts.landing.projectNoPrefix} ${projectNo}`}
+          </span>
+          {managementName && (
+            <span>
+              © {new Date().getFullYear()} {managementName}
+            </span>
+          )}
+        </div>
+      </footer>
 
       {positionModal && (
         <PositionModal
