@@ -6,10 +6,16 @@
  * Läuft mit dem ANON-Key (wie ein echter Client); die Testbenutzer stammen
  * aus dem Seed-Skript. Aufruf: npm run test:rls
  */
-import { config } from 'dotenv';
 import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import { loadScriptEnv } from './env';
 
-config({ path: '.env.local' });
+// P2-M0: test:rls läuft ausschliesslich gegen die Dev-Umgebung –
+// der Test erstellt/löscht Daten und braucht die Seed-Testbenutzer.
+const target = loadScriptEnv();
+if (target === 'prod') {
+  console.error('ABBRUCH: test:rls läuft nur gegen die Dev-Umgebung (nie TARGET=prod).');
+  process.exit(1);
+}
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;

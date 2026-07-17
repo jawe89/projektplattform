@@ -11,15 +11,16 @@
  * Der Benutzer wird in platform_admins eingetragen.
  */
 import { createInterface } from 'node:readline/promises';
-import { config } from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
+import { loadScriptEnv } from './env';
 
-config({ path: '.env.local' });
+// P2-M0: Standardziel Dev; echter Plattform-Admin auf Produktion mit TARGET=prod.
+loadScriptEnv();
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!supabaseUrl || !serviceRoleKey) {
-  console.error('NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY fehlen in .env.local.');
+  console.error('NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY fehlen.');
   process.exit(1);
 }
 

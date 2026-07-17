@@ -8,29 +8,30 @@
  * Aufruf: npm run seed   (braucht SUPABASE_SERVICE_ROLE_KEY in .env.local)
  * Idempotent: mehrfaches Ausführen aktualisiert statt dupliziert.
  */
-import { config } from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
+import { loadScriptEnv } from './env';
 
-config({ path: '.env.local' });
+// P2-M0: Standardziel ist die Dev-Umgebung (.env.local);
+// Produktion nur mit TARGET=prod (.env.prod.local).
+const target = loadScriptEnv();
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !serviceRoleKey) {
   console.error(
-    'Fehlende Umgebungsvariablen: NEXT_PUBLIC_SUPABASE_URL und SUPABASE_SERVICE_ROLE_KEY in .env.local setzen.',
+    'Fehlende Umgebungsvariablen: NEXT_PUBLIC_SUPABASE_URL und SUPABASE_SERVICE_ROLE_KEY setzen.',
   );
   process.exit(1);
 }
 
-// Produktivschutz (seit Go-Live-Vorbereitung): Das Seed überschreibt Projekte,
-// Branding, Kategorien und legt example.com-Testbenutzer an – gegen die
-// Produktiv-Datenbank darf es nur noch ausdrücklich laufen.
-if (process.env.SEED_ALLOW_PROD !== '1') {
+// Produktivschutz: Das Seed überschreibt Projekte, Branding, Kategorien und
+// legt example.com-Testbenutzer an – gegen Produktion nur doppelt bestätigt.
+if (target === 'prod' && process.env.SEED_ALLOW_PROD !== '1') {
   console.error(
-    'ABBRUCH: Das Seed-Skript überschreibt Produktivdaten (Projekte, Branding,\n' +
-      'Kategorien, Rollen-Matrix) und legt example.com-Testbenutzer an.\n' +
-      'Ausführung nur ausdrücklich mit:  SEED_ALLOW_PROD=1 npm run seed',
+    'ABBRUCH: Seed gegen PRODUKTION nur ausdrücklich mit\n' +
+      '  TARGET=prod SEED_ALLOW_PROD=1 npm run seed\n' +
+      '(überschreibt Projekte/Branding/Kategorien und legt Testbenutzer an).',
   );
   process.exit(1);
 }

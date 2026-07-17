@@ -18,16 +18,17 @@
  */
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
-import { config } from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
+import { loadScriptEnv } from './env';
 
-config({ path: '.env.local' });
+// P2-M0: Standardziel Dev; Import gegen Produktion nur mit TARGET=prod.
+loadScriptEnv();
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 if (!supabaseUrl || !serviceRoleKey) {
   console.error(
-    'Fehlende Umgebungsvariablen: NEXT_PUBLIC_SUPABASE_URL und SUPABASE_SERVICE_ROLE_KEY in .env.local setzen.',
+    'Fehlende Umgebungsvariablen: NEXT_PUBLIC_SUPABASE_URL und SUPABASE_SERVICE_ROLE_KEY setzen.',
   );
   process.exit(1);
 }

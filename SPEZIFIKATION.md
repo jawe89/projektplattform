@@ -208,7 +208,56 @@ Lokale Entwicklung: Tenant-Auflösung zusätzlich über `?tenant=slug` bzw. `slu
 
 **M5 – Produktion:** Vercel-Deployment, Umgebungsvariablen, Admin-Domain aufschalten, Projektdomain Wattwil per CNAME auf Vercel, Anleitung `docs/NEUES-PROJEKT.md` (Schritte: Projekt im Admin anlegen → Domain bei Registrar auf Vercel zeigen → Domain in Vercel hinzufügen), Backups/Export (JSON-Export pro Projekt im Admin).
 
-**Phase 2 (separat beauftragen):** Baukostenkontrolle und Leistungsverzeichnis als native Module (`project_modules`-Tabelle, pro Projekt aktivierbar), Datenmodell aus den bestehenden HTML-Tools ableiten.
+**Phase 2:** Baukostenkontrolle und Leistungsverzeichnis als native Module – Meilensteine siehe Kapitel 9.
+
+---
+
+## 9. Phase 2 – Baukostenkontrolle und Leistungsverzeichnis als native Module
+
+**P2-M0 – Entwicklungsumgebung:** Zweites Supabase-Projekt als Dev-Umgebung:
+Anleitung (Projekt anlegen, Migrationen 0001–0005 ausführen, Keys),
+.env-Handling für den Wechsel Dev/Prod (lokal standardmässig Dev; Skripte
+gegen Prod nur mit expliziter Kennzeichnung), Seed und test:rls laufen
+künftig gegen Dev.
+*Abnahme:* RLS-Tests wieder vollständig grün, Produktiv-DB von lokaler
+Entwicklung getrennt.
+
+**P2-M1 – Modul-Framework:** Tabelle `project_modules` (project_id,
+module_key, enabled) plus Rollen-Freigabe `role_module_access`
+(Sehen/Bearbeiten) analog zur Kategorien-Matrix, RLS-Policies, Admin-UI
+(Module pro Projekt aktivieren, Rollen-Matrix erweitert), Hub-Integration:
+aktivierte, für die Rolle freigegebene Module erscheinen in der
+Sprungnavigation und als Einstiegskarten.
+*Abnahme:* Modul im Demo-Projekt aktivierbar, Sichtbarkeit greift
+serverseitig pro Rolle.
+
+**P2-M2 – Modul Baukostenkontrolle:** Datenmodell aus
+`scripts/data/baukostenkontrolle-mcd-wattwil.html` ableiten (eingebettetes
+JSON analysieren): BKP-Positionen hierarchisch, je Position Originalbudget,
+Mutationen, Verträge, Zahlungen, Prognose; Beträge als Ganzzahl-Rappen
+speichern (keine Float-Rundungsfehler), Anzeige mit Schweizer Formatierung
+(1'250'000.00). UI mit Funktionsparität zum bestehenden Tool: Tabellenansicht
+mit den vier Spaltbereichen (Farblogik übernehmen), Positionen
+erfassen/bearbeiten, Zwischentotale und Gesamttotal live berechnet,
+Speicherstatus/Toasts wie im Hub.
+*Abnahme:* Ein im Alt-Tool nachgerechneter Kostenstand stimmt auf den Rappen
+mit dem Modul überein (Testdatensatz im Dev-Projekt).
+
+**P2-M3 – Modul Leistungsverzeichnis:** Datenmodell aus
+`scripts/data/verkehr-leistungsverzeichnis-mcd-wattwil.html` ableiten:
+BKP-Vergabeeinheiten mit Workflow-Status (LV erstellt → offeriert →
+vergeben/Werkvertrag), Offerten je Einheit mit Beträgen, Verknüpfung zur
+Werkvertrags-Dokumentation. UI mit Funktionsparität, gleiche Abnahmelogik.
+
+**P2-M4 – Migration und Cutover Wattwil:** Import-Skripte für beide Module
+(idempotent, Abgleichstabelle mit Positionszahl und Totalen auf den Rappen,
+Exit 1 bei Abweichung). Ablaufplan `docs/CUTOVER-MODULE.md`: Am Stichtag
+frische Abzüge der beiden HTML-Dateien vom Server in `scripts/data/`
+ablegen, ab dann Bearbeitungsstopp im Alt-Tool; Import gegen Prod (mit der
+expliziten Prod-Kennzeichnung aus P2-M0), Verifikation der Totale, dann im
+Hub die zwei Übersichtsdokument-Einträge von den tools.-Links auf die
+Module umstellen. Rollback: Alt-Tool bleibt unverändert auf tools.*
+erreichbar.
 
 ---
 

@@ -70,24 +70,29 @@ scripts/              Seed- und Import-Skripte (tsx)
 npm run dev      # Dev-Server (http://localhost:3000, Tenants via slug.localhost:3000)
 npm run build    # Produktions-Build (vorher Dev-Server stoppen – teilt .next!)
 npm run lint     # ESLint
-npm run seed     # Seed-Skript – NUR mit SEED_ALLOW_PROD=1 (siehe unten!)
+npm run seed     # Seed – Standard: Dev-Umgebung
 npm run import:wattwil # M4: Import der bestehenden Projektübersicht (idempotent)
 npm run migrate:wattwil # M5: Datei-Migration vom Alt-Server (LEGACY_BASIC_AUTH)
-npm run create:admin   # Echten Plattform-Admin anlegen (Go-Live)
+npm run create:admin   # Plattform-Admin anlegen
 npm run cleanup:testusers # example.com-Testbenutzer löschen (mit Sicherung)
-npm run test:rls # RLS-Nachweis (braucht Seed-Testbenutzer!)
+npm run test:rls # RLS-Nachweis – nur gegen Dev (braucht Seed-Testbenutzer)
 ```
 
-## Produktivschutz (seit Go-Live-Vorbereitung)
+## Umgebungen Dev/Prod (seit P2-M0, siehe docs/DEV-UMGEBUNG.md)
 
-- **`npm run seed` bricht ohne `SEED_ALLOW_PROD=1` ab.** Die Datenbank ist
-  die Produktiv-DB; das Seed überschreibt Projekte/Branding/Kategorien und
-  legt example.com-Testbenutzer an. Nie gegen den Produktivbestand ausführen.
+- **`.env.local` = Dev-Supabase-Projekt** (Standard für dev-Server und alle
+  Skripte). **`.env.prod.local` = Produktion** – Skripte laden sie nur mit
+  expliziter Kennzeichnung `TARGET=prod` (PowerShell:
+  `$env:TARGET='prod'; npm run …`).
+- `scripts/env.ts` prüft die Projekt-Refs: Dev-Läufe gegen die Produktiv-DB
+  und Prod-Läufe gegen fremde DBs brechen ab.
+- Seed gegen Produktion nur doppelt bestätigt
+  (`TARGET=prod` **und** `SEED_ALLOW_PROD=1`); `test:rls` läuft nie gegen
+  Produktion.
 - `npm run cleanup:testusers` verweigert die Ausführung, solange kein
-  Plattform-Admin mit echter (Nicht-example.com-)Adresse existiert –
-  zuerst `npm run create:admin`, Login auf der Admin-Adresse testen.
-- `npm run test:rls` setzt die Seed-Testbenutzer voraus und ist nach dem
-  Cleanup nicht mehr lauffähig (nur noch in einer separaten Test-Umgebung).
+  Plattform-Admin mit echter (Nicht-example.com-)Adresse existiert.
+- Neue Migrationen: zuerst im Dev-Projekt ausführen, erst beim Release
+  auf Produktion.
 
 ## Gelernte Stolperfallen
 

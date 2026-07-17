@@ -14,10 +14,11 @@
  * Aufruf:  npm run migrate:wattwil            (echte Migration)
  *          DRY_RUN=1 npm run migrate:wattwil  (nur anzeigen, nichts schreiben)
  */
-import { config } from 'dotenv';
 import { createClient } from '@supabase/supabase-js';
+import { loadScriptEnv } from './env';
 
-config({ path: '.env.local' });
+// P2-M0: Standardziel Dev; Migration gegen Produktion nur mit TARGET=prod.
+loadScriptEnv();
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -25,7 +26,7 @@ const legacyBasicAuth = process.env.LEGACY_BASIC_AUTH; // Format: benutzer:passw
 const dryRun = process.env.DRY_RUN === '1';
 
 if (!supabaseUrl || !serviceRoleKey) {
-  console.error('NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY fehlen in .env.local.');
+  console.error('NEXT_PUBLIC_SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY fehlen.');
   process.exit(1);
 }
 if (!legacyBasicAuth && !dryRun) {
