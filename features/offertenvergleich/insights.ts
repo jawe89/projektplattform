@@ -15,6 +15,7 @@ import 'server-only';
 import Anthropic from '@anthropic-ai/sdk';
 import { formatNumber } from '@/lib/format';
 import type { OvAnalyse } from '@/lib/ov-calc';
+import { pruefeZahlen, type OvZahlenMatrix } from '@/lib/ov-zahlen';
 import type {
   OvErkenntnis,
   OvErkenntnisTag,
@@ -174,44 +175,28 @@ Regeln:
 - Sprache: Deutsch (Schweiz), kein «ß», Guillemets «…», Tausendertrennzeichen mit Apostroph (12'480), Beträge in CHF ganzzahlig.
 - Kurz und fachlich; jede Erkenntnis 2–5 Sätze, Bullets nur wo Summenbetrachtungen konkret vorgerechnet werden.`;
 
-/** Belegbare Franken-Werte der Matrix (für die Zahlendisziplin-Prüfung) */
-function allowedNumbers(input: InsightsInput): Set<number> {
-  const set = new Set<number>();
-  const add = (rp: number | null | undefined) => {
-    if (rp === null || rp === undefined) return;
-    set.add(Math.round(Math.abs(rp) / 100));
+/**
+ * Matrix für die Zahlendisziplin-Prüfung (lib/ov-zahlen.ts): Einzelwerte,
+ * 2er-/3er-Summen desselben Bieters und Aggregat-Differenzen zwischen
+ * Bietern sind belegbar – vorgerechnete Summenbetrachtungen («Transport +
+ * Gebühren») und «Preisvorsprung»-Differenzen flaggen damit nicht mehr.
+ */
+function zahlenMatrix(input: InsightsInput): OvZahlenMatrix {
+  const bieterCount = input.bieter.length;
+  return {
+    bieterPositionenRp: Array.from({ length: bieterCount }, (_, i) =>
+      input.positionen.map((p) => p.werteRp[i] ?? null),
+    ),
+    aggregatGruppenRp: [
+      input.analyse.bieterTotaleRp,
+      ...input.analyse.kostenbloecke.map((b) => b.summenRp),
+      input.analyse.abgleich.map((a) => a.kontrollsummeRp),
+    ],
+    einzelwerteRp: [
+      ...input.analyse.positionen.flatMap((s) => [s.medianRp, s.spreadRp]),
+      ...input.analyse.abgleich.map((a) => a.diffRp),
+    ],
   };
-  for (const p of input.positionen) {
-    p.werteRp.forEach(add);
-  }
-  for (const s of input.analyse.positionen) {
-    add(s.medianRp);
-    add(s.spreadRp);
-  }
-  input.analyse.bieterTotaleRp.forEach(add);
-  for (const b of input.analyse.kostenbloecke) b.summenRp.forEach(add);
-  for (const a of input.analyse.abgleich) {
-    add(a.kontrollsummeRp);
-    add(a.diffRp);
-  }
-  return set;
-}
-
-function pruefeZahlen(
-  texte: string[],
-  allowed: Set<number>,
-): string[] {
-  const ohneBeleg = new Set<string>();
-  for (const text of texte) {
-    // Nur apostrophierte CHF-Zahlen prüfen (NPK-Nummern/Prozente bleiben aussen vor)
-    for (const m of text.matchAll(/\d{1,3}(?:[’']\d{3})+/g)) {
-      const value = parseInt(m[0].replace(/[’']/g, ''), 10);
-      const belegt =
-        allowed.has(value) || allowed.has(value + 1) || allowed.has(value - 1);
-      if (!belegt) ohneBeleg.add(m[0]);
-    }
-  }
-  return [...ohneBeleg];
 }
 
 export async function generateInsights(
@@ -268,7 +253,7 @@ export async function generateInsights(
   return {
     erkenntnisse: parsed.erkenntnisse,
     fazit: parsed.fazit,
-    zahlenOhneBeleg: pruefeZahlen(texte, allowedNumbers(input)),
+    zahlenOhneBeleg: pruefeZahlen(texte, zahlenMatrix(input)),
     uebersprungen: false,
   };
 }
