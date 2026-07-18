@@ -622,7 +622,8 @@ export const texts = {
       kontrollsummeLabel: 'Kontrollsumme',
       abgleichOk: 'deckungsgleich',
       vollTitle: 'Vollständigkeitsprüfung',
-      vollSubtitle: 'Ausschreibung ↔ Offerten',
+      // Kein «↔»: Zeichen fehlt im eingebetteten Antonio/Montserrat
+      vollSubtitle: 'Abgleich Offerten gegen Referenz',
       vollSuffix: 'Abweichungen',
       vollSuffixOne: 'Abweichung',
       fazitTitle: 'Fazit und Zusammenfassung',

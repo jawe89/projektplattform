@@ -47,21 +47,45 @@ Schema: Migration `0011_offertenvergleich_vollstaendigkeit.sql`.
    Bieter-Karten, «falls Abweichungen» gemäss Konzept-Berichtsaufbau) mit
    Typ-Tag, NPK, Delta (LV → Offerte), Bewertung und Notizen.
 
-## Probe gegen die echten Offerten (BKP 211)
+## E2E-Nachweis (Wattwil-Dev, BKP 211, alle drei echten Offerten)
 
-Abgleich der Extraktion gegen die deterministische Matrix
-(Stichproben-Chunks, `tmp-ov-extract-probe.ts`, gelöscht nach O-M2):
+Voller Lauf über das UI (26 Chunks, automatische Fortsetzungsrunden):
 
-| Offerte | Format | NPK | Mengen | Beträge |
+| Offerte | Format | Extrahiert | Preis-Stichprobe | Abweichungen |
 |---|---|---|---|---|
-| E. Weber | reiner Scan (Vision) | 36/36 | 36/36 | 36/36 (±1 Rp) |
-| Vetter | Scan mit fehlerhaftem OCR | 62/62 | 62/62 | 60/60 |
-| Oberhänsli | digital | 12/12 | 12/12 | – (LV-Teil unbepreist) |
+| Vetter | Scan, fehlerhaftes OCR | 191/191 | 184/184 (±1 Rp) | 6 |
+| E. Weber | reiner Scan (Vision) | 191/191 | 187/187 (±1 Rp) | 6 |
+| Oberhänsli | digital | 191/191 | – (LV-Teil unbepreist) | 7 |
+
+Die Abweichungen sind fachlich echt und konsistent über alle drei
+Offerten: die drei Regie-Faktorpositionen, die der BauPlus-Vergleich
+unter 111.100.00x führt, die Offerten aber unter ihren NPK-Nummern
+111.231.002/111.411.002/111.411.003 (je ein fehlend/zusätzlich-Paar über
+Gruppengrenzen – bewusst NICHT automatisch gepaart), plus bei Oberhänsli
+ein Einheiten-Wechsel LE→gl (161.111.002).
 
 Befund Oberhänsli: Die Offerte trägt Preise fast nur im Zusammenzug
 (S. 1–2, Zwischentotal 2'323'354.85 = Kontrollsumme); der LV-Körper ist
 weitgehend unbepreist. Für die Vollständigkeitsprüfung unerheblich
 (NPK/Menge/Einheit zählen), die Preis-Stichprobe bleibt dort einfach klein.
+
+Erkenntnisse aus dem E2E (im Code umgesetzt):
+
+- **Kurztext-LV (NPK-Bau-Druck)**: Ohne explizite Negativ-Beispiele für
+  die Merkmalcode-Regel («20103 → Position 201, NICHT 200») und die
+  Ebenen-Klärung Abschnitt/Gruppe/Position las das Modell in einzelnen
+  Kapiteln Grundnummern statt Varianten (Weber zunächst 132/191 mit 185
+  Scheinabweichungen; nach Prompt-Schärfung 191/191 mit 6).
+- **NPK-Matcher-Fallback** (`lib/ov-match.ts`): Grundnummer↔Variante-
+  Paare (gleiche Kapitel+Gruppe, Position bis auf letzte Ziffer gleich,
+  Menge+Einheit exakt, eindeutige 1:1-Zuordnung) gelten als dieselbe
+  Position – fängt Druck-Varianten deterministisch ab.
+- **Heartbeat während langer Chunks**: Supabase-Query-Builder sind lazy;
+  ein `void builder` im setInterval feuert NIE (Watchdog-Fehlabbruch) –
+  Queries immer `await`en oder `.then()` aufrufen.
+- **Report-Fonts**: Kein `fontStyle: italic` (keine Italic-TTF
+  eingebettet) und keine Pfeile «→/↔» (fehlen in Antonio/Montserrat,
+  rendern als Ersatzzeichen).
 
 ## Bedienung
 

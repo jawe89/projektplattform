@@ -119,6 +119,15 @@ npm run test:unit # Unit-Tests (node:test via tsx), z.B. BKK-Berechnungslogik
   1 h gecacht (`max-age=3600`). Beim Logo-/Hero-Upload im Admin (M3) deshalb
   eindeutige Dateinamen vergeben (z.B. `logo-<timestamp>.svg`) statt
   gleichnamig zu überschreiben, sonst wirkt die Änderung nicht sofort.
+- **Supabase-Query-Builder sind lazy**: `supabase.from(…).update(…).eq(…)`
+  feuert erst bei `await`/`.then()`. Fire-and-forget per `void builder`
+  (z.B. Heartbeat in `setInterval`) sendet NIE eine Query – immer
+  `.then()` anhängen oder awaiten.
+- **`.next` wird von `dev` und `build` geteilt**: Nach einem
+  Produktions-Build kann der neu gestartete Dev-Server veralteten
+  Server-Code ausliefern (Route-Handler mit altem Stand, ohne
+  Fehlermeldung). Bei unerklärlichem Verhalten nach Build-Wechseln:
+  Dev-Server stoppen, `.next` löschen, neu starten.
 - **`?tenant=` ist nur mit Sticky-Cookie brauchbar**: Interne Navigationen
   (Login-Redirect auf `/hub`, Logout, Links, Auth-Callbacks) tragen den
   Query-Parameter nicht weiter. Die Middleware setzt deshalb beim

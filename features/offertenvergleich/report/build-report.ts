@@ -188,6 +188,7 @@ export async function buildReportForVergabe(
           typColor: ABWEICHUNG_TYP_COLORS[a.typ] ?? '#5a5a5a',
           npk: a.npk,
           titel: a.titel,
+          // «→» fehlt im eingebetteten Font – Präfixe LV:/Offerte: reichen
           delta: [
             a.details.erwartet !== undefined
               ? `${tv.erwartetPrefix} ${a.details.erwartet}`
@@ -197,7 +198,7 @@ export async function buildReportForVergabe(
               : null,
           ]
             .filter(Boolean)
-            .join(' → '),
+            .join(' · '),
           bewertung: tv.bewertungLabels[a.bewertung] ?? a.bewertung,
           bewertungColor: BEWERTUNG_COLORS[a.bewertung] ?? '#7c7c7c',
           notiz: a.notiz,

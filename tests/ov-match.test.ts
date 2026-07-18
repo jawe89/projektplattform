@@ -144,6 +144,52 @@ describe('matchOfferte', () => {
     assert.deepEqual(result, []);
   });
 
+  it('NPK-Matcher: paart Grundnummer↔Variante bei gleicher Menge/Einheit', () => {
+    // Offerte druckt 113.413.110, das LV führt die Variante 113.413.111
+    const result = matchOfferte(
+      [ref('113.413.111', { menge: 1, einheit: 'gl' })],
+      [offer('113.413.110', { menge: 1, einheit: 'gl' })],
+    );
+    assert.deepEqual(result, []);
+  });
+
+  it('NPK-Matcher: paart nicht bei anderer Gruppe oder Menge', () => {
+    const result = matchOfferte(
+      [
+        ref('211.211.104', { menge: 550, einheit: 'm3' }),
+        ref('211.641.201', { menge: 2, einheit: 'St' }),
+      ],
+      [
+        // andere Gruppe (210 statt 211) → bleibt fehlend/zusätzlich
+        offer('211.210.211', { menge: 550, einheit: 'm3' }),
+        // gleiche Gruppe, aber andere Menge → bleibt fehlend/zusätzlich
+        offer('211.641.200', { menge: 3, einheit: 'St' }),
+      ],
+    );
+    assert.deepEqual(
+      result.map((a) => `${a.typ}:${a.npk}`).sort(),
+      [
+        'fehlend:211.211.104',
+        'fehlend:211.641.201',
+        'zusaetzlich:211.210.211',
+        'zusaetzlich:211.641.200',
+      ],
+    );
+  });
+
+  it('NPK-Matcher: paart nur bei eindeutiger 1:1-Zuordnung', () => {
+    // Zwei fehlende Varianten derselben Grundnummer mit gleicher Menge –
+    // keine eindeutige Zuordnung, nichts wird gepaart
+    const result = matchOfferte(
+      [
+        ref('211.641.201', { menge: 2, einheit: 'St' }),
+        ref('211.641.202', { menge: 2, einheit: 'St' }),
+      ],
+      [offer('211.641.200', { menge: 2, einheit: 'St' })],
+    );
+    assert.equal(result.length, 3);
+  });
+
   it('führt doppelte Offerten-NPK zusammen (Chunk-Überlappung)', () => {
     const result = matchOfferte(
       [ref('211.111.100', { menge: 10 })],

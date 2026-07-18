@@ -82,6 +82,8 @@ async function finishJob(
     .update({
       status: 'done',
       stufe,
+      // Ein zwischenzeitlicher Watchdog-Eintrag darf nicht kleben bleiben
+      fehler: null,
       finished_at: new Date().toISOString(),
     })
     .eq('id', jobId);
@@ -95,10 +97,15 @@ export async function runVollstaendigkeitJob(
   // Heartbeat auch während eines langen Einzel-Aufrufs (Scan-Chunks können
   // > 2 min dauern – der Polling-Watchdog würde den Job sonst abschreiben)
   const heartbeat = setInterval(() => {
-    void supabase
+    // WICHTIG: PostgREST-Builder sind lazy – ohne then() feuert die Query nie
+    supabase
       .from('ov_jobs')
       .update({ heartbeat_at: new Date().toISOString() })
-      .eq('id', jobId);
+      .eq('id', jobId)
+      .then(
+        () => undefined,
+        () => undefined,
+      );
   }, HEARTBEAT_INTERVAL_MS);
 
   try {

@@ -175,5 +175,65 @@ export function matchOfferte(
     }
   }
 
-  return abweichungen;
+  return npkMatcherFallback(abweichungen, referenz, offerByNpk);
+}
+
+/**
+ * NPK-Matcher-Fallback: Grundnummer↔Variante-Paare zusammenführen.
+ *
+ * LV-Drucke führen dieselbe Position teils unter der Grundnummer (endet
+ * auf 0) und teils unter der Merkmal-Variante (letzte Ziffer 1–9). Ein
+ * «fehlend»/«zusätzlich»-Paar gilt als dieselbe Position, wenn Kapitel und
+ * Gruppe identisch sind, die Positionsnummer sich nur in der letzten
+ * Ziffer unterscheidet und Menge + Einheit exakt übereinstimmen – und die
+ * Zuordnung eindeutig (1:1) ist.
+ */
+function npkMatcherFallback(
+  abweichungen: OvMatchAbweichung[],
+  referenz: OvMatchReferenzPosition[],
+  offerByNpk: Map<string, OvMatchOffertePosition>,
+): OvMatchAbweichung[] {
+  const refByNpk = new Map(referenz.map((r) => [r.npk, r]));
+  const paarKey = (
+    npk: string,
+    menge: number | null,
+    einheit: string | null,
+  ): string | null => {
+    const teile = npk.split('.');
+    if (teile.length !== 3 || !/^\d{3}$/.test(teile[2])) return null;
+    if (menge === null || einheit === null) return null;
+    return [
+      teile[0],
+      teile[1],
+      teile[2].slice(0, 2), // letzte Ziffer egal (Grundnummer/Variante)
+      String(menge),
+      normalizeEinheit(einheit),
+    ].join('|');
+  };
+
+  const fehlend = new Map<string, OvMatchAbweichung[]>();
+  const zusaetzlich = new Map<string, OvMatchAbweichung[]>();
+  for (const a of abweichungen) {
+    const quelle =
+      a.typ === 'fehlend'
+        ? refByNpk.get(a.npk)
+        : a.typ === 'zusaetzlich'
+          ? offerByNpk.get(a.npk)
+          : null;
+    if (!quelle) continue;
+    const key = paarKey(a.npk, quelle.menge, quelle.einheit);
+    if (key === null) continue;
+    const map = a.typ === 'fehlend' ? fehlend : zusaetzlich;
+    map.set(key, [...(map.get(key) ?? []), a]);
+  }
+
+  const gematcht = new Set<OvMatchAbweichung>();
+  for (const [key, fehlendListe] of fehlend) {
+    const zusatzListe = zusaetzlich.get(key) ?? [];
+    if (fehlendListe.length === 1 && zusatzListe.length === 1) {
+      gematcht.add(fehlendListe[0]);
+      gematcht.add(zusatzListe[0]);
+    }
+  }
+  return abweichungen.filter((a) => !gematcht.has(a));
 }

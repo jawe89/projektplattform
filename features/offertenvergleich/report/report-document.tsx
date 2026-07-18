@@ -318,11 +318,11 @@ function buildStyles(brand: ReportBrand) {
     },
     vollTypCell: { width: 54, paddingVertical: 4, paddingHorizontal: 6 },
     vollDeltaText: { fontSize: 7, color: colors.primaryDark, marginTop: 1.5 },
+    // Keine Italic-Variante eingebettet – Notiz nur über Farbe/Guillemets
     vollNotizText: {
       fontSize: 7,
       color: colors.primary,
       marginTop: 1.5,
-      fontStyle: 'italic',
     },
     vollBewertung: {
       width: 66,
