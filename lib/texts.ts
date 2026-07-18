@@ -433,6 +433,27 @@ export const texts = {
       noMembers: 'Noch keine Benutzer in diesem Projekt.',
     },
   },
+  ov: {
+    report: {
+      title: 'Positionenvergleich',
+      bieterTitle: 'Eingebende Unternehmen',
+      bieterSuffix: 'Offerten',
+      infoBauvorhaben: 'Bauvorhaben',
+      infoGattung: 'Arbeitsgattung',
+      infoLv: 'LV-Nummer',
+      infoManagement: 'Baumanagement',
+      standPrefix: 'Stand',
+      readingHint:
+        'Hinweis zum Lesen: Die folgende Auswertung zeigt nicht alle Positionen, sondern jene mit den auffälligsten Preisunterschieden. Grün markiert ist jeweils der günstigste Preis pro Position, orange der teuerste. Beträge in CHF.',
+      diffTitle: 'Grosse Unterschiede',
+      diffSubtitle: 'Auffällige Positionen',
+      colNpk: 'NPK',
+      colBezeichnung: 'Bezeichnung',
+      erkenntnisseTitle: 'Erkenntnisse der Vergleiche',
+      erkenntnisseSuffix: 'Beobachtungen',
+      pagePrefix: 'Seite',
+    },
+  },
   tenantNotFound: {
     title: 'Projekt nicht gefunden',
     body: 'Unter dieser Adresse ist kein aktives Bauprojekt hinterlegt. Bitte prüfen Sie die Adresse oder wenden Sie sich an die Bauleitung.',
