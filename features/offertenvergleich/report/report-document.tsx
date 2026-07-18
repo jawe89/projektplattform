@@ -36,6 +36,16 @@ export interface ReportBieter {
   name: string;
   ort: string;
   telefon: string;
+  /** Positionssumme in Rappen (mit Summen-Abgleich, falls Kontrollsumme) */
+  totalRp?: number;
+  kontrollsummeRp?: number | null;
+  diffRp?: number | null;
+}
+
+export interface ReportFazit {
+  ranking: { name: string; ort: string; charakter: string; tendenz: string }[];
+  bereinigung: { name: string; text: string }[];
+  empfehlung: string;
 }
 
 export interface ReportDiffRow {
@@ -65,6 +75,7 @@ export interface ReportProps {
   bieter: ReportBieter[];
   diffBlocks: ReportDiffBlock[];
   erkenntnisse: ReportErkenntnis[];
+  fazit?: ReportFazit | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -187,6 +198,15 @@ function buildStyles(brand: ReportBrand) {
     },
     bieterName: { fontSize: 9.5, fontWeight: 700, marginBottom: 3 },
     bieterMeta: { fontSize: 7.5, color: colors.primaryDark, lineHeight: 1.5 },
+    bieterTotal: {
+      fontSize: 8.5,
+      fontWeight: 700,
+      marginTop: 5,
+      paddingTop: 4,
+      borderTopWidth: 1,
+      borderTopColor: colors.line,
+    },
+    bieterAbgleich: { fontSize: 6.6, color: colors.primary, marginTop: 1.5 },
 
     readingHint: {
       fontSize: 7,
@@ -295,6 +315,65 @@ function buildStyles(brand: ReportBrand) {
     bulletDot: { width: 10, fontSize: 7.8, color: colors.primary },
     bulletText: { flex: 1, fontSize: 7.8, lineHeight: 1.5 },
 
+    // Fazit
+    rankTable: { borderWidth: 1, borderColor: colors.line, marginBottom: 10 },
+    rankRow: {
+      flexDirection: 'row',
+      borderTopWidth: 1,
+      borderTopColor: colors.line,
+      alignItems: 'center',
+    },
+    rankHead: { backgroundColor: colors.ink, borderTopWidth: 0 },
+    rankNum: {
+      width: 26,
+      fontFamily: 'Antonio',
+      fontSize: 11,
+      fontWeight: 600,
+      color: colors.accent,
+      textAlign: 'center',
+      paddingVertical: 6,
+    },
+    rankNameCell: { width: 108, paddingVertical: 6, paddingRight: 6 },
+    rankName: { fontSize: 8.5, fontWeight: 700 },
+    rankOrt: { fontSize: 7, color: colors.primary, marginTop: 1 },
+    rankCharakter: {
+      flex: 1,
+      fontSize: 7.6,
+      lineHeight: 1.5,
+      paddingVertical: 6,
+      paddingRight: 8,
+    },
+    rankTendenz: {
+      width: 92,
+      fontFamily: 'Antonio',
+      textTransform: 'uppercase',
+      fontSize: 7,
+      fontWeight: 600,
+      letterSpacing: 0.8,
+      color: colors.primaryDark,
+      textAlign: 'right',
+      paddingVertical: 6,
+      paddingRight: 8,
+    },
+    empfehlungBox: {
+      borderWidth: 1,
+      borderColor: colors.line,
+      borderLeftWidth: 3,
+      borderLeftColor: colors.accent,
+      backgroundColor: colors.bg,
+      padding: 10,
+    },
+    empfehlungTitle: {
+      fontFamily: 'Antonio',
+      textTransform: 'uppercase',
+      fontSize: 9,
+      fontWeight: 500,
+      letterSpacing: 1,
+      marginBottom: 6,
+    },
+    empfehlungAbsatz: { fontSize: 7.8, lineHeight: 1.55, marginBottom: 5 },
+    empfehlungName: { fontWeight: 700 },
+
     // Footer
     footer: {
       position: 'absolute',
@@ -349,6 +428,7 @@ export function ReportDocument({
   bieter,
   diffBlocks,
   erkenntnisse,
+  fazit,
 }: ReportProps) {
   const styles = buildStyles(brand);
   const t = texts.ov.report;
@@ -419,6 +499,21 @@ export function ReportDocument({
               <Text style={styles.bieterName}>{b.name}</Text>
               <Text style={styles.bieterMeta}>{b.ort}</Text>
               <Text style={styles.bieterMeta}>{b.telefon}</Text>
+              {b.totalRp !== undefined && (
+                <>
+                  <Text style={styles.bieterTotal}>
+                    {t.totalLabel} CHF {formatRappen(b.totalRp)}
+                  </Text>
+                  {b.kontrollsummeRp != null && (
+                    <Text style={styles.bieterAbgleich}>
+                      {t.kontrollsummeLabel} {formatRappen(b.kontrollsummeRp)}
+                      {b.diffRp === 0
+                        ? ` · ${t.abgleichOk}`
+                        : ` · Δ ${formatRappen(b.diffRp ?? 0)}`}
+                    </Text>
+                  )}
+                </>
+              )}
             </View>
           ))}
         </View>
@@ -526,6 +621,54 @@ export function ReportDocument({
             </View>
           );
         })}
+
+        {/* Fazit (Ranking + Bereinigungsgespräche + Empfehlung) */}
+        {fazit && (
+          <>
+            <View wrap={false}>
+              <View style={styles.sectionRow}>
+                <Text style={styles.sectionTitle}>{t.fazitTitle}</Text>
+                <Text style={styles.sectionHint}>{t.fazitSubtitle}</Text>
+              </View>
+              <View style={styles.rankTable}>
+                <View style={[styles.rankRow, styles.rankHead]}>
+                  <Text style={[styles.thText, { width: 26, textAlign: 'center' }]}>
+                    {t.colRang}
+                  </Text>
+                  <Text style={[styles.thText, { width: 108 }]}>
+                    {t.colUnternehmen}
+                  </Text>
+                  <Text style={[styles.thText, { flex: 1 }]}>
+                    {t.colCharakter}
+                  </Text>
+                  <Text style={[styles.thText, { width: 92, textAlign: 'right' }]}>
+                    {t.colTendenz}
+                  </Text>
+                </View>
+                {fazit.ranking.map((r, index) => (
+                  <View key={r.name} style={styles.rankRow} wrap={false}>
+                    <Text style={styles.rankNum}>{index + 1}</Text>
+                    <View style={styles.rankNameCell}>
+                      <Text style={styles.rankName}>{r.name}</Text>
+                      {r.ort ? <Text style={styles.rankOrt}>{r.ort}</Text> : null}
+                    </View>
+                    <Text style={styles.rankCharakter}>{r.charakter}</Text>
+                    <Text style={styles.rankTendenz}>{r.tendenz}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+            <View style={styles.empfehlungBox} wrap={false}>
+              <Text style={styles.empfehlungTitle}>{t.empfehlungTitle}</Text>
+              {fazit.bereinigung.map((b) => (
+                <Text key={b.name} style={styles.empfehlungAbsatz}>
+                  <Text style={styles.empfehlungName}>{b.name}</Text> – {b.text}
+                </Text>
+              ))}
+              <Text style={styles.empfehlungAbsatz}>{fazit.empfehlung}</Text>
+            </View>
+          </>
+        )}
 
         {/* Footer (fix auf jeder Seite) */}
         <View style={styles.footer} fixed>

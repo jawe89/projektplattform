@@ -42,6 +42,12 @@
   --color-status-teilbezahlt: #d9a400;
   --color-status-bezahlt: #4d9a3f;
   --color-status-ueber: #c0392b;
+  /* Offertenvergleich – fixe Bedeutungsfarben (Grün günstigster,
+     Orange teuerster, tenant-unabhängig; Konzept O-M0) */
+  --color-ov-guenstig: #70ad47;
+  --color-ov-guenstig-tint: #f1f7ea;
+  --color-ov-teuer: #e67e22;
+  --color-ov-teuer-tint: #fdf2e7;
   --font-display: 'Antonio', sans-serif;
   --font-body: 'Montserrat', sans-serif;
 }
@@ -82,6 +88,10 @@
   --color-status-teilbezahlt: var(--color-status-teilbezahlt);
   --color-status-bezahlt: var(--color-status-bezahlt);
   --color-status-ueber: var(--color-status-ueber);
+  --color-ov-guenstig: var(--color-ov-guenstig);
+  --color-ov-guenstig-tint: var(--color-ov-guenstig-tint);
+  --color-ov-teuer: var(--color-ov-teuer);
+  --color-ov-teuer-tint: var(--color-ov-teuer-tint);
   --color-white: #ffffff;
   --font-display: var(--font-display);
   --font-body: var(--font-body);

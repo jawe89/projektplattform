@@ -210,6 +210,152 @@ export interface LvOffer {
   document_id: string | null;
 }
 
+// Modul Offertenvergleich (supabase/migrations/0010_offertenvergleich.sql)
+
+export type OvVergabeStatus = 'offen' | 'in_pruefung' | 'abgeschlossen';
+
+export interface OvVergabe {
+  id: string;
+  project_id: string;
+  bkp: string;
+  titel: string;
+  lv_nummer: string | null;
+  /** ISO-Datum (YYYY-MM-DD) oder null – Stand des Positionenvergleichs */
+  stand: string | null;
+  status: OvVergabeStatus;
+  notiz: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface OvBieterRow {
+  id: string;
+  project_id: string;
+  vergabe_id: string;
+  name: string;
+  ort: string | null;
+  telefon: string | null;
+  /** Offerten-Endbetrag (brutto) in Rappen für den Summen-Abgleich */
+  kontrollsumme_rp: number | null;
+  sort: number;
+}
+
+export type OvDokumentArt =
+  | 'positionenvergleich'
+  | 'ausschreibung'
+  | 'offerte'
+  | 'beilage';
+
+export interface OvDokument {
+  id: string;
+  project_id: string;
+  vergabe_id: string;
+  art: OvDokumentArt;
+  bieter_id: string | null;
+  file_path: string;
+  original_name: string;
+  seiten: number | null;
+  parse_status: 'neu' | 'geparst' | 'fehler';
+  parse_fehler: string | null;
+  created_at: string;
+}
+
+export interface OvPositionRow {
+  id: string;
+  project_id: string;
+  vergabe_id: string;
+  npk: string;
+  bezeichnung: string;
+  menge: number | null;
+  einheit: string | null;
+  kostenblock: string | null;
+  /** Auswahl für den Bericht («wichtige Positionen», interaktiv) */
+  wichtig: boolean;
+  sort: number;
+}
+
+export interface OvAngebotRow {
+  project_id: string;
+  position_id: string;
+  bieter_id: string;
+  betrag_rp: number | null;
+  is_inkl: boolean;
+  flags: string[];
+}
+
+/** KI-Erkenntnis (Anthropic-API) – Tags fix für die Farbzuordnung */
+export type OvErkenntnisTag =
+  | 'kritisch'
+  | 'hot_spot'
+  | 'plausibilitaet'
+  | 'staerke'
+  | 'hinweis';
+
+export interface OvErkenntnis {
+  titel: string;
+  tag: OvErkenntnisTag;
+  text: string;
+  bullets: string[];
+}
+
+export interface OvFazit {
+  ranking: { name: string; charakter: string; tendenz: string }[];
+  bereinigung: { name: string; text: string }[];
+  empfehlung: string;
+}
+
+/** Analyse-Snapshot in ov_auswertungen.inhalt (jsonb) */
+export interface OvAuswertungInhalt {
+  meta: {
+    projektzeile: string;
+    projectNo: string;
+    bkp: string;
+    titel: string;
+    lvNummer: string;
+    datum: string | null;
+  };
+  bieter: { name: string; ort: string; telefon: string }[];
+  /** Ergebnis von computeAnalyse (lib/ov-calc.ts) */
+  analyse: import('./ov-calc').OvAnalyse;
+  selbstpruefung: {
+    positionCount: number;
+    unparsedCount: number;
+    warnings: string[];
+    /** true = KI-Stufe übersprungen (ANTHROPIC_API_KEY fehlt) */
+    kiUebersprungen: boolean;
+    /** CHF-Zahlen aus KI-Texten ohne Beleg in der Matrix (Zahlendisziplin) */
+    kiZahlenOhneBeleg: string[];
+  };
+  erkenntnisse: OvErkenntnis[];
+  fazit: OvFazit | null;
+}
+
+export interface OvAuswertungRow {
+  id: string;
+  project_id: string;
+  vergabe_id: string;
+  inhalt: OvAuswertungInhalt;
+  report_file_path: string | null;
+  created_at: string;
+}
+
+export type OvJobTyp = 'analyse' | 'report' | 'vollstaendigkeit';
+export type OvJobStatus = 'queued' | 'running' | 'done' | 'error';
+
+export interface OvJobRow {
+  id: string;
+  project_id: string;
+  vergabe_id: string;
+  typ: OvJobTyp;
+  status: OvJobStatus;
+  stufe: string | null;
+  fehler: string | null;
+  auswertung_id: string | null;
+  heartbeat_at: string | null;
+  created_at: string;
+  finished_at: string | null;
+}
+
 export type BkkEntryType = 'vertrag' | 'zahlung';
 
 export interface BkkEntry {

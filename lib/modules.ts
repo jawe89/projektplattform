@@ -5,7 +5,11 @@ import { texts } from '@/lib/texts';
  * (project_modules) und pro Rolle freigegeben (role_module_access).
  * Die Schlüssel entsprechen den Check-Constraints der Migration 0006.
  */
-export const MODULE_KEYS = ['baukostenkontrolle', 'leistungsverzeichnis'] as const;
+export const MODULE_KEYS = [
+  'baukostenkontrolle',
+  'leistungsverzeichnis',
+  'offertenvergleich',
+] as const;
 
 export type ModuleKey = (typeof MODULE_KEYS)[number];
 

@@ -3,6 +3,7 @@ import { notFound, redirect } from 'next/navigation';
 import { LogoutButton } from '@/features/auth/logout-button';
 import { BkkClient } from '@/features/bkk/bkk-client';
 import { LvClient, type WerkvertragDoc } from '@/features/lv/lv-client';
+import { OvClient, type OvDetail } from '@/features/offertenvergleich/ov-client';
 import { isModuleKey, MODULES } from '@/lib/modules';
 import { publicBrandingUrl } from '@/lib/storage';
 import { createClient } from '@/lib/supabase/server';
@@ -18,6 +19,12 @@ import type {
   DocumentEntry,
   LvUnit,
   LvUnitStep,
+  OvAngebotRow,
+  OvAuswertungRow,
+  OvBieterRow,
+  OvDokument,
+  OvPositionRow,
+  OvVergabe,
   ProjectModule,
   RoleModuleAccess,
 } from '@/lib/types';
@@ -36,7 +43,7 @@ export default async function ModulePage({
   searchParams,
 }: {
   params: Promise<{ projectId: string; moduleKey: string }>;
-  searchParams: Promise<{ baseline?: string }>;
+  searchParams: Promise<{ baseline?: string; vergabe?: string }>;
 }) {
   const { projectId, moduleKey } = await params;
   if (!isModuleKey(moduleKey)) notFound();
@@ -152,6 +159,111 @@ export default async function ModulePage({
         initialUnits={units ?? []}
         initialSteps={steps ?? []}
         werkvertragDocs={werkvertragDocs}
+      />
+    );
+  }
+
+  if (moduleKey === 'offertenvergleich') {
+    const { vergabe: vergabeParam } = await searchParams;
+
+    const [{ data: vergaben }, { data: alleBieter }] = await Promise.all([
+      supabase
+        .from('ov_vergaben')
+        .select('*')
+        .eq('project_id', projectId)
+        .order('bkp')
+        .returns<OvVergabe[]>(),
+      supabase
+        .from('ov_bieter')
+        .select('vergabe_id')
+        .eq('project_id', projectId)
+        .returns<{ vergabe_id: string }[]>(),
+    ]);
+    const bieterCounts: Record<string, number> = {};
+    for (const row of alleBieter ?? []) {
+      bieterCounts[row.vergabe_id] = (bieterCounts[row.vergabe_id] ?? 0) + 1;
+    }
+
+    let detail: OvDetail | null = null;
+    const vergabe = vergabeParam
+      ? ((vergaben ?? []).find((v) => v.id === vergabeParam) ?? null)
+      : null;
+    if (vergabe) {
+      const [
+        { data: dokumente },
+        { data: bieter },
+        { data: positionen },
+        { data: auswertungen },
+      ] = await Promise.all([
+        supabase
+          .from('ov_dokumente')
+          .select('*')
+          .eq('vergabe_id', vergabe.id)
+          .order('created_at')
+          .returns<OvDokument[]>(),
+        supabase
+          .from('ov_bieter')
+          .select('*')
+          .eq('vergabe_id', vergabe.id)
+          .order('sort')
+          .returns<OvBieterRow[]>(),
+        supabase
+          .from('ov_positionen')
+          .select('*')
+          .eq('vergabe_id', vergabe.id)
+          .order('sort')
+          .returns<OvPositionRow[]>(),
+        supabase
+          .from('ov_auswertungen')
+          .select('*')
+          .eq('vergabe_id', vergabe.id)
+          .order('created_at', { ascending: false })
+          .returns<OvAuswertungRow[]>(),
+      ]);
+      const positionIds = (positionen ?? []).map((p) => p.id);
+      const { data: angebote } = positionIds.length
+        ? await supabase
+            .from('ov_angebote')
+            .select('*')
+            .in('position_id', positionIds)
+            .returns<OvAngebotRow[]>()
+        : { data: [] as OvAngebotRow[] };
+
+      detail = {
+        vergabe,
+        dokumente: dokumente ?? [],
+        bieter: bieter ?? [],
+        positionen: positionen ?? [],
+        angebote: angebote ?? [],
+        auswertung: auswertungen?.[0] ?? null,
+        berichte: (auswertungen ?? [])
+          .filter(
+            (a): a is OvAuswertungRow & { report_file_path: string } =>
+              a.report_file_path !== null,
+          )
+          .map((a) => ({
+            id: a.id,
+            report_file_path: a.report_file_path,
+            created_at: a.created_at,
+          })),
+      };
+    }
+
+    return (
+      <OvClient
+        projectId={projectId}
+        projectName={tenant?.project.name ?? ''}
+        projectNo={tenant?.project.project_no ?? null}
+        managementName={tenant?.branding?.management_name ?? null}
+        managementLogoUrl={
+          tenant?.branding?.management_logo_path
+            ? publicBrandingUrl(tenant.branding.management_logo_path)
+            : null
+        }
+        canEdit={canEdit}
+        vergaben={vergaben ?? []}
+        bieterCounts={bieterCounts}
+        detail={detail}
       />
     );
   }
