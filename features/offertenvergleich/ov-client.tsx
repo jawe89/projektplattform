@@ -8,6 +8,9 @@ import { formatDate, formatRappen, parseChfToRappen } from '@/lib/format';
 import { createClient } from '@/lib/supabase/client';
 import { texts } from '@/lib/texts';
 import type {
+  OvAbweichungBewertung,
+  OvAbweichungRow,
+  OvAbweichungTyp,
   OvAngebotRow,
   OvAuswertungRow,
   OvBieterRow,
@@ -26,6 +29,7 @@ export interface OvDetail {
   bieter: OvBieterRow[];
   positionen: OvPositionRow[];
   angebote: OvAngebotRow[];
+  abweichungen: OvAbweichungRow[];
   auswertung: OvAuswertungRow | null;
   berichte: { id: string; report_file_path: string; created_at: string }[];
 }
@@ -74,8 +78,42 @@ const DOK_ARTEN: OvDokumentArt[] = [
   'beilage',
 ];
 
+const ABWEICHUNG_TYP_PILL: Record<OvAbweichungTyp, string> = {
+  fehlend: 'border-status-ueber text-status-ueber',
+  zusaetzlich: 'border-ov-teuer text-ov-teuer',
+  menge: 'border-ov-teuer text-ov-teuer',
+  einheit: 'border-ov-teuer text-ov-teuer',
+  produkt: 'border-primary-dark text-primary-dark',
+};
+
+const BEWERTUNGEN: OvAbweichungBewertung[] = [
+  'kritisch',
+  'tolerierbar',
+  'ignoriert',
+];
+
+const BEWERTUNG_AKTIV: Record<OvAbweichungBewertung, string> = {
+  offen: 'border-primary bg-primary text-white',
+  kritisch: 'border-status-ueber bg-status-ueber text-white',
+  tolerierbar: 'border-ov-guenstig bg-ov-guenstig text-white',
+  ignoriert: 'border-primary bg-primary text-white',
+};
+
+/** Maximale automatische Fortsetzungs-Runden der Vollständigkeitsprüfung */
+const MAX_FORTSETZUNGEN = 20;
+
 function sanitizeFileName(name: string): string {
-  return name.replace(/[^\wäöüÄÖÜ.\- ]+/g, '_').slice(-80);
+  // Supabase-Storage-Keys erlauben keine Umlaute («Invalid key») –
+  // transliterieren statt verwerfen, Rest auf ASCII-Wortzeichen eindampfen
+  return name
+    .replace(/ä/g, 'ae')
+    .replace(/ö/g, 'oe')
+    .replace(/ü/g, 'ue')
+    .replace(/Ä/g, 'Ae')
+    .replace(/Ö/g, 'Oe')
+    .replace(/Ü/g, 'Ue')
+    .replace(/[^\w.\- ]+/g, '_')
+    .slice(-80);
 }
 
 /**
@@ -101,6 +139,12 @@ export function OvClient({
   const [neuOpen, setNeuOpen] = useState(false);
   const [job, setJob] = useState<OvJobRow | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [vollJob, setVollJob] = useState<OvJobRow | null>(null);
+  const vollPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const vollRundenRef = useRef(0);
+  const [abweichungen, setAbweichungen] = useState<OvAbweichungRow[]>(
+    () => detail?.abweichungen ?? [],
+  );
   const monogram = managementName?.trim().charAt(0).toUpperCase();
   const t = texts.ov;
 
@@ -121,6 +165,7 @@ export function OvClient({
   useEffect(() => {
     return () => {
       if (pollRef.current) clearInterval(pollRef.current);
+      if (vollPollRef.current) clearInterval(vollPollRef.current);
     };
   }, []);
 
@@ -244,6 +289,100 @@ export function OvClient({
       .update({ wichtig: value })
       .eq('id', position.id);
     if (error) showToast(texts.hub.saveErrorToast, 'error');
+  }
+
+  async function saveDokumentBieter(dokument: OvDokument, bieterId: string) {
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('ov_dokumente')
+      .update({ bieter_id: bieterId === '' ? null : bieterId })
+      .eq('id', dokument.id);
+    if (error) {
+      showToast(texts.hub.saveErrorToast, 'error');
+      return;
+    }
+    showToast(texts.hub.savedToast);
+    window.location.reload();
+  }
+
+  async function saveBewertung(
+    abweichung: OvAbweichungRow,
+    bewertung: OvAbweichungBewertung,
+  ) {
+    setAbweichungen((list) =>
+      list.map((a) => (a.id === abweichung.id ? { ...a, bewertung } : a)),
+    );
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('ov_abweichungen')
+      .update({ bewertung })
+      .eq('id', abweichung.id);
+    if (error) showToast(texts.hub.saveErrorToast, 'error');
+  }
+
+  async function saveNotiz(abweichung: OvAbweichungRow, raw: string) {
+    const notiz = raw.trim() === '' ? null : raw.trim();
+    setAbweichungen((list) =>
+      list.map((a) => (a.id === abweichung.id ? { ...a, notiz } : a)),
+    );
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('ov_abweichungen')
+      .update({ notiz })
+      .eq('id', abweichung.id);
+    if (error) showToast(texts.hub.saveErrorToast, 'error');
+    else showToast(texts.hub.savedToast);
+  }
+
+  async function startVollstaendigkeit(fortsetzung = false) {
+    if (!detail) return;
+    if (!fortsetzung) vollRundenRef.current = 0;
+    setVollJob({
+      id: '',
+      project_id: projectId,
+      vergabe_id: detail.vergabe.id,
+      typ: 'vollstaendigkeit',
+      status: 'queued',
+      stufe: null,
+      fehler: null,
+      auswertung_id: null,
+      heartbeat_at: null,
+      created_at: '',
+      finished_at: null,
+    });
+    const response = await fetch('/api/ov/vollstaendigkeit', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ vergabeId: detail.vergabe.id }),
+    });
+    if (!response.ok) {
+      setVollJob(null);
+      showToast(t.vollstaendigkeit.jobError, 'error');
+      return;
+    }
+    const { jobId } = (await response.json()) as { jobId: string };
+    vollPollRef.current = setInterval(async () => {
+      const jobResponse = await fetch(`/api/ov/jobs/${jobId}`);
+      if (!jobResponse.ok) return;
+      const current = (await jobResponse.json()) as OvJobRow;
+      setVollJob(current);
+      if (current.status === 'done') {
+        if (vollPollRef.current) clearInterval(vollPollRef.current);
+        // Zeitbudget erreicht → Folge-Job liest die restlichen Chunks
+        if (
+          current.stufe === 'fortsetzung' &&
+          vollRundenRef.current < MAX_FORTSETZUNGEN
+        ) {
+          vollRundenRef.current += 1;
+          void startVollstaendigkeit(true);
+        } else {
+          window.location.reload();
+        }
+      }
+      if (current.status === 'error' && vollPollRef.current) {
+        clearInterval(vollPollRef.current);
+      }
+    }, 2500);
   }
 
   async function startAnalyse() {
@@ -446,6 +585,31 @@ export function OvClient({
                   {t.vergabe.parseFehler}
                 </span>
               )}
+              {(art === 'offerte' || art === 'ausschreibung') &&
+                dokument.parse_status === 'geparst' && (
+                  <span
+                    className={`${PILL_BASE} border-ov-guenstig text-ov-guenstig`}
+                    title={(dokument.parse_fortschritt?.hinweise ?? []).join('\n') || undefined}
+                  >
+                    ✓ {t.vergabe.gelesen}
+                  </span>
+                )}
+              {art === 'offerte' && detail.bieter.length > 0 && (
+                <select
+                  value={dokument.bieter_id ?? ''}
+                  disabled={!canEdit}
+                  onChange={(e) => void saveDokumentBieter(dokument, e.target.value)}
+                  title={t.vergabe.bieterZuordnung}
+                  className="max-w-32 shrink-0 truncate border border-line bg-bg px-1.5 py-0.5 text-[10px] text-primary-dark outline-none focus:border-accent disabled:opacity-60"
+                >
+                  <option value="">{t.vergabe.bieterOhne}</option>
+                  {detail.bieter.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
+              )}
               <span className="shrink-0 text-[10px] text-primary tabular-nums">
                 {formatDate(dokument.created_at)}
               </span>
@@ -522,6 +686,197 @@ export function OvClient({
           <span className="text-[11px] text-primary">{t.vergabe.analyseHint}</span>
         )}
       </div>
+    );
+  }
+
+  function abweichungGruppe(dokument: OvDokument) {
+    const tv = t.vollstaendigkeit;
+    const list = abweichungen.filter((a) => a.dokument_id === dokument.id);
+    const bieterNameById = new Map(detail!.bieter.map((b) => [b.id, b.name]));
+    const name = dokument.bieter_id
+      ? (bieterNameById.get(dokument.bieter_id) ?? dokument.original_name)
+      : `${dokument.original_name} (${tv.dokumentOhneBieter})`;
+    const stichprobe = dokument.parse_fortschritt?.stichprobe;
+    const hinweise = dokument.parse_fortschritt?.hinweise ?? [];
+    if (dokument.parse_status !== 'geparst' && list.length === 0) return null;
+    return (
+      <div key={dokument.id} className="border border-line bg-white">
+        <div className="flex flex-wrap items-center gap-2 border-b border-line bg-bg px-4 py-2.5">
+          <span className="text-xs font-bold text-ink">{name}</span>
+          <span className="text-[10px] text-primary">
+            {list.length === 0
+              ? tv.keineAbweichungen
+              : `${list.length} ${list.length === 1 ? tv.abweichungSuffixOne : tv.abweichungenSuffix}`}
+          </span>
+          {stichprobe && stichprobe.verglichen > 0 && (
+            <span
+              className={`${PILL_BASE} ${
+                stichprobe.abweichend === 0
+                  ? 'border-ov-guenstig text-ov-guenstig'
+                  : 'border-status-ueber text-status-ueber'
+              }`}
+              title={`${tv.stichprobe}: ${stichprobe.verglichen - stichprobe.abweichend}/${stichprobe.verglichen}`}
+            >
+              {stichprobe.abweichend === 0
+                ? `✓ ${tv.stichprobe}`
+                : `${tv.stichprobe}: ${stichprobe.abweichend} Δ`}
+            </span>
+          )}
+          {hinweise.length > 0 && (
+            <span
+              className="cursor-help text-[10px] text-primary underline decoration-dotted underline-offset-2"
+              title={hinweise.join('\n')}
+            >
+              {tv.hinweiseTitle} ({hinweise.length})
+            </span>
+          )}
+        </div>
+        {list.length > 0 && (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[44rem] text-sm">
+              <tbody>
+                {list.map((a) => (
+                  <tr
+                    key={a.id}
+                    className={`border-b border-line last:border-b-0 ${
+                      a.bewertung === 'ignoriert' ? 'opacity-45' : ''
+                    }`}
+                  >
+                    <td className="w-24 px-3 py-2 align-top">
+                      <span className={`${PILL_BASE} ${ABWEICHUNG_TYP_PILL[a.typ]}`}>
+                        {tv.typLabels[a.typ]}
+                      </span>
+                    </td>
+                    <td className="w-28 px-3 py-2 align-top text-xs font-semibold text-primary-dark tabular-nums whitespace-nowrap">
+                      {a.npk}
+                    </td>
+                    <td className="min-w-48 px-3 py-2 align-top">
+                      <span className="block text-xs font-medium text-ink">
+                        {a.titel}
+                      </span>
+                      <span className="block text-[10px] text-primary">
+                        {a.details.erwartet !== undefined &&
+                          `${tv.erwartetPrefix} ${a.details.erwartet}`}
+                        {a.details.erwartet !== undefined &&
+                          a.details.gefunden !== undefined &&
+                          ' → '}
+                        {a.details.gefunden !== undefined &&
+                          `${tv.gefundenPrefix} ${a.details.gefunden}`}
+                      </span>
+                    </td>
+                    <td className="w-64 px-3 py-2 align-top">
+                      <div className="flex flex-wrap gap-1">
+                        {BEWERTUNGEN.map((bewertung) => {
+                          const aktiv = a.bewertung === bewertung;
+                          return (
+                            <button
+                              key={bewertung}
+                              type="button"
+                              disabled={!canEdit}
+                              onClick={() =>
+                                void saveBewertung(
+                                  a,
+                                  aktiv ? 'offen' : bewertung,
+                                )
+                              }
+                              className={`${PILL_BASE} transition-colors disabled:cursor-default ${
+                                aktiv
+                                  ? BEWERTUNG_AKTIV[bewertung]
+                                  : 'border-line bg-white text-primary hover:border-primary'
+                              }`}
+                            >
+                              {tv.bewertungLabels[bewertung]}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </td>
+                    <td className="w-52 px-3 py-2 align-top">
+                      <input
+                        type="text"
+                        defaultValue={a.notiz ?? ''}
+                        placeholder={tv.notizPlaceholder}
+                        disabled={!canEdit}
+                        onBlur={(e) => {
+                          if (canEdit && e.currentTarget.value.trim() !== (a.notiz ?? '')) {
+                            void saveNotiz(a, e.currentTarget.value);
+                          }
+                        }}
+                        className="w-full border border-line bg-bg px-2 py-1 text-xs text-ink outline-none focus:border-accent disabled:opacity-60"
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  function vollstaendigkeitBereich() {
+    if (!detail) return null;
+    const tv = t.vollstaendigkeit;
+    const offerten = detail.dokumente.filter((d) => d.art === 'offerte');
+    const hatAusschreibung = detail.dokumente.some(
+      (d) => d.art === 'ausschreibung',
+    );
+    const laueft =
+      vollJob !== null &&
+      (vollJob.status === 'queued' ||
+        vollJob.status === 'running' ||
+        (vollJob.status === 'done' && vollJob.stufe === 'fortsetzung'));
+    const stufeLabel = laueft
+      ? (tv.stufen[(vollJob?.stufe ?? 'queued') as keyof typeof tv.stufen] ??
+        tv.stufen.queued)
+      : null;
+    const geprueft = offerten.some((d) => d.parse_status === 'geparst');
+    return (
+      <section className="mt-8">
+        {sectionTitle(
+          tv.title,
+          hatAusschreibung ? tv.referenzAusschreibung : tv.referenzVergleich,
+        )}
+        <div className="mb-4 flex flex-wrap items-center gap-3">
+          {canEdit && (
+            <button
+              type="button"
+              onClick={() => void startVollstaendigkeit()}
+              disabled={offerten.length === 0 || laueft || busy}
+              title={offerten.length === 0 ? tv.needsOfferte : undefined}
+              className="display-title bg-accent px-5 py-2.5 text-[12px] font-medium tracking-[0.14em] text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+            >
+              {geprueft ? tv.erneut : tv.start}
+            </button>
+          )}
+          {laueft && (
+            <span className="flex items-center gap-2 text-xs font-semibold text-status-vertrag">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-status-vertrag" />
+              {stufeLabel}
+              {vollRundenRef.current > 0 && ` (${vollRundenRef.current + 1})`}
+            </span>
+          )}
+          {laueft && vollRundenRef.current > 0 && (
+            <span className="text-[11px] text-primary">{tv.fortsetzungInfo}</span>
+          )}
+          {vollJob?.status === 'error' && (
+            <span className="text-xs text-status-ueber">
+              {tv.jobError}: {vollJob.fehler}
+            </span>
+          )}
+          {canEdit && geprueft && !laueft && (
+            <span className="text-[11px] text-primary">{tv.bewertungHint}</span>
+          )}
+        </div>
+        {!geprueft && !laueft ? (
+          <p className="text-sm text-primary">{tv.nochNichtGeprueft}</p>
+        ) : (
+          <div className="flex flex-col gap-3">
+            {offerten.map((dokument) => abweichungGruppe(dokument))}
+          </div>
+        )}
+      </section>
     );
   }
 
@@ -980,6 +1335,8 @@ export function OvClient({
         {analyseBereich()}
 
         {bieterKarten()}
+
+        {vollstaendigkeitBereich()}
 
         {detail.auswertung ? (
           <>

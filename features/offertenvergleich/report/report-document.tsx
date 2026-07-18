@@ -69,10 +69,28 @@ export interface ReportErkenntnis {
   bullets: string[];
 }
 
+export interface ReportAbweichung {
+  typ: string; // Label 'Fehlt', 'Menge', …
+  typColor: string;
+  npk: string;
+  titel: string;
+  delta: string; // 'LV: 120 m3 → Offerte: 260 m2'
+  bewertung: string; // 'KRITISCH' | 'TOLERIERBAR' | '' (offen)
+  bewertungColor: string;
+  notiz: string | null;
+}
+
+/** Abweichungen einer Offerte (O-M2, «falls Abweichungen» im Bericht) */
+export interface ReportVollstaendigkeitGruppe {
+  bieterName: string;
+  abweichungen: ReportAbweichung[];
+}
+
 export interface ReportProps {
   brand: ReportBrand;
   meta: ReportMeta;
   bieter: ReportBieter[];
+  vollstaendigkeit?: ReportVollstaendigkeitGruppe[];
   diffBlocks: ReportDiffBlock[];
   erkenntnisse: ReportErkenntnis[];
   fazit?: ReportFazit | null;
@@ -277,6 +295,47 @@ function buildStyles(brand: ReportBrand) {
     },
     numText: { fontSize: 8, textAlign: 'right' },
 
+    // Vollständigkeitsprüfung
+    vollGruppeRow: {
+      backgroundColor: colors.bg,
+      borderTopWidth: 1,
+      borderTopColor: colors.line,
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingRight: 6,
+    },
+    vollTypTag: {
+      fontFamily: 'Antonio',
+      textTransform: 'uppercase',
+      fontSize: 6,
+      fontWeight: 600,
+      letterSpacing: 0.8,
+      color: '#ffffff',
+      paddingVertical: 1.5,
+      paddingHorizontal: 4,
+      alignSelf: 'flex-start',
+    },
+    vollTypCell: { width: 54, paddingVertical: 4, paddingHorizontal: 6 },
+    vollDeltaText: { fontSize: 7, color: colors.primaryDark, marginTop: 1.5 },
+    vollNotizText: {
+      fontSize: 7,
+      color: colors.primary,
+      marginTop: 1.5,
+      fontStyle: 'italic',
+    },
+    vollBewertung: {
+      width: 66,
+      fontFamily: 'Antonio',
+      textTransform: 'uppercase',
+      fontSize: 6.5,
+      fontWeight: 600,
+      letterSpacing: 0.8,
+      textAlign: 'right',
+      paddingVertical: 5,
+      paddingHorizontal: 6,
+    },
+
     // Erkenntnis-Boxen
     erkenntnisBox: {
       borderWidth: 1,
@@ -426,6 +485,7 @@ export function ReportDocument({
   brand,
   meta,
   bieter,
+  vollstaendigkeit,
   diffBlocks,
   erkenntnisse,
   fazit,
@@ -517,6 +577,66 @@ export function ReportDocument({
             </View>
           ))}
         </View>
+
+        {/* Vollständigkeitsprüfung (O-M2, nur falls Abweichungen) */}
+        {vollstaendigkeit && vollstaendigkeit.length > 0 && (
+          <View>
+            <View style={styles.sectionRow} minPresenceAhead={80}>
+              <Text style={styles.sectionTitle}>{t.vollTitle}</Text>
+              <Text style={styles.sectionHint}>{t.vollSubtitle}</Text>
+            </View>
+            <View style={styles.table}>
+              {vollstaendigkeit.map((gruppe) => (
+                <View key={gruppe.bieterName}>
+                  <View style={styles.vollGruppeRow}>
+                    <Text style={styles.blockText}>{gruppe.bieterName}</Text>
+                    <Text style={styles.sectionHint}>
+                      {gruppe.abweichungen.length}{' '}
+                      {gruppe.abweichungen.length === 1
+                        ? t.vollSuffixOne
+                        : t.vollSuffix}
+                    </Text>
+                  </View>
+                  {gruppe.abweichungen.map((a) => (
+                    <View
+                      key={`${a.typ}:${a.npk}`}
+                      style={styles.tr}
+                      wrap={false}
+                    >
+                      <View style={styles.vollTypCell}>
+                        <Text
+                          style={[
+                            styles.vollTypTag,
+                            { backgroundColor: a.typColor },
+                          ]}
+                        >
+                          {a.typ}
+                        </Text>
+                      </View>
+                      <Text style={styles.tdNpk}>{a.npk}</Text>
+                      <View style={styles.tdBez}>
+                        <Text style={styles.bezText}>{a.titel}</Text>
+                        {a.delta ? (
+                          <Text style={styles.vollDeltaText}>{a.delta}</Text>
+                        ) : null}
+                        {a.notiz ? (
+                          <Text style={styles.vollNotizText}>
+                            «{a.notiz}»
+                          </Text>
+                        ) : null}
+                      </View>
+                      <Text
+                        style={[styles.vollBewertung, { color: a.bewertungColor }]}
+                      >
+                        {a.bewertung}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
 
         <Text style={styles.readingHint}>{t.readingHint}</Text>
 

@@ -19,6 +19,7 @@ import type {
   DocumentEntry,
   LvUnit,
   LvUnitStep,
+  OvAbweichungRow,
   OvAngebotRow,
   OvAuswertungRow,
   OvBieterRow,
@@ -194,6 +195,7 @@ export default async function ModulePage({
         { data: bieter },
         { data: positionen },
         { data: auswertungen },
+        { data: abweichungen },
       ] = await Promise.all([
         supabase
           .from('ov_dokumente')
@@ -219,6 +221,12 @@ export default async function ModulePage({
           .eq('vergabe_id', vergabe.id)
           .order('created_at', { ascending: false })
           .returns<OvAuswertungRow[]>(),
+        supabase
+          .from('ov_abweichungen')
+          .select('*')
+          .eq('vergabe_id', vergabe.id)
+          .order('npk')
+          .returns<OvAbweichungRow[]>(),
       ]);
       const positionIds = (positionen ?? []).map((p) => p.id);
       const { data: angebote } = positionIds.length
@@ -235,6 +243,7 @@ export default async function ModulePage({
         bieter: bieter ?? [],
         positionen: positionen ?? [],
         angebote: angebote ?? [],
+        abweichungen: abweichungen ?? [],
         auswertung: auswertungen?.[0] ?? null,
         berichte: (auswertungen ?? [])
           .filter(

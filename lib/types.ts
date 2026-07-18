@@ -257,6 +257,64 @@ export interface OvDokument {
   seiten: number | null;
   parse_status: 'neu' | 'geparst' | 'fehler';
   parse_fehler: string | null;
+  /** Extraktions-Fortschritt der Vollständigkeitsprüfung (O-M2) */
+  parse_fortschritt: OvParseFortschritt;
+  created_at: string;
+}
+
+/** Seitenfenster-Fortschritt der KI-Extraktion (Wiederaufnahme) */
+export interface OvParseFortschritt {
+  chunksTotal?: number;
+  chunksDone?: number[];
+  seitenProChunk?: number;
+  /** Hinweise des Modells (unleserliche Seiten u.ä.) */
+  hinweise?: string[];
+  /** Preis-Stichprobe gegen die Positionenvergleich-Matrix (Selbstprüfung) */
+  stichprobe?: { verglichen: number; abweichend: number };
+}
+
+/** Aus Ausschreibung/Offerte extrahierte Position (O-M2) */
+export interface OvDokPositionRow {
+  id: string;
+  project_id: string;
+  vergabe_id: string;
+  dokument_id: string;
+  npk: string;
+  bezeichnung: string | null;
+  menge: number | null;
+  einheit: string | null;
+  betrag_rp: number | null;
+  produkt: string | null;
+  bemerkung: string | null;
+  chunk: number;
+}
+
+export type OvAbweichungTyp =
+  | 'fehlend'
+  | 'zusaetzlich'
+  | 'menge'
+  | 'einheit'
+  | 'produkt';
+
+export type OvAbweichungBewertung =
+  | 'offen'
+  | 'kritisch'
+  | 'tolerierbar'
+  | 'ignoriert';
+
+/** Abweichung aus der Vollständigkeitsprüfung mit Bewertungsschleife */
+export interface OvAbweichungRow {
+  id: string;
+  project_id: string;
+  vergabe_id: string;
+  dokument_id: string;
+  bieter_id: string | null;
+  typ: OvAbweichungTyp;
+  npk: string;
+  titel: string;
+  details: { erwartet?: string; gefunden?: string };
+  bewertung: OvAbweichungBewertung;
+  notiz: string | null;
   created_at: string;
 }
 

@@ -27,9 +27,12 @@ import { formatDate, formatNumber } from '@/lib/format';
 import { texts } from '@/lib/texts';
 import type {
   BrandingColors,
+  OvAbweichungRow,
+  OvAbweichungTyp,
   OvAngebotRow,
   OvAuswertungRow,
   OvBieterRow,
+  OvDokument,
   OvErkenntnisTag,
   OvPositionRow,
   OvVergabe,
@@ -42,6 +45,20 @@ const TAG_COLORS: Record<OvErkenntnisTag, string> = {
   plausibilitaet: COMPARE_COLORS.warn,
   staerke: COMPARE_COLORS.guenstigster,
   hinweis: '#5a5a5a',
+};
+
+const ABWEICHUNG_TYP_COLORS: Record<OvAbweichungTyp, string> = {
+  fehlend: COMPARE_COLORS.kritisch,
+  zusaetzlich: COMPARE_COLORS.warn,
+  menge: COMPARE_COLORS.warn,
+  einheit: COMPARE_COLORS.warn,
+  produkt: '#5a5a5a',
+};
+
+const BEWERTUNG_COLORS: Record<string, string> = {
+  kritisch: COMPARE_COLORS.kritisch,
+  tolerierbar: COMPARE_COLORS.guenstigster,
+  offen: '#7c7c7c',
 };
 
 function mengeLabel(menge: number | null, einheit: string | null): string {
@@ -71,23 +88,42 @@ export async function buildReportForVergabe(
   if (!vergabe) throw new Error('Vergabe nicht gefunden');
   if (!auswertung) throw new Error('Noch keine Auswertung vorhanden');
 
-  const [{ data: bieterRows }, { data: positionRows }, brandData] =
-    await Promise.all([
-      supabase
-        .from('ov_bieter')
-        .select('*')
-        .eq('vergabe_id', vergabeId)
-        .order('sort')
-        .returns<OvBieterRow[]>(),
-      supabase
-        .from('ov_positionen')
-        .select('*')
-        .eq('vergabe_id', vergabeId)
-        .eq('wichtig', true)
-        .order('sort')
-        .returns<OvPositionRow[]>(),
-      loadBrand(supabase, projectId),
-    ]);
+  const [
+    { data: bieterRows },
+    { data: positionRows },
+    { data: abweichungRows },
+    { data: dokumentRows },
+    brandData,
+  ] = await Promise.all([
+    supabase
+      .from('ov_bieter')
+      .select('*')
+      .eq('vergabe_id', vergabeId)
+      .order('sort')
+      .returns<OvBieterRow[]>(),
+    supabase
+      .from('ov_positionen')
+      .select('*')
+      .eq('vergabe_id', vergabeId)
+      .eq('wichtig', true)
+      .order('sort')
+      .returns<OvPositionRow[]>(),
+    supabase
+      .from('ov_abweichungen')
+      .select('*')
+      .eq('vergabe_id', vergabeId)
+      .neq('bewertung', 'ignoriert')
+      .order('npk')
+      .returns<OvAbweichungRow[]>(),
+    supabase
+      .from('ov_dokumente')
+      .select('*')
+      .eq('vergabe_id', vergabeId)
+      .eq('art', 'offerte')
+      .order('created_at')
+      .returns<OvDokument[]>(),
+    loadBrand(supabase, projectId),
+  ]);
   const bieter = bieterRows ?? [];
   const positionen = positionRows ?? [];
   if (bieter.length === 0) throw new Error('Keine Bieter vorhanden');
@@ -122,6 +158,53 @@ export async function buildReportForVergabe(
     });
     blocks.set(name, block);
   }
+
+  // Vollständigkeitsprüfung (O-M2): nicht-ignorierte Abweichungen je Offerte,
+  // sortiert Typ-schwer (fehlend zuerst), Sektion entfällt ohne Abweichungen
+  const tv = texts.ov.vollstaendigkeit;
+  const typOrder: Record<string, number> = {
+    fehlend: 0,
+    einheit: 1,
+    menge: 2,
+    produkt: 3,
+    zusaetzlich: 4,
+  };
+  const bieterNameById = new Map(bieter.map((b) => [b.id, b.name]));
+  const vollstaendigkeit = (dokumentRows ?? [])
+    .map((dokument) => {
+      const list = (abweichungRows ?? [])
+        .filter((a) => a.dokument_id === dokument.id)
+        .sort(
+          (a, b) =>
+            (typOrder[a.typ] ?? 9) - (typOrder[b.typ] ?? 9) ||
+            a.npk.localeCompare(b.npk),
+        );
+      return {
+        bieterName: dokument.bieter_id
+          ? (bieterNameById.get(dokument.bieter_id) ?? dokument.original_name)
+          : dokument.original_name,
+        abweichungen: list.map((a) => ({
+          typ: tv.typLabels[a.typ] ?? a.typ,
+          typColor: ABWEICHUNG_TYP_COLORS[a.typ] ?? '#5a5a5a',
+          npk: a.npk,
+          titel: a.titel,
+          delta: [
+            a.details.erwartet !== undefined
+              ? `${tv.erwartetPrefix} ${a.details.erwartet}`
+              : null,
+            a.details.gefunden !== undefined
+              ? `${tv.gefundenPrefix} ${a.details.gefunden}`
+              : null,
+          ]
+            .filter(Boolean)
+            .join(' → '),
+          bewertung: tv.bewertungLabels[a.bewertung] ?? a.bewertung,
+          bewertungColor: BEWERTUNG_COLORS[a.bewertung] ?? '#7c7c7c',
+          notiz: a.notiz,
+        })),
+      };
+    })
+    .filter((gruppe) => gruppe.abweichungen.length > 0);
 
   const erkenntnisse: ReportErkenntnis[] = inhalt.erkenntnisse.map((e) => ({
     titel: e.titel,
@@ -169,6 +252,7 @@ export async function buildReportForVergabe(
         diffRp: kontrollsummeRp === null ? null : totalRp - kontrollsummeRp,
       };
     }),
+    vollstaendigkeit,
     diffBlocks: [...blocks.values()],
     erkenntnisse,
     fazit,
