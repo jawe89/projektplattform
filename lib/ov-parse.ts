@@ -199,13 +199,28 @@ export async function parsePositionenvergleich(
         meta.datum = toIsoDate(m[2]);
       }
     } else if (/^\S+\s+\S+ - .+ LV\s+\S+/.test(line.text) && !meta.bkp) {
-      // 'MCD_239 211 - Baumeisterarbeiten + Baugrube LV 21100'
+      // 'MCD_239 211 - Baumeisterarbeiten + Baugrube LV 21100' (einzeilig)
       const m = line.text.match(/^(\S+)\s+(\S+) - (.+?)\s+LV\s+(\S+)/);
       if (m) {
         meta.projectNo = m[1];
         meta.bkp = m[2];
         meta.titel = m[3];
         meta.lvNummer = m[4];
+      }
+    } else if (!meta.bkp && /^[\d.]+ - \S/.test(line.text)) {
+      // Split-Format (BKP 281.6): '281.6 - Bodenbeläge: Plattenarbeiten'
+      // als eigene Zeile, 'MCD_239 LV 28160' separat.
+      const m = line.text.match(/^([\d.]+) - (.+)$/);
+      if (m) {
+        meta.bkp = m[1];
+        meta.titel = m[2];
+      }
+    } else if (!meta.lvNummer && /^\S+\s+LV\s+\S+$/.test(line.text)) {
+      // Split-Format: 'MCD_239 LV 28160'
+      const m = line.text.match(/^(\S+)\s+LV\s+(\S+)$/);
+      if (m) {
+        meta.projectNo = m[1];
+        meta.lvNummer = m[2];
       }
     } else if (line.text.startsWith('NPK Position')) {
       // Kopf: '… ME PA <B1> P <B2> P <B3> P' – Namen zwischen den P-Markern
@@ -243,12 +258,13 @@ export async function parsePositionenvergleich(
   }
 
   // --- Positionszeilen über alle Seiten ---
-  const prefix = meta.bkp ? `${meta.bkp} -` : null;
-  // Positions-Marker A (Angebot) oder W (per-/Wahlposition, BKP-271-Format);
-  // Menge numerisch oder «per» (keine ausgeschriebene Menge)
-  const priceLine = new RegExp(
-    `^${meta.bkp.replace('.', '\\.')} -\\s+[AW]\\s+([\\d’']+\\.\\d{2,3}|per)\\s+(\\S+)\\s+A\\s*(.*)$`,
-  );
+  // LV-Kurzform-Präfix variiert je Export: BKP-Nummer ('211 -', '271.1 -')
+  // ODER blank ('- -', BKP 281.6 – Offerten ausserhalb BauPlus ausgefüllt).
+  // Deshalb präfix-AGNOSTISCH matchen: erstes Token beliebig (\S+), danach
+  // ' - <Marker A|W> <Menge|per> <ME> A <Werte>'. Positions-Marker A
+  // (Angebot) oder W (per-/Wahlposition); Menge numerisch oder «per».
+  const priceLine =
+    /^\S+ -\s+[AW]\s+([\d’']+\.\d{2,3}|per)\s+(\S+)\s+A\s*(.*)$/;
 
   const positionen: OvParsedPosition[] = [];
   const unparsedLines: string[] = [];
@@ -299,12 +315,11 @@ export async function parsePositionenvergleich(
         continue;
       }
 
-      if (prefix && text.startsWith(prefix)) {
-        const m = text.match(priceLine);
-        const werte = m
-          ? parsePreiszeilenWerte(m[1], m[3], bieter.length)
-          : null;
-        if (!m || !werte) {
+      const m = text.match(priceLine);
+      if (m) {
+        // Sieht wie eine Preiszeile aus – muss sauber parsen (harte Prüfung)
+        const werte = parsePreiszeilenWerte(m[1], m[3], bieter.length);
+        if (!werte) {
           unparsedLines.push(text);
           continue;
         }

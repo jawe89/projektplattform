@@ -98,3 +98,28 @@ test('parsePreiszeilenWerte: per-Positionen (BKP-271-Format) und Normalfall', ()
     werteRp: [136000, null, -1310400],
   });
 });
+
+test('BKP 281.6: blanker LV-Präfix «- -» (Split-Format), Preise lesbar', async () => {
+  // Produktiv-Variante: Offerten ausserhalb BauPlus ausgefüllt → die
+  // Preiszeilen tragen einen blanken LV-Kurzform-Präfix «- -» statt der
+  // BKP-Nummer. Der Parser darf davon nicht auf «keine Preise» fallen.
+  const result = await parsePositionenvergleich(
+    load('281.6/MCD_239 Opening_Wattwil BKP 281.6 Positionenvergleich.pdf'),
+  );
+
+  assert.equal(result.meta.bkp, '281.6');
+  assert.equal(result.meta.titel, 'Bodenbeläge: Plattenarbeiten');
+  assert.equal(result.meta.lvNummer, '28160');
+
+  // Bieter-Reihenfolge aus dem Kopf
+  assert.deepEqual(
+    result.bieter.map((b) => b.name),
+    ['Philippin Plattenbeläge AG', 'Baschti Keramik GmbH', 'El-ba AG'],
+  );
+
+  assert.equal(result.unparsedLines.length, 0);
+  assert.equal(result.positionen.length, 23);
+  // Positionssummen je Bieter (Offerten-Endbeträge minus Regie-Annahme
+  // Fr. 2'500 der Pos. 181.801, die BauPlus nicht in die Spalten stellt)
+  assert.deepEqual(result.summenRp, [8103950, 8694000, 8967800]);
+});
