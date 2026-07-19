@@ -12,6 +12,10 @@
  * Mengen mit 2–3 Nachkommastellen, negative Preise, variable Bieter-
  * Spaltenreihenfolge (immer aus dem Kopf gelesen), keine Totalzeilen.
  */
+// Reihenfolge zwingend: Zuerst DOMMatrix/Path2D-Polyfills setzen –
+// pdf.mjs referenziert DOMMatrix auf Modulebene und crasht sonst in
+// Serverless-Functions ohne @napi-rs/canvas (Vercel).
+import './pdf-polyfills';
 // Worker statisch registrieren (setzt globalThis.pdfjsWorker) – der
 // dynamische Fake-Worker-Import scheitert sonst im Next-Bundling
 import 'pdfjs-dist/legacy/build/pdf.worker.mjs';

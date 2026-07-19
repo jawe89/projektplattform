@@ -119,6 +119,13 @@ npm run test:unit # Unit-Tests (node:test via tsx), z.B. BKK-Berechnungslogik
   1 h gecacht (`max-age=3600`). Beim Logo-/Hero-Upload im Admin (M3) deshalb
   eindeutige Dateinamen vergeben (z.B. `logo-<timestamp>.svg`) statt
   gleichnamig zu überschreiben, sonst wirkt die Änderung nicht sofort.
+- **pdfjs-dist braucht auf Vercel Browser-API-Polyfills**: `pdf.mjs`
+  referenziert `DOMMatrix` auf MODULEBENE und polyfillt in Node über das
+  optionale `@napi-rs/canvas` – das fehlt im Serverless-Bundle → die
+  Function stirbt beim Laden («ReferenceError: DOMMatrix is not
+  defined»), lokal läuft alles. Lösung: `lib/pdf-polyfills.ts`
+  (DOMMatrix funktional 2D, Path2D-No-op) als ERSTER Import vor jedem
+  pdfjs-Import; für reine Text-Extraktion reicht das vollständig.
 - **Supabase-Query-Builder sind lazy**: `supabase.from(…).update(…).eq(…)`
   feuert erst bei `await`/`.then()`. Fire-and-forget per `void builder`
   (z.B. Heartbeat in `setInterval`) sendet NIE eine Query – immer
