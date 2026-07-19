@@ -24,6 +24,8 @@ import {
 } from '@/features/offertenvergleich/report/theme';
 import { DEFAULT_COLORS } from '@/features/theming/theme';
 import { formatDate, formatNumber } from '@/lib/format';
+import { berechneAbgleich } from '@/lib/ov-abgleich';
+import { beschreibeAbgleich } from '@/lib/ov-abgleich-text';
 import { texts } from '@/lib/texts';
 import type {
   BrandingColors,
@@ -248,13 +250,22 @@ export async function buildReportForVergabe(
     bieter: bieter.map((b, i) => {
       const totalRp = inhalt.analyse.bieterTotaleRp[i] ?? 0;
       const kontrollsummeRp = b.kontrollsumme_rp;
+      // Abgleich frisch mit den erklärbaren Positionen (Regieansatz u.ä.)
+      const anzeige = beschreibeAbgleich(
+        berechneAbgleich(
+          totalRp,
+          kontrollsummeRp,
+          inhalt.erklaerbarePositionen ?? [],
+        ),
+      );
       return {
         name: b.name,
         ort: b.ort ?? '',
         telefon: b.telefon ?? '',
         totalRp,
         kontrollsummeRp,
-        diffRp: kontrollsummeRp === null ? null : totalRp - kontrollsummeRp,
+        abgleichText: anzeige?.text ?? null,
+        abgleichTone: anzeige?.tone ?? null,
       };
     }),
     // Belastbarkeit: aus welcher Quelle die Preise stammen, plus Warnung,

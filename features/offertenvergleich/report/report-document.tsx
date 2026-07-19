@@ -39,7 +39,10 @@ export interface ReportBieter {
   /** Positionssumme in Rappen (mit Summen-Abgleich, falls Kontrollsumme) */
   totalRp?: number;
   kontrollsummeRp?: number | null;
-  diffRp?: number | null;
+  /** Fertige Abgleich-Zeile (inkl. erklärbarer Positionen); null = keine */
+  abgleichText?: string | null;
+  /** 'warn' = echte Restdifferenz (orange hervorheben) */
+  abgleichTone?: 'ok' | 'warn' | null;
 }
 
 export interface ReportFazit {
@@ -591,12 +594,17 @@ export function ReportDocument({
                   <Text style={styles.bieterTotal}>
                     {t.totalLabel} CHF {formatRappen(b.totalRp)}
                   </Text>
-                  {b.kontrollsummeRp != null && (
-                    <Text style={styles.bieterAbgleich}>
-                      {t.kontrollsummeLabel} {formatRappen(b.kontrollsummeRp)}
-                      {b.diffRp === 0
-                        ? ` · ${t.abgleichOk}`
-                        : ` · ${t.abgleichDiff} ${formatRappen(b.diffRp ?? 0)}`}
+                  {b.kontrollsummeRp != null && b.abgleichText && (
+                    <Text
+                      style={[
+                        styles.bieterAbgleich,
+                        b.abgleichTone === 'warn'
+                          ? { color: COMPARE_COLORS.warn }
+                          : {},
+                      ]}
+                    >
+                      {t.kontrollsummeLabel} {formatRappen(b.kontrollsummeRp)} ·{' '}
+                      {b.abgleichText}
                     </Text>
                   )}
                 </>

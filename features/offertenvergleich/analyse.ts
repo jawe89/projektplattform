@@ -404,6 +404,10 @@ export async function runAnalyseJob(
       bieter: parsed.bieter,
       preisquelle: quelle,
       handschriftlichCount,
+      // Erklärbare Differenzen nur bei der Vergleich-Quelle: bei der
+      // Offerten-Quelle sind Regieansatz u.ä. bereits in den Preisen.
+      erklaerbarePositionen:
+        quelle === 'positionenvergleich' ? parsed.erklaerbarePositionen : [],
       analyse,
       selbstpruefung: {
         positionCount: calcRows.length,

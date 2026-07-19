@@ -382,6 +382,11 @@ export interface OvAuswertungInhalt {
   preisquelle: OvPreisquelle;
   /** Anzahl handschriftlich gelesener Werte in der Matrix (Offerten-Quelle) */
   handschriftlichCount?: number;
+  /**
+   * Positionen mit Betrag im LV-Text, aber ohne Bieterspalten (Regieansatz
+   * u.ä.) – erklären die Kontrollsummen-Differenz (nur Quelle Vergleich).
+   */
+  erklaerbarePositionen?: import('./ov-abgleich').OvErklaerbarePosition[];
   /** Ergebnis von computeAnalyse (lib/ov-calc.ts) */
   analyse: import('./ov-calc').OvAnalyse;
   selbstpruefung: {

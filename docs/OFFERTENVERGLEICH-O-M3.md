@@ -82,6 +82,26 @@ Regie-Annahme (Pos. 181.801 «Kostenschätzung Fr. 2500») nicht in die
 Bieterspalten stellt; die Offerten enthalten sie. Beide Quellen sind
 dadurch nachvollziehbar.
 
+### Kontrollsummen-Ampel mit erklärbaren Positionen
+
+Bei der Quelle «Positionenvergleich» weicht die Positionssumme
+systematisch vom Offerten-Endbetrag ab, weil BauPlus nicht-bieterbezogene
+Positionen (z.B. den Regieansatz, 281.6 Pos. 645.181.801 «Kostenschätzung
+Fr. 2500 · Annahme für unvorhergesehene Arbeit») nicht in die Bieterspalten
+stellt. Der Parser erkennt solche Positionen allgemein (Betrag «Fr./CHF …»
+im Positionstext, aber keine Preiszeile in den Bieterspalten; Merkmalcodes
+wie «= Fr. 03» werden gefiltert – nur echte Summen mit Dezimalstelle,
+Tausender-Apostroph oder ≥ Fr. 100). `lib/ov-abgleich.ts` zieht die
+erklärbaren Positionen von der Kontrollsummen-Differenz ab: Die Ampel wird
+nur grün, wenn die Differenz **vollständig** durch benannte Positionen
+erklärt ist – sonst bleibt die Restdifferenz als echte Abweichung geflaggt.
+Die Erklärung («Differenz Fr. 2'500.00 entspricht Position 645.181.801 –
+ausserhalb der Bieterspalten, kein Fehler») steht in UI und PDF-Bericht.
+Bei der Quelle «Offerten» sind solche Positionen bereits in den Preisen
+enthalten; dann gibt es keine erklärbaren Differenzen. Unit-getestet
+(281.6 → grün, künstliche Restdifferenz → geflaggt; 211/211.4 → keine
+Fehlerkennung).
+
 ## Deploy-Reihenfolge (wichtig)
 
 Die refaktorierte Extraktion schreibt `handschriftlich` in

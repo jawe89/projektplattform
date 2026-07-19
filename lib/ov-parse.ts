@@ -58,6 +58,14 @@ export interface OvParseResult {
   /** Positionssumme je Bieter in Rappen (für den Summen-Abgleich) */
   summenRp: number[];
   /**
+   * Positionen mit ausgewiesenem Betrag im LV-Text, aber OHNE Werte in den
+   * Bieterspalten (BauPlus stellt sie nicht in die Spalten) – z.B. der
+   * Regieansatz «Kostenschätzung Fr. 2500». Erklären systematische
+   * Differenzen zwischen Positionssumme und Offerten-Endbetrag
+   * (Kontrollsumme). Der Betrag gilt für alle Bieter gleich.
+   */
+  erklaerbarePositionen: { npk: string; bezeichnung: string; betragRp: number }[];
+  /**
    * Enthält der Vergleich überhaupt Preise? false, wenn keine Position
    * einen ausgefüllten Betrag hat (Offerten ausserhalb BauPlus ausgefüllt)
    * – dann Frühwarnung statt Nullanalyse, Preise aus Offerten extrahieren.
@@ -302,6 +310,30 @@ export async function parsePositionenvergleich(
       .trim()
       .replace(/\.$/, '');
 
+  // Erklärbare Positionen (Betrag im Text, keine Bieterspalten). Ein
+  // Sub-Abschnitt, der NIE eine Preiszeile emittiert (mode bleibt 'sub'),
+  // aber einen Betrag «Fr./CHF …» im Text trägt, gilt als solcher.
+  const erklaerbarePositionen: OvParseResult['erklaerbarePositionen'] = [];
+  const AMOUNT_RE = /(?:Fr\.?|CHF)\s*([\d’']+(?:\.\d{1,2})?)/;
+  const flushErklaerbar = () => {
+    if (mode !== 'sub' || !sub) return;
+    const amount = subText.match(AMOUNT_RE);
+    if (!amount) return;
+    const roh = amount[1];
+    const betragRp = Math.round(parseFloat(roh.replace(/[’']/g, '')) * 100);
+    if (!Number.isFinite(betragRp) || betragRp <= 0) return;
+    // «= Fr. 03» ist ein Merkmalcode/Einheitshinweis, kein Betrag: nur echte
+    // Summen zählen (Dezimalstellen, Tausender-Apostroph oder >= Fr. 100).
+    const echterBetrag = /[’'.]/.test(roh) || betragRp >= 10000;
+    if (!echterBetrag) return;
+    const npk = `${kapitel}.${gruppe}.${sub}`;
+    if (erklaerbarePositionen.some((e) => e.npk === npk)) return;
+    const bezeichnung =
+      [clean(gruppeText), clean(subText)].filter(Boolean).join(' · ').slice(0, 140) ||
+      npk;
+    erklaerbarePositionen.push({ npk, bezeichnung, betragRp });
+  };
+
   for (const lines of pages) {
     for (const line of lines) {
       const text = line.text;
@@ -359,12 +391,14 @@ export async function parsePositionenvergleich(
       const numMatch = text.match(/^(\d{3})(?:\s+(.*))?$/);
       const subMatch = text.match(/^\.(\d{3})(?:\s+(.*))?$/);
       if (subMatch) {
+        flushErklaerbar(); // vorherige Position ohne Preiszeile prüfen
         sub = subMatch[1];
         subText = subMatch[2] ?? '';
         mode = 'sub';
         continue;
       }
       if (numMatch && line.tokens[0].str.match(/^\d{3}$/)) {
+        flushErklaerbar();
         if (line.tokens[0].x <= chapterX + 2) {
           kapitel = numMatch[1];
         } else {
@@ -383,6 +417,7 @@ export async function parsePositionenvergleich(
       }
     }
   }
+  flushErklaerbar(); // letzte Position am Dokumentende prüfen
 
   const summenRp = bieter.map((_, i) =>
     positionen.reduce((sum, p) => sum + (p.werteRp[i] ?? 0), 0),
@@ -398,6 +433,7 @@ export async function parsePositionenvergleich(
     unparsedLines,
     warnings,
     summenRp,
+    erklaerbarePositionen,
     hatPreise,
     seiten: pages.length,
   };

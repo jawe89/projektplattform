@@ -542,6 +542,12 @@ export const texts = {
       abgleichOk: 'Summen-Abgleich deckungsgleich',
       abgleichDiff: 'Summen-Abgleich mit Differenz',
       abgleichFehlt: 'ohne Kontrollsumme',
+      abgleichErklaertPrefix: 'Differenz',
+      abgleichEntspricht: 'entspricht',
+      abgleichAusserhalb: 'ausserhalb der Bieterspalten, kein Fehler',
+      abgleichPosition: 'Position',
+      abgleichDavonErklaert: 'davon erklärt',
+      abgleichRest: 'ungeklärte Restdifferenz',
       kiUebersprungen:
         'KI-Erkenntnisse übersprungen – ANTHROPIC_API_KEY ist nicht konfiguriert.',
       kiZahlenHinweis: 'KI-Zahlen ohne Beleg in der Matrix:',

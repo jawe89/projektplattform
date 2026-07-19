@@ -123,3 +123,23 @@ test('BKP 281.6: blanker LV-Präfix «- -» (Split-Format), Preise lesbar', asyn
   // Fr. 2'500 der Pos. 181.801, die BauPlus nicht in die Spalten stellt)
   assert.deepEqual(result.summenRp, [8103950, 8694000, 8967800]);
 });
+
+test('BKP 281.6: erklärbare Position (Regieansatz) erkannt', async () => {
+  const result = await parsePositionenvergleich(
+    load('281.6/MCD_239 Opening_Wattwil BKP 281.6 Positionenvergleich.pdf'),
+  );
+  // Genau die Regieansatz-Position (Betrag im Text, keine Bieterspalten)
+  assert.equal(result.erklaerbarePositionen.length, 1);
+  assert.equal(result.erklaerbarePositionen[0].betragRp, 250000);
+  assert.match(result.erklaerbarePositionen[0].npk, /181\.801$/);
+});
+
+test('BKP 211/211.4: keine erklärbaren Positionen (Merkmalcodes gefiltert)', async () => {
+  for (const f of [
+    'MCD_239 Opening_Wattwil BKP 211 Positionenvergleich.pdf',
+    'MCD_239 Opening_Wattwil BKP 211.4 Positionenvergleich.pdf',
+  ]) {
+    const result = await parsePositionenvergleich(load(f));
+    assert.equal(result.erklaerbarePositionen.length, 0);
+  }
+});

@@ -5,6 +5,8 @@ import { useEffect, useRef, useState } from 'react';
 import { ToastContainer, useToasts } from '@/components/ui/toast';
 import { LogoutButton } from '@/features/auth/logout-button';
 import { formatDate, formatRappen, parseChfToRappen } from '@/lib/format';
+import { berechneAbgleich } from '@/lib/ov-abgleich';
+import { beschreibeAbgleich } from '@/lib/ov-abgleich-text';
 import { createClient } from '@/lib/supabase/client';
 import { texts } from '@/lib/texts';
 import type {
@@ -970,9 +972,15 @@ export function OvClient({
               (kontrollsummen[bieter.id] ?? '').trim() === ''
                 ? null
                 : parseChfToRappen(kontrollsummen[bieter.id]);
-            const diffRp =
-              totalRp !== null && kontrollRp !== null
-                ? totalRp - kontrollRp
+            const abgleichAnzeige =
+              totalRp !== null
+                ? beschreibeAbgleich(
+                    berechneAbgleich(
+                      totalRp,
+                      kontrollRp,
+                      inhalt?.erklaerbarePositionen ?? [],
+                    ),
+                  )
                 : null;
             return (
               <div
@@ -1023,15 +1031,15 @@ export function OvClient({
                     }
                     className="mt-0.5 w-full border border-line bg-bg px-2 py-1.5 text-right text-xs text-ink tabular-nums outline-none focus:border-accent disabled:opacity-60"
                   />
-                  {diffRp !== null && (
+                  {abgleichAnzeige && (
                     <p
-                      className={`mt-1 text-[10px] font-semibold tabular-nums ${
-                        diffRp === 0 ? 'text-ov-guenstig' : 'text-status-ueber'
+                      className={`mt-1 text-[10px] font-semibold leading-snug ${
+                        abgleichAnzeige.tone === 'ok'
+                          ? 'text-ov-guenstig'
+                          : 'text-status-ueber'
                       }`}
                     >
-                      {diffRp === 0
-                        ? `✓ ${t.report.abgleichOk}`
-                        : `Δ ${formatRappen(diffRp)}`}
+                      {abgleichAnzeige.text}
                     </p>
                   )}
                 </div>
@@ -1058,21 +1066,37 @@ export function OvClient({
         <span className="mr-3 font-semibold text-ov-guenstig">
           ✓ {sp.positionCount} {t.auswertung.parserOk}
         </span>
-        {inhalt.analyse.abgleich.map((a, i) =>
-          a.kontrollsummeRp === null ? (
-            <span key={i} className="mr-3 text-primary">
-              {inhalt.bieter[i]?.name}: {t.auswertung.abgleichFehlt}
-            </span>
-          ) : a.diffRp === 0 ? (
+        {(detail?.bieter ?? []).map((b, i) => {
+          const totalRp = inhalt.analyse.bieterTotaleRp[i] ?? 0;
+          const kontrollRp =
+            (kontrollsummen[b.id] ?? '').trim() === ''
+              ? null
+              : parseChfToRappen(kontrollsummen[b.id]);
+          const a = berechneAbgleich(
+            totalRp,
+            kontrollRp,
+            inhalt.erklaerbarePositionen ?? [],
+          );
+          if (a.status === 'ohne') {
+            return (
+              <span key={i} className="mr-3 text-primary">
+                {b.name}: {t.auswertung.abgleichFehlt}
+              </span>
+            );
+          }
+          if (a.status === 'abweichung') {
+            return (
+              <span key={i} className="mr-3 font-semibold text-status-ueber">
+                {b.name}: {t.report.abgleichDiff} {formatRappen(a.restRp)}
+              </span>
+            );
+          }
+          return (
             <span key={i} className="mr-3 font-semibold text-ov-guenstig">
-              ✓ {inhalt.bieter[i]?.name}
+              ✓ {b.name}
             </span>
-          ) : (
-            <span key={i} className="mr-3 font-semibold text-status-ueber">
-              {inhalt.bieter[i]?.name}: Δ {formatRappen(a.diffRp ?? 0)}
-            </span>
-          ),
-        )}
+          );
+        })}
         {sp.kiUebersprungen && (
           <span className="mr-3 text-warn">{t.auswertung.kiUebersprungen}</span>
         )}
