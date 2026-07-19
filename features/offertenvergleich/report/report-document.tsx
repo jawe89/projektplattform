@@ -54,6 +54,8 @@ export interface ReportDiffRow {
   mengeLabel: string; // '2'200 m³', '1 gl · Anzahl 1'
   /** Beträge in Rappen je Bieter (Reihenfolge = bieter[]); null = «inkl.» */
   werteRp: (number | null)[];
+  /** true je Bieter = Betrag handschriftlich gelesen (Markierung «✎») */
+  handschriftlich?: boolean[];
 }
 
 export interface ReportDiffBlock {
@@ -90,6 +92,10 @@ export interface ReportProps {
   brand: ReportBrand;
   meta: ReportMeta;
   bieter: ReportBieter[];
+  /** «Preise aus: …» – Belastbarkeit der Matrix (Vergleich vs. Offerten) */
+  quelleLabel: string;
+  /** Warnhinweis, falls handschriftlich gelesene Werte enthalten sind */
+  handschriftHinweis?: string | null;
   vollstaendigkeit?: ReportVollstaendigkeitGruppe[];
   diffBlocks: ReportDiffBlock[];
   erkenntnisse: ReportErkenntnis[];
@@ -235,6 +241,25 @@ function buildStyles(brand: ReportBrand) {
       padding: 6,
       lineHeight: 1.5,
       marginBottom: 14,
+    },
+    quelleZeile: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginBottom: 6,
+      gap: 8,
+    },
+    quelleLabel: {
+      fontFamily: 'Antonio',
+      textTransform: 'uppercase',
+      fontSize: 7,
+      letterSpacing: 1,
+      color: colors.primaryDark,
+    },
+    quelleWarn: {
+      fontSize: 7,
+      fontWeight: 700,
+      color: COMPARE_COLORS.warn,
     },
 
     // Differenzen-Tabelle
@@ -485,6 +510,8 @@ export function ReportDocument({
   brand,
   meta,
   bieter,
+  quelleLabel,
+  handschriftHinweis,
   vollstaendigkeit,
   diffBlocks,
   erkenntnisse,
@@ -569,7 +596,7 @@ export function ReportDocument({
                       {t.kontrollsummeLabel} {formatRappen(b.kontrollsummeRp)}
                       {b.diffRp === 0
                         ? ` · ${t.abgleichOk}`
-                        : ` · Δ ${formatRappen(b.diffRp ?? 0)}`}
+                        : ` · ${t.abgleichDiff} ${formatRappen(b.diffRp ?? 0)}`}
                     </Text>
                   )}
                 </>
@@ -638,6 +665,13 @@ export function ReportDocument({
           </View>
         )}
 
+        <View style={styles.quelleZeile}>
+          <Text style={styles.quelleLabel}>{quelleLabel}</Text>
+          {handschriftHinweis ? (
+            <Text style={styles.quelleWarn}>{handschriftHinweis}</Text>
+          ) : null}
+        </View>
+
         <Text style={styles.readingHint}>{t.readingHint}</Text>
 
         {/* Grosse Unterschiede */}
@@ -693,6 +727,7 @@ export function ReportDocument({
                           ]}
                         >
                           {value === null ? 'inkl.' : formatRappen(value)}
+                          {row.handschriftlich?.[i] ? ' *' : ''}
                         </Text>
                       </View>
                     );

@@ -26,10 +26,13 @@ export async function POST(
 
   const body = (await request.json().catch(() => null)) as {
     vergabeId?: string;
+    quelle?: 'positionenvergleich' | 'offerten';
   } | null;
   if (!body?.vergabeId) {
     return NextResponse.json({ error: 'vergabeId fehlt.' }, { status: 400 });
   }
+  const quelle =
+    body.quelle === 'offerten' ? 'offerten' : 'positionenvergleich';
 
   const { data: job, error } = await supabase
     .from('ov_jobs')
@@ -47,11 +50,11 @@ export async function POST(
     return NextResponse.json({ error: 'Kein Zugriff.' }, { status: 403 });
   }
 
-  const work = runAnalyseJob(supabase, {
-    projectId,
-    vergabeId: body.vergabeId,
-    jobId: job.id,
-  });
+  const work = runAnalyseJob(
+    supabase,
+    { projectId, vergabeId: body.vergabeId, jobId: job.id },
+    quelle,
+  );
   try {
     waitUntil(work);
   } catch {

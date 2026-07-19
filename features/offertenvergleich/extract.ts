@@ -34,6 +34,12 @@ export interface OvExtractPosition {
   produkt: string | null;
   /** 'oder gleichwertig', 'Alternativposition', 'inkl.', … */
   bemerkung: string | null;
+  /**
+   * true, wenn Menge oder Betrag HANDSCHRIFTLICH eingetragen war (bzw. die
+   * Position handschriftlich ergänzt/geändert wurde) – nie stillschweigend
+   * wie Digitaldaten behandeln, im UI/Bericht «bitte prüfen» kennzeichnen.
+   */
+  handschriftlich: boolean;
 }
 
 export interface OvExtractChunkResult {
@@ -96,6 +102,7 @@ const EXTRACT_SCHEMA = {
           'betrag',
           'produkt',
           'bemerkung',
+          'handschriftlich',
         ],
         properties: {
           npk: { type: 'string' },
@@ -105,6 +112,7 @@ const EXTRACT_SCHEMA = {
           betrag: { type: ['number', 'null'] },
           produkt: { type: ['string', 'null'] },
           bemerkung: { type: ['string', 'null'] },
+          handschriftlich: { type: 'boolean' },
         },
       },
     },
@@ -129,8 +137,14 @@ Erfasse JEDE Position mit eigener Mengen-/Preiszeile (Muster «: m3 18.000 9.25 
 - betrag: der Positionsbetrag in CHF (Menge × Einheitspreis, Spalte «Preis»/«Betrag»), Dezimalpunkt, ohne Tausendertrennzeichen. null, wenn nicht ausgepreist oder unleserlich. NIE raten oder rechnen – nur ablesen.
 - produkt: konkret genanntes Produkt/Fabrikat mit Typ (z.B. «Sika Swell-P Profil Typ 2010H»), sowohl vorgegebene wie vom Unternehmer eingesetzte. null, wenn keines genannt.
 - bemerkung: Auffälligkeiten der Position, kurz: «oder gleichwertig», «Alternativposition», «Eventualposition», «inkl.», «durchgestrichen», «handschriftlich geändert». null sonst.
+- handschriftlich: true, wenn die MENGE oder der BETRAG dieser Position handschriftlich eingetragen ist (Kugelschreiber/Bleistift, Handschrift statt Maschinenschrift), oder wenn die Position handschriftlich ergänzt, korrigiert oder durchgestrichen wurde. false, wenn alle Zahlen maschinengeschrieben/gedruckt sind. Im Zweifel bei erkennbar unregelmässigem, nicht-typografischem Schriftbild der Zahl: true.
 
-In hinweise meldest du seitenweise Probleme («Seite 4 unleserlich», «Seiten 10–12 ohne Positionen (Vorbemerkungen)») – leer, wenn keine.
+HANDSCHRIFT UND KORREKTUREN (wichtig bei ausserhalb von BauPlus ausgefüllten Offerten):
+- Handschriftlich eingetragene Einheitspreise und Mengen sind gültige Werte – lies sie so genau wie möglich ab und setze handschriftlich=true. Verwechsle Ziffern nicht (0/6, 1/7, 4/9); bei Unsicherheit über eine Ziffer setze den Betrag auf null statt zu raten und vermerke es in hinweise.
+- Handschriftlich DURCHGESTRICHENE Werte gelten als aufgehoben; gilt daneben/darüber ein handschriftlich korrigierter Wert, nimm den korrigierten (handschriftlich=true, bemerkung «handschriftlich korrigiert»).
+- Handschriftliche Ergänzungen/Zusatzpositionen im LV normal erfassen (bemerkung «handschriftlich ergänzt»).
+
+In hinweise meldest du seitenweise Probleme («Seite 4 unleserlich», «Seiten 10–12 ohne Positionen (Vorbemerkungen)», «Betrag Pos. X handschriftlich, Ziffer unklar») – leer, wenn keine.
 
 Sei exakt: lieber ein Feld null als ein geratener Wert.`;
 }
@@ -190,6 +204,7 @@ export async function extractChunk(
       betrag: number | null;
       produkt: string | null;
       bemerkung: string | null;
+      handschriftlich: boolean;
     }[];
     hinweise: string[];
   };
@@ -207,6 +222,7 @@ export async function extractChunk(
             : Math.round(p.betrag * 100),
         produkt: p.produkt,
         bemerkung: p.bemerkung,
+        handschriftlich: p.handschriftlich === true,
       }))
       .filter((p) => p.npk.length > 0),
     hinweise: parsed.hinweise,

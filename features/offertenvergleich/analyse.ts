@@ -1,15 +1,28 @@
 /**
- * Analyse-Job des Moduls Offertenvergleich (O-M1): Parsing → Persistierung
- * (Merge) → Statistik → KI-Erkenntnisse → Auswertungs-Snapshot.
+ * Analyse-Job des Moduls Offertenvergleich: Parsing → Persistierung (Merge)
+ * → Statistik → KI-Erkenntnisse → Auswertungs-Snapshot.
  *
- * Läuft serverseitig im Route Handler (waitUntil, siehe O-M0 (c)); der
- * Fortschritt wird über ov_jobs (stufe/heartbeat) fürs Polling geführt.
- * Analysen sind idempotent: Bieter werden über den Namen, Positionen über
- * die NPK-Nummer gemergt – manuell erfasste Kontrollsummen und
- * «wichtig»-Entscheide bleiben bei Re-Analysen erhalten.
+ * Zwei Preisquellen (O-M3):
+ *  - 'positionenvergleich' (Standard): Preismatrix aus dem BauPlus-Export.
+ *    Enthält der Vergleich KEINE Preise (Offerten ausserhalb BauPlus
+ *    ausgefüllt), bricht der Job VOR der KI mit einer Frühwarnung ab
+ *    (stufe 'keine_preise') statt einer teuren Nullanalyse.
+ *  - 'offerten': Preismatrix aus der KI-Extraktion der Offerten (pdf-lib +
+ *    Anthropic-Vision, auch Scans/Handschrift). Bieter kommen aus dem
+ *    Vergleichskopf, Positionen und Preise aus den Offerten.
+ *
+ * Läuft serverseitig (waitUntil); Fortschritt über ov_jobs (stufe/heartbeat)
+ * fürs Polling. Die Offerten-Extraktion ist chunk-weise wiederaufnehmbar –
+ * beim Zeitbudget endet der Job mit stufe 'fortsetzung' und der Client
+ * startet die nächste Runde. Analysen sind idempotent (Bieter über Name,
+ * Positionen über NPK); Kontrollsummen und «wichtig»-Entscheide bleiben.
  */
 import 'server-only';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import {
+  baueOffertenMatrix,
+  extrahiereDokumente,
+} from '@/features/offertenvergleich/extract-offerten';
 import { generateInsights } from '@/features/offertenvergleich/insights';
 import {
   autoWichtig,
@@ -22,8 +35,10 @@ import { parsePositionenvergleich } from '@/lib/ov-parse';
 import type {
   OvAuswertungInhalt,
   OvBieterRow,
+  OvDokPositionRow,
   OvDokument,
   OvPositionRow,
+  OvPreisquelle,
 } from '@/lib/types';
 
 export interface AnalyseJobContext {
@@ -31,6 +46,8 @@ export interface AnalyseJobContext {
   vergabeId: string;
   jobId: string;
 }
+
+const HEARTBEAT_INTERVAL_MS = 45_000;
 
 async function setStufe(
   supabase: SupabaseClient,
@@ -47,11 +64,13 @@ async function failJob(
   supabase: SupabaseClient,
   jobId: string,
   fehler: string,
+  stufe?: string,
 ): Promise<void> {
   await supabase
     .from('ov_jobs')
     .update({
       status: 'error',
+      ...(stufe ? { stufe } : {}),
       fehler,
       finished_at: new Date().toISOString(),
     })
@@ -61,11 +80,27 @@ async function failJob(
 export async function runAnalyseJob(
   supabase: SupabaseClient,
   { projectId, vergabeId, jobId }: AnalyseJobContext,
+  quelle: OvPreisquelle,
 ): Promise<void> {
+  const start = Date.now();
+  // Heartbeat auch während langer Extraktions-Aufrufe (Offerten-Quelle) –
+  // lazy PostgREST-Builder daher NICHT per void, sondern mit .then().
+  const heartbeat = setInterval(() => {
+    supabase
+      .from('ov_jobs')
+      .update({ heartbeat_at: new Date().toISOString() })
+      .eq('id', jobId)
+      .then(
+        () => undefined,
+        () => undefined,
+      );
+  }, HEARTBEAT_INTERVAL_MS);
+
   try {
     await setStufe(supabase, jobId, 'parsing');
 
-    // Jüngster Positionenvergleich der Vergabe
+    // Jüngster Positionenvergleich (liefert immer Bieter + Meta; bei der
+    // Offerten-Quelle die Preise aus den Offerten)
     const { data: dokument, error: dokError } = await supabase
       .from('ov_dokumente')
       .select('*')
@@ -117,15 +152,13 @@ export async function runAnalyseJob(
 
     await setStufe(supabase, jobId, 'statistik');
 
-    // --- Bieter mergen (Schlüssel: Name) ---
+    // --- Bieter mergen (Schlüssel: Name); aus dem Vergleichskopf ---
     const { data: existingBieter } = await supabase
       .from('ov_bieter')
       .select('*')
       .eq('vergabe_id', vergabeId)
       .returns<OvBieterRow[]>();
-    const bieterByName = new Map(
-      (existingBieter ?? []).map((b) => [b.name, b]),
-    );
+    const bieterByName = new Map((existingBieter ?? []).map((b) => [b.name, b]));
     const bieterIds: string[] = [];
     const kontrollsummen: (number | null)[] = [];
     for (const [sort, b] of parsed.bieter.entries()) {
@@ -166,16 +199,108 @@ export async function runAnalyseJob(
         .in('id', staleBieter.map((b) => b.id));
     }
 
+    // Frühwarnung: preisloser Vergleich (Offerten ausserhalb BauPlus
+    // ausgefüllt) → keine Nullanalyse mit KI-Kosten. Die Bieter sind hier
+    // bereits angelegt (aus dem Vergleichskopf), damit die Offerten ihnen
+    // zugeordnet und die Preise aus den Offerten extrahiert werden können.
+    if (quelle === 'positionenvergleich' && !parsed.hatPreise) {
+      await failJob(
+        supabase,
+        jobId,
+        'Der Positionenvergleich enthält keine Preise – vermutlich wurden die Offerten ausserhalb von BauPlus ausgefüllt. Preise können stattdessen aus den Offerten extrahiert werden.',
+        'keine_preise',
+      );
+      return;
+    }
+
+    // --- Preismatrix je nach Quelle ---
+    let calcRows: OvCalcPosition[];
+    let handschriftlich = new Set<string>(); // «npk bieterIndex»
+    let handschriftlichCount = 0;
+
+    if (quelle === 'offerten') {
+      // Offerten chunk-weise extrahieren (wiederaufnehmbar, Zeitbudget)
+      await setStufe(supabase, jobId, 'extraktion');
+      const { data: offerten } = await supabase
+        .from('ov_dokumente')
+        .select('*')
+        .eq('vergabe_id', vergabeId)
+        .eq('art', 'offerte')
+        .order('created_at')
+        .returns<OvDokument[]>();
+      const offerListe = offerten ?? [];
+      if (offerListe.length === 0) {
+        await failJob(
+          supabase,
+          jobId,
+          'Keine Offerten hochgeladen – für die Preisquelle «Offerten» mindestens eine Offerte hochladen und einem Bieter zuordnen.',
+        );
+        return;
+      }
+      if (!offerListe.some((d) => d.bieter_id)) {
+        await failJob(
+          supabase,
+          jobId,
+          'Keine Offerte einem Bieter zugeordnet – bitte die Offerten oben den Bietern zuordnen.',
+        );
+        return;
+      }
+      const bieterNameById = new Map(
+        parsed.bieter.map((b, i) => [bieterIds[i], b.name]),
+      );
+      const { fertig } = await extrahiereDokumente(supabase, offerListe, {
+        projectId,
+        vergabeId,
+        bkp: parsed.meta.bkp,
+        titel: parsed.meta.titel,
+        bieterNameById,
+        startMs: start,
+        onProgress: () => setStufe(supabase, jobId, 'extraktion'),
+      });
+      if (!fertig) {
+        await supabase
+          .from('ov_jobs')
+          .update({ status: 'done', stufe: 'fortsetzung', fehler: null })
+          .eq('id', jobId);
+        return;
+      }
+
+      await setStufe(supabase, jobId, 'statistik');
+      const { data: dokPos } = await supabase
+        .from('ov_dok_positionen')
+        .select('*')
+        .eq('vergabe_id', vergabeId)
+        .in('dokument_id', offerListe.map((d) => d.id))
+        .returns<OvDokPositionRow[]>();
+      const matrix = baueOffertenMatrix(
+        dokPos ?? [],
+        offerListe.map((d) => ({ id: d.id, bieter_id: d.bieter_id })),
+        parsed.bieter.map((b, i) => ({ id: bieterIds[i], name: b.name })),
+      );
+      calcRows = matrix.positionen;
+      handschriftlich = matrix.handschriftlich;
+      handschriftlichCount = matrix.handschriftlichCount;
+      if (calcRows.length === 0) {
+        await failJob(
+          supabase,
+          jobId,
+          'Aus den Offerten konnten keine Positionen extrahiert werden – bitte Offerten und Bieter-Zuordnung prüfen.',
+        );
+        return;
+      }
+    } else {
+      calcRows = parsed.positionen.map((p) => ({
+        npk: p.npk,
+        kapitel: p.kapitel,
+        gruppe: p.gruppe,
+        bezeichnung: p.bezeichnung,
+        menge: p.menge,
+        einheit: p.einheit,
+        werteRp: p.werteRp,
+      }));
+    }
+
     // --- Statistik ---
-    const calcRows: OvCalcPosition[] = parsed.positionen.map((p) => ({
-      npk: p.npk,
-      kapitel: p.kapitel,
-      gruppe: p.gruppe,
-      bezeichnung: p.bezeichnung,
-      menge: p.menge,
-      einheit: p.einheit,
-      werteRp: p.werteRp,
-    }));
     const analyse = computeAnalyse(calcRows, parsed.bieter.length, kontrollsummen);
     const wichtigAuto = autoWichtig(analyse);
 
@@ -185,11 +310,9 @@ export async function runAnalyseJob(
       .select('*')
       .eq('vergabe_id', vergabeId)
       .returns<OvPositionRow[]>();
-    const posByNpk = new Map(
-      (existingPositionen ?? []).map((p) => [p.npk, p]),
-    );
+    const posByNpk = new Map((existingPositionen ?? []).map((p) => [p.npk, p]));
     const positionIds = new Map<string, string>();
-    for (const [sort, p] of parsed.positionen.entries()) {
+    for (const [sort, p] of calcRows.entries()) {
       const kostenblock = kostenblockOf(p.kapitel, p.gruppe);
       const existing = posByNpk.get(p.npk);
       if (existing) {
@@ -224,9 +347,9 @@ export async function runAnalyseJob(
         positionIds.set(p.npk, created.id);
       }
     }
-    const parsedNpk = new Set(parsed.positionen.map((p) => p.npk));
+    const npkSet = new Set(calcRows.map((p) => p.npk));
     const stalePositionen = (existingPositionen ?? []).filter(
-      (p) => !parsedNpk.has(p.npk),
+      (p) => !npkSet.has(p.npk),
     );
     if (stalePositionen.length > 0) {
       await supabase
@@ -235,25 +358,22 @@ export async function runAnalyseJob(
         .in('id', stalePositionen.map((p) => p.id));
     }
 
-    // --- Angebote (PK position/bieter, Flags aus der Statistik) ---
-    const angebotRows = parsed.positionen.flatMap((p) => {
-      const stat = positionStat({
-        npk: p.npk,
-        kapitel: p.kapitel,
-        gruppe: p.gruppe,
-        bezeichnung: p.bezeichnung,
-        menge: p.menge,
-        einheit: p.einheit,
-        werteRp: p.werteRp,
+    // --- Angebote (PK position/bieter, Flags aus Statistik + Handschrift) ---
+    const angebotRows = calcRows.flatMap((p) => {
+      const stat = positionStat(p);
+      return p.werteRp.map((wert, i) => {
+        const flags = handschriftlich.has(`${p.npk} ${i}`)
+          ? [...stat.flags[i], 'handschriftlich']
+          : stat.flags[i];
+        return {
+          project_id: projectId,
+          position_id: positionIds.get(p.npk)!,
+          bieter_id: bieterIds[i],
+          betrag_rp: wert,
+          is_inkl: wert === null,
+          flags,
+        };
       });
-      return p.werteRp.map((wert, i) => ({
-        project_id: projectId,
-        position_id: positionIds.get(p.npk)!,
-        bieter_id: bieterIds[i],
-        betrag_rp: wert,
-        is_inkl: wert === null,
-        flags: stat.flags[i],
-      }));
     });
     for (let i = 0; i < angebotRows.length; i += 500) {
       const { error } = await supabase
@@ -275,16 +395,18 @@ export async function runAnalyseJob(
       },
       bieter: parsed.bieter.map((b) => ({ name: b.name, ort: b.ort })),
       analyse,
-      positionen: parsed.positionen,
+      positionen: calcRows,
     });
 
     // --- Auswertungs-Snapshot ---
     const inhalt: OvAuswertungInhalt = {
       meta: parsed.meta,
       bieter: parsed.bieter,
+      preisquelle: quelle,
+      handschriftlichCount,
       analyse,
       selbstpruefung: {
-        positionCount: parsed.positionen.length,
+        positionCount: calcRows.length,
         unparsedCount: 0,
         warnings: parsed.warnings,
         kiUebersprungen: insights.uebersprungen,
@@ -329,5 +451,7 @@ export async function runAnalyseJob(
       jobId,
       err instanceof Error ? err.message : String(err),
     );
+  } finally {
+    clearInterval(heartbeat);
   }
 }

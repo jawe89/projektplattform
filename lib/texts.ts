@@ -500,16 +500,31 @@ export const texts = {
       deleteDoc: 'Entfernen',
       confirmDeleteDoc: 'Dokument wirklich entfernen?',
       parseFehler: 'Parser-Fehler',
-      analyse: 'Analyse starten',
+      analyse: 'Analyse aus Positionenvergleich',
       analyseErneut: 'Analyse aktualisieren',
+      analyseOfferten: 'Analyse aus Offerten',
+      analyseOffertenErneut: 'Offerten-Analyse aktualisieren',
       needsVergleich: 'Zuerst den Positionenvergleich hochladen.',
+      needsOffertenZuordnung:
+        'Zuerst Offerten hochladen und den Bietern zuordnen.',
       analyseHint:
         'Kontrollsummen und «wichtig»-Auswahl bleiben bei einer erneuten Analyse erhalten.',
+      // Ablauf-Hinweis über den Analyse-Buttons – deckt beide Fälle ab
+      ablaufHint:
+        'Regelfall: Der Positionenvergleich (BauPlus) liefert die Preise – «Analyse aus Positionenvergleich». Sind die Offerten ausserhalb von BauPlus (hand-/PDF-)ausgefüllt und der Vergleich preislos, stattdessen erst die Offerten hochladen und den Bietern zuordnen, dann «Analyse aus Offerten» (Preise werden per KI aus den Offerten gelesen).',
+      // Frühwarnung bei preislosem Vergleich (Job-stufe 'keine_preise')
+      keinePreiseTitel: 'Positionenvergleich ohne Preise',
+      keinePreiseText:
+        'Der Positionenvergleich enthält keine Preise – vermutlich wurden die Offerten ausserhalb von BauPlus ausgefüllt. Preise können stattdessen aus den Offerten extrahiert werden: Offerten hochladen, den Bietern zuordnen und «Analyse aus Offerten» starten.',
+      quelleOffertenBadge: 'Preise aus Offerten (KI)',
+      handschriftlich: 'handschriftlich erfasst – bitte prüfen',
       stufen: {
         queued: 'Warteschlange …',
         parsing: 'Parsing …',
+        extraktion: 'Offerten lesen (KI) …',
         statistik: 'Analyse …',
         ki: 'Auswertung (KI) …',
+        fortsetzung: 'Fortsetzung …',
         fertig: 'Fertig',
       },
       jobError: 'Analyse fehlgeschlagen',
@@ -621,6 +636,11 @@ export const texts = {
       totalLabel: 'Positionssumme',
       kontrollsummeLabel: 'Kontrollsumme',
       abgleichOk: 'deckungsgleich',
+      // «Diff» statt «Δ»: das Zeichen fehlt im eingebetteten Antonio/Montserrat
+      abgleichDiff: 'Diff',
+      quelleVergleich: 'Preise aus: Positionenvergleich (BauPlus)',
+      quelleOfferten: 'Preise aus: Offerten (KI-Extraktion)',
+      handschriftHinweis: '* handschriftlich erfasst – bitte prüfen',
       vollTitle: 'Vollständigkeitsprüfung',
       // Kein «↔»: Zeichen fehlt im eingebetteten Antonio/Montserrat
       vollSubtitle: 'Abgleich Offerten gegen Referenz',

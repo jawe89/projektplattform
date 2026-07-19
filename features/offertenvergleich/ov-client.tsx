@@ -139,6 +139,7 @@ export function OvClient({
   const [neuOpen, setNeuOpen] = useState(false);
   const [job, setJob] = useState<OvJobRow | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const analyseRundenRef = useRef(0);
   const [vollJob, setVollJob] = useState<OvJobRow | null>(null);
   const vollPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const vollRundenRef = useRef(0);
@@ -385,8 +386,12 @@ export function OvClient({
     }, 2500);
   }
 
-  async function startAnalyse() {
+  async function startAnalyse(
+    quelle: 'positionenvergleich' | 'offerten' = 'positionenvergleich',
+    fortsetzung = false,
+  ) {
     if (!detail) return;
+    if (!fortsetzung) analyseRundenRef.current = 0;
     setJob({
       id: '',
       project_id: projectId,
@@ -403,7 +408,7 @@ export function OvClient({
     const response = await fetch('/api/ov/analyse', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ vergabeId: detail.vergabe.id }),
+      body: JSON.stringify({ vergabeId: detail.vergabe.id, quelle }),
     });
     if (!response.ok) {
       setJob(null);
@@ -418,7 +423,16 @@ export function OvClient({
       setJob(current);
       if (current.status === 'done') {
         if (pollRef.current) clearInterval(pollRef.current);
-        window.location.reload();
+        // Offerten-Extraktion in Etappen: Folge-Job liest die restlichen Chunks
+        if (
+          current.stufe === 'fortsetzung' &&
+          analyseRundenRef.current < MAX_FORTSETZUNGEN
+        ) {
+          analyseRundenRef.current += 1;
+          void startAnalyse('offerten', true);
+        } else {
+          window.location.reload();
+        }
       }
       if (current.status === 'error' && pollRef.current) {
         clearInterval(pollRef.current);
@@ -651,39 +665,100 @@ export function OvClient({
     const hatVergleich = detail.dokumente.some(
       (d) => d.art === 'positionenvergleich',
     );
+    const offerten = detail.dokumente.filter((d) => d.art === 'offerte');
+    const offertenZugeordnet = offerten.some((d) => d.bieter_id);
     const laueft =
-      job !== null && (job.status === 'queued' || job.status === 'running');
+      job !== null &&
+      (job.status === 'queued' ||
+        job.status === 'running' ||
+        (job.status === 'done' && job.stufe === 'fortsetzung'));
     const stufeLabel = laueft
       ? (t.vergabe.stufen[
           (job?.stufe ?? 'queued') as keyof typeof t.vergabe.stufen
         ] ?? t.vergabe.stufen.queued)
       : null;
+    const keinePreise = job?.status === 'error' && job.stufe === 'keine_preise';
+    const ausOfferten = detail.auswertung?.inhalt.preisquelle === 'offerten';
     return (
-      <div className="mt-4 flex flex-wrap items-center gap-3">
+      <div className="mt-4">
         {canEdit && (
-          <button
-            type="button"
-            onClick={startAnalyse}
-            disabled={!hatVergleich || laueft || busy}
-            title={!hatVergleich ? t.vergabe.needsVergleich : undefined}
-            className="display-title bg-accent px-5 py-2.5 text-[12px] font-medium tracking-[0.14em] text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-          >
-            {detail.auswertung ? t.vergabe.analyseErneut : t.vergabe.analyse}
-          </button>
+          <p className="mb-3 max-w-3xl text-[11px] leading-relaxed text-primary">
+            {t.vergabe.ablaufHint}
+          </p>
         )}
-        {laueft && (
-          <span className="flex items-center gap-2 text-xs font-semibold text-status-vertrag">
-            <span className="h-2 w-2 animate-pulse rounded-full bg-status-vertrag" />
-            {stufeLabel}
-          </span>
-        )}
-        {job?.status === 'error' && (
-          <span className="text-xs text-status-ueber">
-            {t.vergabe.jobError}: {job.fehler}
-          </span>
-        )}
-        {canEdit && detail.auswertung && !laueft && (
-          <span className="text-[11px] text-primary">{t.vergabe.analyseHint}</span>
+        <div className="flex flex-wrap items-center gap-3">
+          {canEdit && (
+            <>
+              <button
+                type="button"
+                onClick={() => startAnalyse('positionenvergleich')}
+                disabled={!hatVergleich || laueft || busy}
+                title={!hatVergleich ? t.vergabe.needsVergleich : undefined}
+                className="display-title bg-accent px-5 py-2.5 text-[12px] font-medium tracking-[0.14em] text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+              >
+                {detail.auswertung && !ausOfferten
+                  ? t.vergabe.analyseErneut
+                  : t.vergabe.analyse}
+              </button>
+              <button
+                type="button"
+                onClick={() => startAnalyse('offerten')}
+                disabled={!offertenZugeordnet || laueft || busy}
+                title={
+                  !offertenZugeordnet
+                    ? t.vergabe.needsOffertenZuordnung
+                    : undefined
+                }
+                className="display-title border border-accent px-5 py-2.5 text-[12px] font-medium tracking-[0.14em] text-accent transition-opacity hover:opacity-80 disabled:opacity-50"
+              >
+                {detail.auswertung && ausOfferten
+                  ? t.vergabe.analyseOffertenErneut
+                  : t.vergabe.analyseOfferten}
+              </button>
+            </>
+          )}
+          {laueft && (
+            <span className="flex items-center gap-2 text-xs font-semibold text-status-vertrag">
+              <span className="h-2 w-2 animate-pulse rounded-full bg-status-vertrag" />
+              {stufeLabel}
+              {analyseRundenRef.current > 0 && ` (${analyseRundenRef.current + 1})`}
+            </span>
+          )}
+          {job?.status === 'error' && !keinePreise && (
+            <span className="text-xs text-status-ueber">
+              {t.vergabe.jobError}: {job.fehler}
+            </span>
+          )}
+          {canEdit && detail.auswertung && !laueft && (
+            <span className="text-[11px] text-primary">
+              {t.vergabe.analyseHint}
+            </span>
+          )}
+        </div>
+        {keinePreise && (
+          <div className="mt-3 max-w-3xl border border-warn border-l-[3px] border-l-warn bg-ov-teuer-tint p-4">
+            <p className="display-title text-[11px] font-medium tracking-[0.14em] text-ink">
+              {t.vergabe.keinePreiseTitel}
+            </p>
+            <p className="mt-1 text-xs leading-relaxed text-ink">
+              {t.vergabe.keinePreiseText}
+            </p>
+            {canEdit && (
+              <button
+                type="button"
+                onClick={() => startAnalyse('offerten')}
+                disabled={!offertenZugeordnet || busy}
+                title={
+                  !offertenZugeordnet
+                    ? t.vergabe.needsOffertenZuordnung
+                    : undefined
+                }
+                className="display-title mt-3 bg-accent px-4 py-2 text-[11px] font-medium tracking-[0.14em] text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+              >
+                {t.vergabe.analyseOfferten}
+              </button>
+            )}
+          </div>
         )}
       </div>
     );
@@ -1059,6 +1134,10 @@ export function OvClient({
                   const angebot = angebotKey.get(`${position.id}:${b.id}`);
                   return angebot?.is_inkl ? null : (angebot?.betrag_rp ?? null);
                 });
+                const handschrift = detail.bieter.map((b) => {
+                  const angebot = angebotKey.get(`${position.id}:${b.id}`);
+                  return (angebot?.flags ?? []).includes('handschriftlich');
+                });
                 const numbers = werte.filter((w): w is number => w !== null);
                 const min = numbers.length >= 2 ? Math.min(...numbers) : null;
                 const max = numbers.length >= 2 ? Math.max(...numbers) : null;
@@ -1097,6 +1176,14 @@ export function OvClient({
                           {wert === null
                             ? t.auswertung.inklLabel
                             : formatRappen(wert)}
+                          {handschrift[i] && (
+                            <span
+                              title={t.vergabe.handschriftlich}
+                              className="ml-1 cursor-help text-warn"
+                            >
+                              ✎
+                            </span>
+                          )}
                         </td>
                       );
                     })}
@@ -1345,6 +1432,19 @@ export function OvClient({
                 t.auswertung.title,
                 `${t.auswertung.stand} ${formatDate(detail.auswertung.created_at)}`,
               )}
+              <div className="mb-3 flex flex-wrap items-center gap-2">
+                <span className={`${PILL_BASE} border-primary text-primary`}>
+                  {detail.auswertung.inhalt.preisquelle === 'offerten'
+                    ? t.report.quelleOfferten
+                    : t.report.quelleVergleich}
+                </span>
+                {(detail.auswertung.inhalt.handschriftlichCount ?? 0) > 0 && (
+                  <span className={`${PILL_BASE} border-warn text-warn`}>
+                    ✎ {detail.auswertung.inhalt.handschriftlichCount}{' '}
+                    {t.vergabe.handschriftlich}
+                  </span>
+                )}
+              </div>
               {selbstpruefungZeile()}
             </section>
             {hotspotsTabelle()}

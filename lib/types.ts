@@ -214,6 +214,9 @@ export interface LvOffer {
 
 export type OvVergabeStatus = 'offen' | 'in_pruefung' | 'abgeschlossen';
 
+/** Woher die Preismatrix stammt; null = automatisch (Vergleich, sonst Offerten) */
+export type OvPreisquelle = 'positionenvergleich' | 'offerten';
+
 export interface OvVergabe {
   id: string;
   project_id: string;
@@ -286,6 +289,8 @@ export interface OvDokPositionRow {
   betrag_rp: number | null;
   produkt: string | null;
   bemerkung: string | null;
+  /** true = Wert handschriftlich gelesen (Kennzeichnung «bitte prüfen») */
+  handschriftlich: boolean;
   chunk: number;
 }
 
@@ -373,6 +378,10 @@ export interface OvAuswertungInhalt {
     datum: string | null;
   };
   bieter: { name: string; ort: string; telefon: string }[];
+  /** Woher die Preismatrix stammt (Belastbarkeit des Berichts) */
+  preisquelle: OvPreisquelle;
+  /** Anzahl handschriftlich gelesener Werte in der Matrix (Offerten-Quelle) */
+  handschriftlichCount?: number;
   /** Ergebnis von computeAnalyse (lib/ov-calc.ts) */
   analyse: import('./ov-calc').OvAnalyse;
   selbstpruefung: {

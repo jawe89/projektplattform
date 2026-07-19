@@ -57,6 +57,12 @@ export interface OvParseResult {
   warnings: string[];
   /** Positionssumme je Bieter in Rappen (für den Summen-Abgleich) */
   summenRp: number[];
+  /**
+   * Enthält der Vergleich überhaupt Preise? false, wenn keine Position
+   * einen ausgefüllten Betrag hat (Offerten ausserhalb BauPlus ausgefüllt)
+   * – dann Frühwarnung statt Nullanalyse, Preise aus Offerten extrahieren.
+   */
+  hatPreise: boolean;
   seiten: number;
 }
 
@@ -381,6 +387,9 @@ export async function parsePositionenvergleich(
   const summenRp = bieter.map((_, i) =>
     positionen.reduce((sum, p) => sum + (p.werteRp[i] ?? 0), 0),
   );
+  const hatPreise = positionen.some((p) =>
+    p.werteRp.some((v) => v !== null),
+  );
 
   return {
     meta,
@@ -389,6 +398,7 @@ export async function parsePositionenvergleich(
     unparsedLines,
     warnings,
     summenRp,
+    hatPreise,
     seiten: pages.length,
   };
 }

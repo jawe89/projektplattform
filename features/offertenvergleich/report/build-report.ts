@@ -155,6 +155,10 @@ export async function buildReportForVergabe(
         const angebot = angebotKey.get(`${position.id}:${b.id}`);
         return angebot?.is_inkl ? null : (angebot?.betrag_rp ?? null);
       }),
+      handschriftlich: bieter.map((b) => {
+        const angebot = angebotKey.get(`${position.id}:${b.id}`);
+        return (angebot?.flags ?? []).includes('handschriftlich');
+      }),
     });
     blocks.set(name, block);
   }
@@ -253,6 +257,16 @@ export async function buildReportForVergabe(
         diffRp: kontrollsummeRp === null ? null : totalRp - kontrollsummeRp,
       };
     }),
+    // Belastbarkeit: aus welcher Quelle die Preise stammen, plus Warnung,
+    // falls handschriftlich gelesene Werte in der Matrix sind
+    quelleLabel:
+      (inhalt.preisquelle ?? 'positionenvergleich') === 'offerten'
+        ? texts.ov.report.quelleOfferten
+        : texts.ov.report.quelleVergleich,
+    handschriftHinweis:
+      (inhalt.handschriftlichCount ?? 0) > 0
+        ? `${texts.ov.report.handschriftHinweis} (${inhalt.handschriftlichCount})`
+        : null,
     vollstaendigkeit,
     diffBlocks: [...blocks.values()],
     erkenntnisse,

@@ -16,11 +16,7 @@
  */
 import 'server-only';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import {
-  CHUNK_PAGES,
-  extractChunk,
-  splitPdfChunks,
-} from '@/features/offertenvergleich/extract';
+import { extrahiereDokumente } from '@/features/offertenvergleich/extract-offerten';
 import {
   matchOfferte,
   type OvMatchOffertePosition,
@@ -42,13 +38,8 @@ export interface VollstaendigkeitJobContext {
   jobId: string;
 }
 
-/** Kein neuer Chunk mehr, wenn dafür voraussichtlich keine Zeit bleibt */
-const MAX_LAUFZEIT_MS = 280_000;
-/** Startannahme für die Dauer eines Extraktions-Chunks */
-const CHUNK_DAUER_ANNAHME_MS = 90_000;
 /** Heartbeat-Intervall während langer Extraktions-Aufrufe */
 const HEARTBEAT_INTERVAL_MS = 45_000;
-const MAX_HINWEISE = 50;
 
 async function setStufe(
   supabase: SupabaseClient,
@@ -158,121 +149,19 @@ export async function runVollstaendigkeitJob(
 
     // --- Stufe 1: Extraktion (chunk-weise, mit Zeitbudget) ---
     await setStufe(supabase, jobId, 'extraktion');
-    let chunkDauerMax = CHUNK_DAUER_ANNAHME_MS;
     const zuLesen = [...(ausschreibung ? [ausschreibung] : []), ...offerten];
-    for (const dokument of zuLesen) {
-      const fortschritt: OvParseFortschritt = {
-        ...(dokument.parse_fortschritt ?? {}),
-      };
-      // Fortschritt ungültig, wenn sich die Fenstergrösse geändert hat
-      if (
-        fortschritt.seitenProChunk !== undefined &&
-        fortschritt.seitenProChunk !== CHUNK_PAGES
-      ) {
-        await supabase
-          .from('ov_dok_positionen')
-          .delete()
-          .eq('dokument_id', dokument.id);
-        fortschritt.chunksTotal = undefined;
-        fortschritt.chunksDone = [];
-        fortschritt.hinweise = [];
-      }
-      const done = new Set(fortschritt.chunksDone ?? []);
-      if (
-        fortschritt.chunksTotal !== undefined &&
-        done.size >= fortschritt.chunksTotal
-      ) {
-        continue; // Dokument bereits vollständig gelesen
-      }
-
-      const { data: blob, error: downloadError } = await supabase.storage
-        .from('project-files')
-        .download(dokument.file_path);
-      if (downloadError || !blob) {
-        throw new Error(
-          `Download «${dokument.original_name}» fehlgeschlagen: ${downloadError?.message}`,
-        );
-      }
-      const chunks = await splitPdfChunks(
-        new Uint8Array(await blob.arrayBuffer()),
-      );
-      fortschritt.chunksTotal = chunks.length;
-      fortschritt.seitenProChunk = CHUNK_PAGES;
-      fortschritt.chunksDone = [...done];
-      fortschritt.hinweise = fortschritt.hinweise ?? [];
-
-      for (let i = 0; i < chunks.length; i++) {
-        if (done.has(i)) continue;
-        if (Date.now() - start + chunkDauerMax * 1.5 > MAX_LAUFZEIT_MS) {
-          await finishJob(supabase, jobId, 'fortsetzung');
-          return;
-        }
-        const t0 = Date.now();
-        const result = await extractChunk(chunks[i].bytes, {
-          art: dokument.art,
-          bkp: vergabe.bkp,
-          titel: vergabe.titel,
-          bieterName: dokument.bieter_id
-            ? (bieterName.get(dokument.bieter_id) ?? null)
-            : null,
-        });
-        chunkDauerMax = Math.max(chunkDauerMax, Date.now() - t0);
-
-        // Innerhalb des Chunks deduplizieren; über Chunks gewinnt der erste
-        const seen = new Set<string>();
-        const rows = result.positionen
-          .filter((p) => {
-            if (seen.has(p.npk)) return false;
-            seen.add(p.npk);
-            return true;
-          })
-          .map((p) => ({
-            project_id: projectId,
-            vergabe_id: vergabeId,
-            dokument_id: dokument.id,
-            npk: p.npk,
-            bezeichnung: p.bezeichnung,
-            menge: p.menge,
-            einheit: p.einheit,
-            betrag_rp: p.betragRp,
-            produkt: p.produkt,
-            bemerkung: p.bemerkung,
-            chunk: i,
-          }));
-        if (rows.length > 0) {
-          const { error } = await supabase
-            .from('ov_dok_positionen')
-            .upsert(rows, {
-              onConflict: 'dokument_id,npk',
-              ignoreDuplicates: true,
-            });
-          if (error) throw error;
-        }
-
-        done.add(i);
-        fortschritt.chunksDone = [...done].sort((a, b) => a - b);
-        fortschritt.hinweise = [
-          ...fortschritt.hinweise,
-          ...result.hinweise.map(
-            (h) => `S. ${chunks[i].von}–${chunks[i].bis}: ${h}`,
-          ),
-        ].slice(0, MAX_HINWEISE);
-        await supabase
-          .from('ov_dokumente')
-          .update({ parse_fortschritt: fortschritt })
-          .eq('id', dokument.id);
-        await setStufe(supabase, jobId, 'extraktion');
-      }
-
-      await supabase
-        .from('ov_dokumente')
-        .update({
-          parse_status: 'geparst',
-          parse_fehler: null,
-          seiten: chunks.at(-1)?.bis ?? null,
-          parse_fortschritt: fortschritt,
-        })
-        .eq('id', dokument.id);
+    const { fertig } = await extrahiereDokumente(supabase, zuLesen, {
+      projectId,
+      vergabeId,
+      bkp: vergabe.bkp,
+      titel: vergabe.titel,
+      bieterNameById: bieterName,
+      startMs: start,
+      onProgress: () => setStufe(supabase, jobId, 'extraktion'),
+    });
+    if (!fertig) {
+      await finishJob(supabase, jobId, 'fortsetzung');
+      return;
     }
 
     // --- Stufe 2: Abgleich gegen die Referenzliste ---

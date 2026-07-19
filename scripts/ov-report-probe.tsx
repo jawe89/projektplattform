@@ -50,6 +50,7 @@ const props: ReportProps = {
     { name: 'E. Weber AG', ort: '9630 Wattwil', telefon: '+41 71 987 59 10' },
     { name: 'Oberhänsli Bau AG', ort: '9607 Mosnang', telefon: '+41 71 982 88 66' },
   ],
+  quelleLabel: 'Preise aus: Positionenvergleich (BauPlus)',
   diffBlocks: [
     {
       titel: 'Regiearbeiten · Stundenansätze (10 h Vergleichsmenge)',
