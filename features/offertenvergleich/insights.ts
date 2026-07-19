@@ -34,7 +34,8 @@ export interface InsightsInput {
   positionen: {
     npk: string;
     bezeichnung: string;
-    menge: number;
+    /** null = per-Position (keine ausgeschriebene Menge) */
+    menge: number | null;
     einheit: string;
     werteRp: (number | null)[];
   }[];
@@ -127,7 +128,10 @@ function buildPayload(input: InsightsInput): string {
     return {
       npk,
       bezeichnung: p.bezeichnung,
-      menge: `${formatNumber(p.menge, p.menge % 1 === 0 ? 0 : 3)} ${p.einheit}`,
+      menge:
+        p.menge === null
+          ? `per ${p.einheit}`
+          : `${formatNumber(p.menge, p.menge % 1 === 0 ? 0 : 3)} ${p.einheit}`,
       kostenblock: s.kostenblock,
       preiseChf: p.werteRp.map((w) => (w === null ? 'inkl.' : chf(w))),
       deltaZumMedianPct: s.deltaPct.map((d) =>

@@ -17,7 +17,8 @@ export interface OvCalcPosition {
   kapitel: string;
   gruppe: string;
   bezeichnung: string;
-  menge: number;
+  /** null = per-Position (keine ausgeschriebene Menge) */
+  menge: number | null;
   einheit: string;
   werteRp: (number | null)[];
 }

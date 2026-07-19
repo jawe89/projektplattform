@@ -33,7 +33,8 @@ export interface OvParsedPosition {
   kapitel: string;
   gruppe: string;
   bezeichnung: string;
-  menge: number;
+  /** null = per-Position («per St»): keine ausgeschriebene Menge */
+  menge: number | null;
   einheit: string;
   /** Beträge in Rappen je Bieter (Reihenfolge = bieter[]); null = «inkl.» */
   werteRp: (number | null)[];
@@ -74,6 +75,43 @@ function toRappen(token: string): number {
 
 function parseMenge(token: string): number {
   return parseFloat(token.replace(/[’']/g, ''));
+}
+
+/**
+ * Werte-Teil einer Preiszeile auswerten (exportiert für Unit-Tests).
+ *
+ * Normalfall: Mengen-Token numerisch, rest = «<Betrag|inkl.> <A|I>» je
+ * Bieter. per-Positionen («271.1 - W per St A A A», BKP-271-Format):
+ * Mengen-Token 'per', keine ausgeschriebene Menge, rest besteht nur aus
+ * Markern ohne Beträge → menge null, alle Werte null (zählen 0, werden
+ * wie «inkl.» geflaggt). Eine per-Zeile MIT Beträgen bleibt bewusst
+ * unparsebar (harte Selbstprüfung), bis die Semantik an einem echten
+ * Beispiel geklärt ist – EP ohne Menge dürfte nie in die Totale zählen.
+ */
+export function parsePreiszeilenWerte(
+  mengeToken: string,
+  rest: string,
+  bieterCount: number,
+): { menge: number | null; werteRp: (number | null)[] } | null {
+  if (mengeToken === 'per') {
+    const marker = rest.trim().split(/\s+/).filter(Boolean);
+    if (
+      marker.length === bieterCount &&
+      marker.every((m) => m === 'A' || m === 'I')
+    ) {
+      return { menge: null, werteRp: marker.map(() => null) };
+    }
+    return null;
+  }
+  const parts = rest.match(/(-?[\d’']+\.\d{2}|inkl\.)\s+[AI]/g) ?? [];
+  if (parts.length !== bieterCount) return null;
+  return {
+    menge: parseMenge(mengeToken),
+    werteRp: parts.map((part) => {
+      const token = part.replace(/\s+[AI]$/, '');
+      return token === 'inkl.' ? null : toRappen(token);
+    }),
+  };
 }
 
 /** Textitems einer Seite zu Zeilen gruppieren (y-Toleranz), links → rechts */
@@ -206,8 +244,10 @@ export async function parsePositionenvergleich(
 
   // --- Positionszeilen über alle Seiten ---
   const prefix = meta.bkp ? `${meta.bkp} -` : null;
+  // Positions-Marker A (Angebot) oder W (per-/Wahlposition, BKP-271-Format);
+  // Menge numerisch oder «per» (keine ausgeschriebene Menge)
   const priceLine = new RegExp(
-    `^${meta.bkp.replace('.', '\\.')} -\\s+A\\s+([\\d’']+\\.\\d{2,3})\\s+(\\S+)\\s+A\\s+(.+)$`,
+    `^${meta.bkp.replace('.', '\\.')} -\\s+[AW]\\s+([\\d’']+\\.\\d{2,3}|per)\\s+(\\S+)\\s+A\\s*(.*)$`,
   );
 
   const positionen: OvParsedPosition[] = [];
@@ -261,17 +301,14 @@ export async function parsePositionenvergleich(
 
       if (prefix && text.startsWith(prefix)) {
         const m = text.match(priceLine);
-        const parts = m
-          ? (m[3].match(/(-?[\d’']+\.\d{2}|inkl\.)\s+[AI]/g) ?? [])
-          : [];
-        if (!m || parts.length !== bieter.length) {
+        const werte = m
+          ? parsePreiszeilenWerte(m[1], m[3], bieter.length)
+          : null;
+        if (!m || !werte) {
           unparsedLines.push(text);
           continue;
         }
-        const werteRp = parts.map((part) => {
-          const token = part.replace(/\s+[AI]$/, '');
-          return token === 'inkl.' ? null : toRappen(token);
-        });
+        const { menge, werteRp } = werte;
         let npk = `${kapitel}.${gruppe}.${sub}`;
         const count = seenNpk.get(npk) ?? 0;
         seenNpk.set(npk, count + 1);
@@ -289,7 +326,7 @@ export async function parsePositionenvergleich(
           kapitel,
           gruppe,
           bezeichnung: bezeichnung || npk,
-          menge: parseMenge(m[1]),
+          menge,
           einheit: m[2],
           werteRp,
         });

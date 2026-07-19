@@ -8,7 +8,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { parsePositionenvergleich } from '../lib/ov-parse';
+import { parsePositionenvergleich, parsePreiszeilenWerte } from '../lib/ov-parse';
 
 const DIR = 'scripts/data/offertenvergleich';
 
@@ -79,4 +79,22 @@ test('BKP 211.4: andere Spaltenreihenfolge, vollständig', async () => {
   assert.equal(result.unparsedLines.length, 0);
   assert.equal(result.positionen.length, 162);
   assert.deepEqual(result.summenRp, [89557730, 118300220, 118643995]);
+});
+
+test('parsePreiszeilenWerte: per-Positionen (BKP-271-Format) und Normalfall', () => {
+  // «271.1 - W per St A A A» → nach Präfix/Marker/Menge/Einheit/Trenner-A
+  // bleibt der Marker-Rest «A A» (2 Bieter): keine Menge, alle Werte null
+  assert.deepEqual(parsePreiszeilenWerte('per', 'A A', 2), {
+    menge: null,
+    werteRp: [null, null],
+  });
+  // per-Zeile MIT Beträgen bleibt bewusst unparsebar (harte Selbstprüfung)
+  assert.equal(parsePreiszeilenWerte('per', "12.00 A 15.00 A", 2), null);
+  // Marker-Anzahl muss der Bieterzahl entsprechen
+  assert.equal(parsePreiszeilenWerte('per', 'A A A', 2), null);
+  // Normalfall unverändert: Beträge + inkl. + negativ
+  assert.deepEqual(parsePreiszeilenWerte('10.000', "1’360.00 A inkl. I -13’104.00 A", 3), {
+    menge: 10,
+    werteRp: [136000, null, -1310400],
+  });
 });
