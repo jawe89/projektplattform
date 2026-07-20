@@ -23,7 +23,7 @@ import {
   type ReportBrand,
 } from '@/features/offertenvergleich/report/theme';
 import { DEFAULT_COLORS } from '@/features/theming/theme';
-import { formatDate, formatNumber } from '@/lib/format';
+import { formatDate, formatNumber, formatRappen } from '@/lib/format';
 import { berechneAbgleich } from '@/lib/ov-abgleich';
 import { beschreibeAbgleich } from '@/lib/ov-abgleich-text';
 import { texts } from '@/lib/texts';
@@ -235,6 +235,35 @@ export async function buildReportForVergabe(
       }
     : null;
 
+  // Einschätzung der Bauleitung (eigene Sektion vor dem Fazit)
+  const trep = texts.ov.report;
+  const vorschlagBieter = vergabe.vorschlag_bieter_id
+    ? bieter.find((b) => b.id === vergabe.vorschlag_bieter_id)
+    : null;
+  let bauleitung: ReportProps['bauleitung'];
+  if (vergabe.bemerkungen || vorschlagBieter) {
+    let vorschlagDifferenzText: string | null = null;
+    if (vorschlagBieter) {
+      const vIdx = bieter.findIndex((b) => b.id === vorschlagBieter.id);
+      const gIdx = inhalt.analyse.ranking[0] ?? 0;
+      const vTotal = inhalt.analyse.bieterTotaleRp[vIdx] ?? 0;
+      const gTotal = inhalt.analyse.bieterTotaleRp[gIdx] ?? 0;
+      if (vIdx === gIdx) {
+        vorschlagDifferenzText = trep.bauleitungGuenstigster;
+      } else {
+        const diff = vTotal - gTotal;
+        const pct = gTotal > 0 ? (diff / gTotal) * 100 : 0;
+        vorschlagDifferenzText = `+CHF ${formatRappen(diff)} (+${formatNumber(pct, 1)} %) ${trep.bauleitungZumGuenstigsten}`;
+      }
+    }
+    bauleitung = {
+      bemerkungen: vergabe.bemerkungen,
+      vorschlagBieterName: vorschlagBieter?.name ?? null,
+      vorschlagBegruendung: vergabe.vorschlag_begruendung,
+      vorschlagDifferenzText,
+    };
+  }
+
   const props: ReportProps = {
     brand: brandData,
     meta: {
@@ -280,6 +309,7 @@ export async function buildReportForVergabe(
         : null,
     vollstaendigkeit,
     diffBlocks: [...blocks.values()],
+    bauleitung,
     erkenntnisse,
     fazit,
   };

@@ -39,6 +39,16 @@ export interface InsightsInput {
     einheit: string;
     werteRp: (number | null)[];
   }[];
+  /** Einschätzung der Bauleitung (getrennt von der objektiven Auswertung) */
+  bauleitung?: {
+    bemerkungen: string | null;
+    vorschlagBieterName: string | null;
+    vorschlagBegruendung: string | null;
+    /** Differenz des Vorschlags zum günstigsten Bieter (Franken, Rappen-genau) */
+    vorschlagDifferenzRp: number | null;
+    vorschlagDifferenzPct: number | null;
+    vorschlagIstGuenstigster: boolean;
+  };
 }
 
 export interface InsightsResult {
@@ -164,6 +174,24 @@ function buildPayload(input: InsightsInput): string {
       })),
       auffaelligstePositionen: top,
       flags: analyse.flagged,
+      // Einschätzung der Bauleitung – KEIN Analyseergebnis, sondern Kontext
+      bauleitung: input.bauleitung
+        ? {
+            bemerkungen: input.bauleitung.bemerkungen,
+            vorschlagBieter: input.bauleitung.vorschlagBieterName,
+            vorschlagBegruendung: input.bauleitung.vorschlagBegruendung,
+            vorschlagIstGuenstigster:
+              input.bauleitung.vorschlagIstGuenstigster,
+            vorschlagDifferenzZumGuenstigstenChf:
+              input.bauleitung.vorschlagDifferenzRp != null
+                ? chf(input.bauleitung.vorschlagDifferenzRp)
+                : null,
+            vorschlagDifferenzPct:
+              input.bauleitung.vorschlagDifferenzPct != null
+                ? Math.round(input.bauleitung.vorschlagDifferenzPct * 10) / 10
+                : null,
+          }
+        : null,
     },
     null,
     1,
@@ -177,7 +205,14 @@ Regeln:
 - Danach ein Fazit: Ranking aller Bieter (Reihenfolge = Rang aus den Daten) mit prägnanter Charakterisierung der Offerte und einem Tendenz-Schlagwort in Versalien (z.B. GÜNSTIGSTER GESAMTEINDRUCK, AUSGEWOGEN, PLAUSIBILITÄT KLÄREN); Bereinigungsgespräche mit konkreten Klärungspunkten pro Bieter; eine Vergabeempfehlung mit Risikoeinschätzung.
 - Verwende AUSSCHLIESSLICH Zahlen aus den gelieferten Daten. Wenn du Positionen summierst, nenne die Additionsglieder (NPK-Nummern). Erfinde keine Werte.
 - Sprache: Deutsch (Schweiz), kein «ß», Guillemets «…», Tausendertrennzeichen mit Apostroph (12'480), Beträge in CHF ganzzahlig.
-- Kurz und fachlich; jede Erkenntnis 2–5 Sätze, Bullets nur wo Summenbetrachtungen konkret vorgerechnet werden.`;
+- Kurz und fachlich; jede Erkenntnis 2–5 Sätze, Bullets nur wo Summenbetrachtungen konkret vorgerechnet werden.
+
+Falls das Feld «bauleitung» gesetzt ist (Bemerkungen und/oder Vergabevorschlag):
+- Die objektive Rangfolge nach Preis bleibt UNVERÄNDERT und wird im Ranking weiterhin nach den Daten geführt (Rang 1 = günstigster). Der Vorschlag der Bauleitung ersetzt das Ranking NICHT.
+- Weise den Vorschlag ausdrücklich als Einschätzung der Bauleitung aus («Die Bauleitung schlägt … vor»), nie als Ergebnis der Analyse.
+- Weicht der Vorschlag vom günstigsten Bieter ab: Greife die gelieferte Begründung der Bauleitung auf, beziffere die Preisdifferenz zum günstigsten (Betrag aus vorschlagDifferenzZumGuenstigstenChf und Prozent aus vorschlagDifferenzPct) und nenne – SOFERN aus den Daten ableitbar – stützende oder widersprechende Punkte zum vorgeschlagenen Bieter (z.B. Kontrollsummen-Auffälligkeit, Pseudo-Preise, Ausreisser, Spezialisierung). Erfinde KEINE Rechtfertigung und keine Fakten ausserhalb der Daten; wenn die Daten weder stützen noch widersprechen, sage das.
+- Entspricht der Vorschlag dem günstigsten, bestätige das nüchtern.
+- Nimm den Vorschlag als eigene Erkenntnis mit Tag «hinweis» auf; das Fazit-Ranking bleibt objektiv.`;
 
 /**
  * Matrix für die Zahlendisziplin-Prüfung (lib/ov-zahlen.ts): Einzelwerte,

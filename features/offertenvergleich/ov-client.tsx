@@ -164,6 +164,10 @@ export function OvClient({
         ]),
       ),
   );
+  // Einschätzung der Bauleitung (auf ov_vergaben, überlebt Re-Analysen)
+  const [vorschlagBieterId, setVorschlagBieterId] = useState<string>(
+    () => detail?.vergabe.vorschlag_bieter_id ?? '',
+  );
 
   useEffect(() => {
     return () => {
@@ -276,6 +280,20 @@ export function OvClient({
       .from('ov_bieter')
       .update({ kontrollsumme_rp: rp })
       .eq('id', bieter.id);
+    if (error) showToast(texts.hub.saveErrorToast, 'error');
+    else showToast(texts.hub.savedToast);
+  }
+
+  async function saveVergabeFeld(
+    feld: 'bemerkungen' | 'vorschlag_bieter_id' | 'vorschlag_begruendung',
+    wert: string | null,
+  ) {
+    if (!detail) return;
+    const supabase = createClient();
+    const { error } = await supabase
+      .from('ov_vergaben')
+      .update({ [feld]: wert })
+      .eq('id', detail.vergabe.id);
     if (error) showToast(texts.hub.saveErrorToast, 'error');
     else showToast(texts.hub.savedToast);
   }
@@ -957,6 +975,118 @@ export function OvClient({
     );
   }
 
+  function bauleitungBereich() {
+    if (!detail) return null;
+    const tb = t.bauleitung;
+    const vergabe = detail.vergabe;
+    const inhalt = detail.auswertung?.inhalt ?? null;
+    const totale = inhalt?.analyse.bieterTotaleRp ?? null;
+    const ranking = inhalt?.analyse.ranking ?? null;
+
+    // Differenz des vorgeschlagenen Bieters zum günstigsten
+    const vorschlagIndex = detail.bieter.findIndex(
+      (b) => b.id === vorschlagBieterId,
+    );
+    let diffChf: number | null = null;
+    let diffPct = 0;
+    let istGuenstigster = false;
+    if (totale && ranking && vorschlagIndex >= 0) {
+      const guenstigsterIndex = ranking[0];
+      const vTotal = totale[vorschlagIndex] ?? 0;
+      const gTotal = totale[guenstigsterIndex] ?? 0;
+      istGuenstigster = vorschlagIndex === guenstigsterIndex;
+      diffChf = vTotal - gTotal;
+      diffPct = gTotal > 0 ? (diffChf / gTotal) * 100 : 0;
+    }
+
+    return (
+      <section className="mt-8">
+        {sectionTitle(tb.title)}
+        <div className="border border-line border-l-[3px] border-l-accent bg-white p-4">
+          <label className="block text-[10px] text-primary">
+            {tb.bemerkungenLabel}
+          </label>
+          <textarea
+            defaultValue={vergabe.bemerkungen ?? ''}
+            disabled={!canEdit}
+            rows={3}
+            placeholder={tb.bemerkungenPlaceholder}
+            onBlur={(e) => {
+              const v = e.currentTarget.value.trim();
+              if (canEdit && v !== (vergabe.bemerkungen ?? '')) {
+                void saveVergabeFeld('bemerkungen', v || null);
+              }
+            }}
+            className="mt-1 w-full resize-y border border-line bg-bg px-3 py-2 text-xs text-ink outline-none focus:border-accent disabled:opacity-60"
+          />
+
+          <label className="mt-4 block text-[10px] text-primary">
+            {tb.vorschlagLabel}
+          </label>
+          {detail.bieter.length === 0 ? (
+            <p className="mt-1 text-xs text-primary">{tb.needsBieter}</p>
+          ) : (
+            <>
+              <div className="mt-1 flex flex-wrap items-center gap-3">
+                <select
+                  value={vorschlagBieterId}
+                  disabled={!canEdit}
+                  onChange={(e) => {
+                    setVorschlagBieterId(e.target.value);
+                    void saveVergabeFeld(
+                      'vorschlag_bieter_id',
+                      e.target.value || null,
+                    );
+                  }}
+                  className="max-w-64 border border-line bg-bg px-2 py-1.5 text-xs text-ink outline-none focus:border-accent disabled:opacity-60"
+                >
+                  <option value="">{tb.vorschlagBieterLeer}</option>
+                  {detail.bieter.map((b) => (
+                    <option key={b.id} value={b.id}>
+                      {b.name}
+                    </option>
+                  ))}
+                </select>
+                {vorschlagBieterId && diffChf !== null && (
+                  <span
+                    className={`text-xs font-semibold tabular-nums ${
+                      istGuenstigster ? 'text-ov-guenstig' : 'text-ov-teuer'
+                    }`}
+                  >
+                    {istGuenstigster
+                      ? `✓ ${tb.vorschlagGuenstigster}`
+                      : `${tb.vorschlagDifferenz}: +${formatRappen(diffChf)} (+${diffPct.toFixed(1)}%)`}
+                  </span>
+                )}
+              </div>
+              <label className="mt-3 block text-[10px] text-primary">
+                {tb.vorschlagBegruendungLabel}
+              </label>
+              <textarea
+                defaultValue={vergabe.vorschlag_begruendung ?? ''}
+                disabled={!canEdit}
+                rows={2}
+                placeholder={tb.vorschlagBegruendungPlaceholder}
+                onBlur={(e) => {
+                  const v = e.currentTarget.value.trim();
+                  if (canEdit && v !== (vergabe.vorschlag_begruendung ?? '')) {
+                    void saveVergabeFeld('vorschlag_begruendung', v || null);
+                  }
+                }}
+                className="mt-1 w-full resize-y border border-line bg-bg px-3 py-2 text-xs text-ink outline-none focus:border-accent disabled:opacity-60"
+              />
+            </>
+          )}
+          {canEdit && (
+            <p className="mt-3 text-[10px] leading-relaxed text-primary">
+              {tb.hint}
+            </p>
+          )}
+        </div>
+      </section>
+    );
+  }
+
   function bieterKarten() {
     if (!detail || detail.bieter.length === 0) return null;
     const inhalt = detail.auswertung?.inhalt ?? null;
@@ -1446,6 +1576,8 @@ export function OvClient({
         {analyseBereich()}
 
         {bieterKarten()}
+
+        {bauleitungBereich()}
 
         {vollstaendigkeitBereich()}
 

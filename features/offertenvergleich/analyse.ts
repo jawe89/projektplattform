@@ -384,6 +384,44 @@ export async function runAnalyseJob(
       if (error) throw error;
     }
 
+    // --- Einschätzung der Bauleitung (Kontext für die KI) ---
+    const { data: vergabeFelder } = await supabase
+      .from('ov_vergaben')
+      .select('bemerkungen,vorschlag_bieter_id,vorschlag_begruendung')
+      .eq('id', vergabeId)
+      .maybeSingle<{
+        bemerkungen: string | null;
+        vorschlag_bieter_id: string | null;
+        vorschlag_begruendung: string | null;
+      }>();
+    let bauleitung: Parameters<typeof generateInsights>[0]['bauleitung'];
+    if (vergabeFelder?.bemerkungen || vergabeFelder?.vorschlag_bieter_id) {
+      const vIdx = vergabeFelder.vorschlag_bieter_id
+        ? bieterIds.indexOf(vergabeFelder.vorschlag_bieter_id)
+        : -1;
+      const guenstigsterIdx = analyse.ranking[0] ?? 0;
+      let vorschlagBieterName: string | null = null;
+      let vorschlagDifferenzRp: number | null = null;
+      let vorschlagDifferenzPct: number | null = null;
+      let vorschlagIstGuenstigster = false;
+      if (vIdx >= 0) {
+        vorschlagBieterName = parsed.bieter[vIdx]?.name ?? null;
+        const vTotal = analyse.bieterTotaleRp[vIdx] ?? 0;
+        const gTotal = analyse.bieterTotaleRp[guenstigsterIdx] ?? 0;
+        vorschlagIstGuenstigster = vIdx === guenstigsterIdx;
+        vorschlagDifferenzRp = vTotal - gTotal;
+        vorschlagDifferenzPct = gTotal > 0 ? (vorschlagDifferenzRp / gTotal) * 100 : 0;
+      }
+      bauleitung = {
+        bemerkungen: vergabeFelder.bemerkungen,
+        vorschlagBieterName,
+        vorschlagBegruendung: vergabeFelder.vorschlag_begruendung,
+        vorschlagDifferenzRp,
+        vorschlagDifferenzPct,
+        vorschlagIstGuenstigster,
+      };
+    }
+
     // --- KI-Erkenntnisse + Fazit ---
     await setStufe(supabase, jobId, 'ki');
     const insights = await generateInsights({
@@ -396,6 +434,7 @@ export async function runAnalyseJob(
       bieter: parsed.bieter.map((b) => ({ name: b.name, ort: b.ort })),
       analyse,
       positionen: calcRows,
+      bauleitung,
     });
 
     // --- Auswertungs-Snapshot ---

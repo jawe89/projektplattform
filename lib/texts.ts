@@ -572,6 +572,22 @@ export const texts = {
         'Noch keine Auswertung – Positionenvergleich hochladen und Analyse starten.',
       inklLabel: 'inkl.',
     },
+    bauleitung: {
+      title: 'Einschätzung der Bauleitung',
+      bemerkungenLabel: 'Bemerkungen der Bauleitung',
+      bemerkungenPlaceholder:
+        'Freitext – Beobachtungen, offene Punkte, Hinweise zur Vergabe …',
+      vorschlagLabel: 'Vergabevorschlag',
+      vorschlagBieterLeer: '– kein Vorschlag –',
+      vorschlagBegruendungLabel: 'Begründung des Vorschlags',
+      vorschlagBegruendungPlaceholder:
+        'Weshalb dieser Bieter? (z.B. Ortsnähe, Referenzen, Termine …)',
+      vorschlagDifferenz: 'Differenz zum günstigsten',
+      vorschlagGuenstigster: 'entspricht dem günstigsten Bieter',
+      needsBieter:
+        'Ein Vorschlag ist möglich, sobald die Bieter aus einer Analyse vorliegen.',
+      hint: 'Bemerkungen und Vorschlag fliessen als Kontext in die KI-Analyse und erscheinen im Bericht (getrennt vom objektiven Ranking). Für die aktualisierte Auswertung die Analyse erneut ausführen.',
+    },
     vollstaendigkeit: {
       title: 'Vollständigkeitsprüfung',
       hint: 'Ausschreibung ↔ Offerten · KI-Extraktion, deterministischer Abgleich',
@@ -652,6 +668,14 @@ export const texts = {
       vollSubtitle: 'Abgleich Offerten gegen Referenz',
       vollSuffix: 'Abweichungen',
       vollSuffixOne: 'Abweichung',
+      bauleitungTitle: 'Einschätzung der Bauleitung',
+      bauleitungSubtitle: 'Bemerkungen und Vergabevorschlag',
+      bauleitungBemerkungen: 'Bemerkungen der Bauleitung',
+      bauleitungVorschlag: 'Vergabevorschlag',
+      bauleitungHinweis:
+        'Einschätzung der Bauleitung – kein Ergebnis der Auswertung. Das objektive Ranking folgt separat.',
+      bauleitungGuenstigster: 'entspricht dem günstigsten Bieter',
+      bauleitungZumGuenstigsten: 'zum günstigsten',
       fazitTitle: 'Fazit und Zusammenfassung',
       fazitSubtitle: 'Empfehlung Vergabe',
       colRang: '#',

@@ -91,6 +91,15 @@ export interface ReportVollstaendigkeitGruppe {
   abweichungen: ReportAbweichung[];
 }
 
+/** Einschätzung der Bauleitung – bewusst getrennt vom objektiven Ranking */
+export interface ReportBauleitung {
+  bemerkungen: string | null;
+  vorschlagBieterName: string | null;
+  vorschlagBegruendung: string | null;
+  /** «+CHF … (+…%) zum günstigsten» oder «entspricht dem günstigsten Bieter» */
+  vorschlagDifferenzText: string | null;
+}
+
 export interface ReportProps {
   brand: ReportBrand;
   meta: ReportMeta;
@@ -101,6 +110,8 @@ export interface ReportProps {
   handschriftHinweis?: string | null;
   vollstaendigkeit?: ReportVollstaendigkeitGruppe[];
   diffBlocks: ReportDiffBlock[];
+  /** Einschätzung der Bauleitung (Sektion vor dem Fazit); undefined = keine */
+  bauleitung?: ReportBauleitung;
   erkenntnisse: ReportErkenntnis[];
   fazit?: ReportFazit | null;
 }
@@ -402,6 +413,37 @@ function buildStyles(brand: ReportBrand) {
     bulletDot: { width: 10, fontSize: 7.8, color: colors.primary },
     bulletText: { flex: 1, fontSize: 7.8, lineHeight: 1.5 },
 
+    // Einschätzung der Bauleitung (deutlich als Entscheid markiert)
+    bauleitungBox: {
+      borderWidth: 1,
+      borderColor: colors.accent,
+      borderLeftWidth: 3,
+      borderLeftColor: colors.accent,
+      backgroundColor: colors.bg,
+      padding: 10,
+      marginBottom: 12,
+    },
+    bauleitungHinweis: {
+      fontSize: 6.6,
+      color: colors.primary,
+      marginBottom: 6,
+    },
+    bauleitungLabel: {
+      fontFamily: 'Antonio',
+      textTransform: 'uppercase',
+      fontSize: 7,
+      letterSpacing: 1,
+      color: colors.accent,
+      marginBottom: 2,
+    },
+    bauleitungVorschlag: { fontSize: 9, fontWeight: 700, marginBottom: 3 },
+    bauleitungText: {
+      fontSize: 7.8,
+      lineHeight: 1.55,
+      color: colors.ink,
+      marginBottom: 6,
+    },
+
     // Fazit
     rankTable: { borderWidth: 1, borderColor: colors.line, marginBottom: 10 },
     rankRow: {
@@ -517,6 +559,7 @@ export function ReportDocument({
   handschriftHinweis,
   vollstaendigkeit,
   diffBlocks,
+  bauleitung,
   erkenntnisse,
   fazit,
 }: ReportProps) {
@@ -784,6 +827,48 @@ export function ReportDocument({
             </View>
           );
         })}
+
+        {/* Einschätzung der Bauleitung – vor dem objektiven Fazit, klar
+            als Entscheid markiert (getrennt von der Auswertung) */}
+        {bauleitung && (
+          <View wrap={false}>
+            <View style={styles.sectionRow}>
+              <Text style={styles.sectionTitle}>{t.bauleitungTitle}</Text>
+              <Text style={styles.sectionHint}>{t.bauleitungSubtitle}</Text>
+            </View>
+            <View style={styles.bauleitungBox}>
+              <Text style={styles.bauleitungHinweis}>{t.bauleitungHinweis}</Text>
+              {bauleitung.bemerkungen ? (
+                <>
+                  <Text style={styles.bauleitungLabel}>
+                    {t.bauleitungBemerkungen}
+                  </Text>
+                  <Text style={styles.bauleitungText}>
+                    {bauleitung.bemerkungen}
+                  </Text>
+                </>
+              ) : null}
+              {bauleitung.vorschlagBieterName ? (
+                <>
+                  <Text style={styles.bauleitungLabel}>
+                    {t.bauleitungVorschlag}
+                  </Text>
+                  <Text style={styles.bauleitungVorschlag}>
+                    {bauleitung.vorschlagBieterName}
+                    {bauleitung.vorschlagDifferenzText
+                      ? ` · ${bauleitung.vorschlagDifferenzText}`
+                      : ''}
+                  </Text>
+                  {bauleitung.vorschlagBegruendung ? (
+                    <Text style={styles.bauleitungText}>
+                      {bauleitung.vorschlagBegruendung}
+                    </Text>
+                  ) : null}
+                </>
+              ) : null}
+            </View>
+          </View>
+        )}
 
         {/* Fazit (Ranking + Bereinigungsgespräche + Empfehlung) */}
         {fazit && (

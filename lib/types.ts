@@ -227,6 +227,12 @@ export interface OvVergabe {
   stand: string | null;
   status: OvVergabeStatus;
   notiz: string | null;
+  /** Freitext-Bemerkungen der Bauleitung (getrennt von der Auswertung) */
+  bemerkungen: string | null;
+  /** Vorgeschlagener Bieter (ov_bieter.id) – optional */
+  vorschlag_bieter_id: string | null;
+  /** Begründung des Vergabevorschlags */
+  vorschlag_begruendung: string | null;
   created_at: string;
   updated_at: string;
 }
