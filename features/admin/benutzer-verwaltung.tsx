@@ -5,6 +5,7 @@ import { ToastContainer, useToasts } from '@/components/ui/toast';
 import {
   inviteUser,
   removeMember,
+  resendInvite,
   type InviteState,
 } from '@/features/admin/actions';
 import { texts } from '@/lib/texts';
@@ -34,6 +35,11 @@ export function BenutzerVerwaltung({
   const [state, formAction, pending] = useActionState(inviteUser, initialState);
   const [removing, setRemoving] = useState<string | null>(null);
   const [removed, setRemoved] = useState(false);
+  const [resendingId, setResendingId] = useState<string | null>(null);
+  const [resendLink, setResendLink] = useState<{
+    email: string;
+    link: string;
+  } | null>(null);
   const { toasts, showToast } = useToasts();
 
   useEffect(() => {
@@ -59,8 +65,63 @@ export function BenutzerVerwaltung({
     }
   }
 
+  async function handleResend(member: MemberRow) {
+    setResendingId(member.userId);
+    setResendLink(null);
+    const result = await resendInvite(projectId, member.userId);
+    setResendingId(null);
+    if (result.error) {
+      showToast(texts.admin.benutzer.resendError, 'error');
+    } else if (result.info) {
+      showToast(result.info);
+    } else if (result.inviteLink) {
+      setResendLink({ email: member.email, link: result.inviteLink });
+    }
+  }
+
+  async function copyLink(link: string) {
+    try {
+      await navigator.clipboard.writeText(link);
+      showToast(texts.admin.benutzer.copied);
+    } catch {
+      showToast(texts.hub.saveErrorToast, 'error');
+    }
+  }
+
   return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
+    <div className="flex flex-col gap-6">
+      {/* Frischer Einladungslink (nach «erneut senden») – zum Kopieren */}
+      {resendLink && (
+        <div className="border border-accent border-l-[3px] border-l-accent bg-bg p-4">
+          <div className="mb-1 flex items-center justify-between gap-3">
+            <p className="text-xs text-primary-dark">
+              {texts.admin.benutzer.resendLinkLabel}{' '}
+              <span className="font-semibold text-ink">{resendLink.email}</span>
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => copyLink(resendLink.link)}
+                className="display-title bg-accent px-3 py-1.5 text-[11px] font-medium tracking-[0.12em] text-white transition-opacity hover:opacity-90"
+              >
+                {texts.admin.benutzer.copyLink}
+              </button>
+              <button
+                type="button"
+                onClick={() => setResendLink(null)}
+                className="border border-line bg-white px-2 py-1.5 text-[11px] text-primary-dark hover:border-primary"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+          <code className="block text-[10px] break-all text-ink">
+            {resendLink.link}
+          </code>
+        </div>
+      )}
+
+      <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
       {/* Mitgliederliste */}
       <div className="border border-line bg-white">
         {members.length === 0 ? (
@@ -80,7 +141,7 @@ export function BenutzerVerwaltung({
                 <th className="display-title px-4 py-3 text-[11px] font-medium tracking-[0.16em] text-primary-dark">
                   {texts.admin.benutzer.projectAdmin}
                 </th>
-                <th className="w-28" />
+                <th className="w-64" />
               </tr>
             </thead>
             <tbody>
@@ -96,15 +157,27 @@ export function BenutzerVerwaltung({
                   <td className="px-4 py-3 text-primary-dark">
                     {member.isProjectAdmin ? '✓' : '–'}
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    <button
-                      type="button"
-                      disabled={removing === member.userId}
-                      onClick={() => handleRemove(member)}
-                      className="border border-line bg-white px-3 py-1 text-xs text-primary-dark hover:border-error hover:text-error disabled:opacity-60"
-                    >
-                      {texts.admin.benutzer.deactivate}
-                    </button>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-wrap justify-end gap-2">
+                      <button
+                        type="button"
+                        disabled={resendingId === member.userId}
+                        onClick={() => handleResend(member)}
+                        className="border border-line bg-white px-3 py-1 text-xs text-primary-dark hover:border-accent hover:text-accent disabled:opacity-60"
+                      >
+                        {resendingId === member.userId
+                          ? texts.admin.benutzer.resending
+                          : texts.admin.benutzer.resend}
+                      </button>
+                      <button
+                        type="button"
+                        disabled={removing === member.userId}
+                        onClick={() => handleRemove(member)}
+                        className="border border-line bg-white px-3 py-1 text-xs text-primary-dark hover:border-error hover:text-error disabled:opacity-60"
+                      >
+                        {texts.admin.benutzer.deactivate}
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -179,6 +252,7 @@ export function BenutzerVerwaltung({
               : texts.admin.benutzer.invite}
           </button>
         </form>
+      </div>
       </div>
 
       <ToastContainer toasts={toasts} />

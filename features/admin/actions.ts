@@ -288,6 +288,72 @@ export async function inviteUser(
   return { success: texts.admin.benutzer.inviteSuccess, inviteLink };
 }
 
+export interface ResendInviteState {
+  error?: string;
+  success?: string;
+  /** Konto bereits aktiviert – kein neuer Link nötig */
+  info?: string;
+  inviteLink?: string;
+}
+
+/**
+ * Erzeugt einen FRISCHEN Einladungslink für einen bereits eingeladenen,
+ * aber noch nicht aktivierten Benutzer (der ursprüngliche Link ist
+ * abgelaufen/ungültig). Kein Mailversand über die Admin-API möglich, wenn
+ * das Konto schon existiert – der Link wird dem Admin zum Weitergeben
+ * angezeigt (wie der Fallback beim Einladen).
+ */
+export async function resendInvite(
+  projectId: string,
+  userId: string,
+): Promise<ResendInviteState> {
+  const ctx = await assertPlatformAdmin();
+  if (!ctx) return { error: texts.admin.noAccess };
+
+  const admin = createAdminClient();
+
+  const { data: userRes, error: getError } =
+    await admin.auth.admin.getUserById(userId);
+  const email = userRes?.user?.email;
+  if (getError || !email) {
+    return { error: texts.admin.benutzer.resendError };
+  }
+  // Bereits aktiviert (Passwort gesetzt / E-Mail bestätigt) → kein Invite
+  if (userRes.user.email_confirmed_at || userRes.user.last_sign_in_at) {
+    return { info: texts.admin.benutzer.resendAlreadyActive };
+  }
+
+  const { data: project } = await ctx.supabase
+    .from('projects')
+    .select('slug, domain')
+    .eq('id', projectId)
+    .single();
+  const origin = project?.domain
+    ? `https://${project.domain}`
+    : `http://${project?.slug}.localhost:3000`;
+
+  // Frischen Link generieren: erst invite, sonst recovery (beides führt über
+  // /auth/confirm auf /passwort-neu, die Route akzeptiert jeden OTP-Typ).
+  let hashedToken: string | undefined;
+  let linkType: 'invite' | 'recovery' = 'invite';
+  const { data: linkData, error: linkError } =
+    await admin.auth.admin.generateLink({ type: 'invite', email });
+  if (!linkError && linkData?.properties?.hashed_token) {
+    hashedToken = linkData.properties.hashed_token;
+  } else {
+    const { data: recData, error: recError } =
+      await admin.auth.admin.generateLink({ type: 'recovery', email });
+    if (recError || !recData?.properties?.hashed_token) {
+      return { error: texts.admin.benutzer.resendError };
+    }
+    hashedToken = recData.properties.hashed_token;
+    linkType = 'recovery';
+  }
+
+  const inviteLink = `${origin}/auth/confirm?token_hash=${hashedToken}&type=${linkType}&next=/passwort-neu`;
+  return { success: texts.admin.benutzer.resendSuccess, inviteLink };
+}
+
 export async function removeMember(
   projectId: string,
   userId: string,

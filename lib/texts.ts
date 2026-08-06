@@ -435,6 +435,15 @@ export const texts = {
       inviteLinkLabel: 'Einladungslink (falls kein E-Mail-Versand konfiguriert ist)',
       inviteError: 'Einladung fehlgeschlagen.',
       noMembers: 'Noch keine Benutzer in diesem Projekt.',
+      resend: 'Einladungslink erneut senden',
+      resending: 'Wird erstellt …',
+      resendSuccess: 'Neuer Einladungslink erstellt (bisheriger Link ungültig).',
+      resendError: 'Einladungslink konnte nicht erstellt werden.',
+      resendAlreadyActive:
+        'Der Benutzer hat den Zugang bereits aktiviert – kein neuer Einladungslink nötig (‹Passwort vergessen› verwenden).',
+      resendLinkLabel: 'Neuer Einladungslink für',
+      copyLink: 'Link kopieren',
+      copied: 'Kopiert',
     },
   },
   ov: {
