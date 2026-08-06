@@ -318,10 +318,6 @@ export async function resendInvite(
   if (getError || !email) {
     return { error: texts.admin.benutzer.resendError };
   }
-  // Bereits aktiviert (Passwort gesetzt / E-Mail bestätigt) → kein Invite
-  if (userRes.user.email_confirmed_at || userRes.user.last_sign_in_at) {
-    return { info: texts.admin.benutzer.resendAlreadyActive };
-  }
 
   const { data: project } = await ctx.supabase
     .from('projects')
@@ -332,26 +328,43 @@ export async function resendInvite(
     ? `https://${project.domain}`
     : `http://${project?.slug}.localhost:3000`;
 
-  // Frischen Link generieren: erst invite, sonst recovery (beides führt über
-  // /auth/confirm auf /passwort-neu, die Route akzeptiert jeden OTP-Typ).
+  // Bestätigte Konten (u.U. durch einen E-Mail-Scanner vorab bestätigt, ohne
+  // dass je ein Passwort gesetzt wurde) bekommen einen Passwort-Link
+  // (recovery); unbestätigte einen frischen Einladungslink (invite). Beide
+  // führen über die Zwischenseite /auth/confirm auf /passwort-neu.
+  const bereitsBestaetigt = Boolean(
+    userRes.user.email_confirmed_at || userRes.user.last_sign_in_at,
+  );
+  const linkType: 'invite' | 'recovery' = bereitsBestaetigt
+    ? 'recovery'
+    : 'invite';
+  const altType: 'invite' | 'recovery' =
+    linkType === 'invite' ? 'recovery' : 'invite';
+
   let hashedToken: string | undefined;
-  let linkType: 'invite' | 'recovery' = 'invite';
-  const { data: linkData, error: linkError } =
-    await admin.auth.admin.generateLink({ type: 'invite', email });
-  if (!linkError && linkData?.properties?.hashed_token) {
-    hashedToken = linkData.properties.hashed_token;
+  let usedType: 'invite' | 'recovery' = linkType;
+  const primary = await admin.auth.admin.generateLink({ type: linkType, email });
+  if (!primary.error && primary.data?.properties?.hashed_token) {
+    hashedToken = primary.data.properties.hashed_token;
   } else {
-    const { data: recData, error: recError } =
-      await admin.auth.admin.generateLink({ type: 'recovery', email });
-    if (recError || !recData?.properties?.hashed_token) {
+    const secondary = await admin.auth.admin.generateLink({
+      type: altType,
+      email,
+    });
+    if (secondary.error || !secondary.data?.properties?.hashed_token) {
       return { error: texts.admin.benutzer.resendError };
     }
-    hashedToken = recData.properties.hashed_token;
-    linkType = 'recovery';
+    hashedToken = secondary.data.properties.hashed_token;
+    usedType = altType;
   }
 
-  const inviteLink = `${origin}/auth/confirm?token_hash=${hashedToken}&type=${linkType}&next=/passwort-neu`;
-  return { success: texts.admin.benutzer.resendSuccess, inviteLink };
+  const inviteLink = `${origin}/auth/confirm?token_hash=${hashedToken}&type=${usedType}&next=/passwort-neu`;
+  return {
+    success: bereitsBestaetigt
+      ? texts.admin.benutzer.resendResetSuccess
+      : texts.admin.benutzer.resendSuccess,
+    inviteLink,
+  };
 }
 
 export async function removeMember(

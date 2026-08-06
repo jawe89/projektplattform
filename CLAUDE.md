@@ -119,6 +119,15 @@ npm run test:unit # Unit-Tests (node:test via tsx), z.B. BKK-Berechnungslogik
   1 h gecacht (`max-age=3600`). Beim Logo-/Hero-Upload im Admin (M3) deshalb
   eindeutige Dateinamen vergeben (z.B. `logo-<timestamp>.svg`) statt
   gleichnamig zu überschreiben, sonst wirkt die Änderung nicht sofort.
+- **E-Mail-Link-Scanner verbrauchen Einmal-Token (OTP)**: Outlook/
+  Microsoft Defender «Safe Links» (z.B. @ch.mcd.com) öffnen Links in Mails
+  automatisch per GET, bevor der Nutzer klickt. Verifiziert die
+  Bestätigungs-Route den `token_hash` schon beim GET, ist er danach
+  entwertet → «Link ungültig oder abgelaufen», Konto gilt als bestätigt
+  ohne Passwort, «erneut senden» meldet fälschlich «bereits aktiviert».
+  Lösung: `/auth/confirm` GET zeigt nur eine Zwischenseite mit «Fortfahren»;
+  erst der POST (Klick) ruft `verifyOtp` – Scanner senden kein POST. Gilt
+  für Invite UND Recovery.
 - **pdfjs-dist braucht auf Vercel Browser-API-Polyfills**: `pdf.mjs`
   referenziert `DOMMatrix` auf MODULEBENE und polyfillt in Node über das
   optionale `@napi-rs/canvas` – das fehlt im Serverless-Bundle → die

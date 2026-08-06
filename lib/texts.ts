@@ -48,6 +48,12 @@ export const texts = {
     passwordMismatch: 'Die Passwörter stimmen nicht überein.',
     backToLogin: 'Zurück zur Anmeldung',
     backToLanding: 'Zur Projektseite',
+    confirmTitle: 'Konto bestätigen',
+    confirmIntro:
+      'Klicken Sie auf «Fortfahren», um Ihr Konto zu bestätigen und ein Passwort zu setzen.',
+    confirmButton: 'Fortfahren',
+    confirmNote:
+      'Dieser Zwischenschritt schützt den einmaligen Link davor, von automatischen E-Mail-Sicherheitsprüfungen vorab entwertet zu werden.',
   },
   modules: {
     sectionTitle: 'Module',
@@ -438,6 +444,8 @@ export const texts = {
       resend: 'Einladungslink erneut senden',
       resending: 'Wird erstellt …',
       resendSuccess: 'Neuer Einladungslink erstellt (bisheriger Link ungültig).',
+      resendResetSuccess:
+        'Passwort-Link erstellt (Konto war bereits bestätigt – der Benutzer setzt damit ein Passwort).',
       resendError: 'Einladungslink konnte nicht erstellt werden.',
       resendAlreadyActive:
         'Der Benutzer hat den Zugang bereits aktiviert – kein neuer Einladungslink nötig (‹Passwort vergessen› verwenden).',

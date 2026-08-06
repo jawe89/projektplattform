@@ -171,8 +171,19 @@ Passwort zurücksetzen – Projektplattform
 
 ## Technischer Ablauf (beide Vorlagen)
 
-Link → `/auth/confirm` verifiziert den `token_hash` (Session entsteht) →
-Weiterleitung auf `/passwort-neu` → nach dem Speichern direkt in den Hub.
-Token-Lebensdauer steuert Supabase (Standard: Recovery 1 h, Invite 24 h) –
-bei Änderungen den Hinweistext anpassen. Kein «ß» verwenden
-(Deutsch Schweiz).
+Link → `/auth/confirm` zeigt eine **Zwischenseite** mit «Fortfahren» (GET
+verifiziert NICHT) → erst der Klick (POST) verifiziert den `token_hash`
+(Session entsteht) → Weiterleitung auf `/passwort-neu` → nach dem Speichern
+direkt in den Hub. Token-Lebensdauer steuert Supabase (Standard: Recovery
+1 h, Invite 24 h). Kein «ß» verwenden (Deutsch Schweiz).
+
+**Warum die Zwischenseite (wichtig):** E-Mail-Sicherheitsprüfungen
+(Outlook/Microsoft Defender «Safe Links», @ch.mcd.com u.a.) öffnen Links
+automatisch per GET, bevor der Nutzer klickt. Würde der Einmal-Token beim
+GET verifiziert, wäre er danach verbraucht – Symptome: der Nutzer sieht
+«Link ungültig oder abgelaufen», das Konto gilt als bestätigt, ohne dass je
+ein Passwort gesetzt wurde, und «Einladungslink erneut senden» meldete
+früher «bereits aktiviert». Scanner senden **kein** POST, daher überlebt
+der Token bis zum echten Klick. Beim erneuten Senden erhalten bereits
+(auch scanner-)bestätigte Konten einen Passwort-Link (`type=recovery`),
+unbestätigte einen frischen Einladungslink (`type=invite`).
