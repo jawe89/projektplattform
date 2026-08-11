@@ -66,6 +66,12 @@ export interface FieldDef {
 export interface FieldSchema {
   fields: FieldDef[];
   allowChildren: boolean;
+  /**
+   * Opt-in: Einträge dieser Kategorie können im Hub einer frei vergebenen
+   * Unterkategorie zugewiesen werden (Gruppierung, z.B. Pläne nach
+   * «Grundrisse»/«Schnitte»). Fehlend/false = keine Unterkategorien.
+   */
+  allowSubcategories?: boolean;
 }
 
 export type CategorySortMode = 'manual' | 'field';
@@ -94,6 +100,8 @@ export interface DocumentEntry {
   data: Record<string, string>;
   file_path: string | null;
   external_url: string | null;
+  /** Frei vergebene Unterkategorie (Gruppierung im Hub); null = ohne. */
+  subcategory: string | null;
   sort: number;
   created_at: string;
   updated_at: string;

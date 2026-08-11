@@ -20,6 +20,7 @@ interface EditableCategory {
   add_label: string;
   layout: CategoryLayout;
   allowChildren: boolean;
+  allowSubcategories: boolean;
   fields: FieldDef[];
   sortMode: CategorySortMode;
   sortField: string;
@@ -45,6 +46,7 @@ function toEditable(category: Category): EditableCategory {
     add_label: category.add_label ?? '',
     layout: category.layout,
     allowChildren: category.field_schema.allowChildren ?? false,
+    allowSubcategories: category.field_schema.allowSubcategories ?? false,
     fields: category.field_schema.fields ?? [],
     sortMode: category.sort_mode ?? 'manual',
     sortField: category.sort_field ?? '',
@@ -188,6 +190,7 @@ export function KategorienEditor({
             ...(field.badge ? { badge: true } : {}),
           })),
           allowChildren: item.allowChildren,
+          allowSubcategories: item.allowSubcategories,
         },
         sort_mode: sortMode,
         sort_field: sortMode === 'field' ? sortField : null,
@@ -302,6 +305,17 @@ export function KategorienEditor({
                 className="accent-accent"
               />
               {texts.admin.kategorien.allowChildren}
+            </label>
+            <label className="flex items-center gap-2 pb-1.5 text-xs text-primary-dark">
+              <input
+                type="checkbox"
+                checked={category.allowSubcategories}
+                onChange={(e) =>
+                  update(index, { allowSubcategories: e.target.checked })
+                }
+                className="accent-accent"
+              />
+              {texts.admin.kategorien.allowSubcategories}
             </label>
             <label className="flex flex-col gap-1">
               <span className="display-title text-[10px] font-medium tracking-[0.12em] text-primary-dark">
@@ -512,6 +526,7 @@ export function KategorienEditor({
                 add_label: '',
                 layout: 'list',
                 allowChildren: false,
+                allowSubcategories: false,
                 fields: [
                   { key: 'icon', label: 'Kürzel', badge: true, required: true },
                   { key: 'title', label: 'Titel', required: true },

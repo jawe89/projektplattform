@@ -9,6 +9,8 @@ export interface ModalResult {
   data: Record<string, string>;
   file_path: string | null;
   external_url: string | null;
+  /** Frei vergebene Unterkategorie (nur bei allowSubcategories); null = ohne. */
+  subcategory: string | null;
 }
 
 interface DocumentModalProps {
@@ -16,6 +18,8 @@ interface DocumentModalProps {
   category: Category;
   /** Bestehender Eintrag (Bearbeiten) oder undefined (Neu) */
   initial?: ModalResult;
+  /** Bereits vergebene Unterkategorien dieser Kategorie (Autovervollständigung) */
+  subcategoryOptions?: string[];
   onApply: (result: ModalResult) => void;
   onClose: () => void;
 }
@@ -29,13 +33,16 @@ export function DocumentModal({
   projectId,
   category,
   initial,
+  subcategoryOptions = [],
   onApply,
   onClose,
 }: DocumentModalProps) {
   const fields = category.field_schema.fields ?? [];
+  const allowSubcategories = category.field_schema.allowSubcategories ?? false;
   const [values, setValues] = useState<Record<string, string>>(
     () => ({ ...(initial?.data ?? {}) }),
   );
+  const [subcategory, setSubcategory] = useState(initial?.subcategory ?? '');
   const [file, setFile] = useState<File | null>(null);
   const [externalUrl, setExternalUrl] = useState(initial?.external_url ?? '');
   const [progress, setProgress] = useState<number | null>(null);
@@ -81,6 +88,7 @@ export function DocumentModal({
       ),
       file_path: filePath,
       external_url: url,
+      subcategory: allowSubcategories ? subcategory.trim() || null : null,
     });
   }
 
@@ -127,6 +135,32 @@ export function DocumentModal({
               />
             </label>
           ))}
+
+          {/* Unterkategorie (nur bei allowSubcategories): frei vergeben,
+              bestehende per Datalist vorschlagen */}
+          {allowSubcategories && (
+            <label className="flex flex-col gap-1">
+              <span className="text-xs font-medium text-primary-dark">
+                {texts.modal.subcategoryLabel}
+              </span>
+              <input
+                type="text"
+                list="subcategory-options"
+                value={subcategory}
+                placeholder={texts.modal.subcategoryPlaceholder}
+                onChange={(e) => setSubcategory(e.target.value)}
+                className="border border-line bg-white px-3 py-2 text-sm text-ink outline-none focus:border-accent"
+              />
+              <datalist id="subcategory-options">
+                {subcategoryOptions.map((option) => (
+                  <option key={option} value={option} />
+                ))}
+              </datalist>
+              <span className="text-[11px] text-primary">
+                {texts.modal.subcategoryHint}
+              </span>
+            </label>
+          )}
 
           {/* Datei / URL */}
           <fieldset className="border border-line p-3">
