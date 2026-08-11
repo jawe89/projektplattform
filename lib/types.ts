@@ -120,6 +120,16 @@ export interface RoleCategoryAccess {
   can_upload: boolean;
 }
 
+/**
+ * Dokumentgenaue Sicht-Freigabe (0015). Existiert für ein Dokument mindestens
+ * eine Zeile, sehen es nur die aufgeführten Rollen (zusätzlich zur
+ * Kategorie-Sichtbarkeit); ohne Zeile erbt es die Kategorie-Sichtbarkeit.
+ */
+export interface DocumentRoleAccess {
+  document_id: string;
+  role_id: string;
+}
+
 export interface ProjectMember {
   user_id: string;
   project_id: string;

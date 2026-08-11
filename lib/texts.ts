@@ -312,6 +312,8 @@ export const texts = {
         'Aktivierte Module erscheinen im Dokumenten-Hub – sichtbar nur für Rollen mit Freigabe (Bereich «Rollen»).',
       rollen:
         'Sichtbarkeit pro Dokumentkategorie · Modul-Zugriff getrennt in Sehen / Bearbeiten.',
+      dokumentfreigaben:
+        'Feinsteuerung pro Dokument: welche Rollen ein einzelnes Dokument öffnen dürfen. Ergänzt die kategorieweite Sichtbarkeit (Bereich «Rollen»).',
       benutzer: 'Projektmitglieder einladen, Rollen zuweisen und deaktivieren.',
     },
     loginTitle: 'Admin-Anmeldung',
@@ -336,6 +338,7 @@ export const texts = {
       branding: 'Branding',
       kategorien: 'Kategorien',
       rollen: 'Rollen',
+      dokumentfreigaben: 'Dokumentfreigaben',
       benutzer: 'Benutzer',
       module: 'Module',
     },
@@ -430,6 +433,22 @@ export const texts = {
       confirmDelete: 'Rolle wirklich löschen?',
       deleteError:
         'Rolle kann nicht gelöscht werden – es sind noch Benutzer zugewiesen.',
+    },
+    dokumentfreigaben: {
+      title: 'Dokumentfreigaben',
+      categoryLabel: 'Kategorie',
+      docHeader: 'Dokument',
+      access: 'Darf öffnen',
+      inheritBadge: 'Alle',
+      restrictedBadge: 'Eingeschränkt',
+      inheritHint: 'Alle Rollen mit Kategoriezugriff dürfen öffnen.',
+      restrictedHint: 'Nur die angehakten Rollen dürfen dieses Dokument öffnen.',
+      noDocuments: 'In dieser Kategorie sind noch keine Dokumente erfasst.',
+      noViewRoles:
+        'Keine Rolle hat Sehen-Recht auf diese Kategorie – Feinsteuerung im Bereich «Rollen» beginnen.',
+      noCategories: 'Für dieses Projekt sind keine Kategorien angelegt.',
+      legend:
+        'Ohne Einschränkung («Alle») erbt ein Dokument die Kategorie-Sichtbarkeit. Häkchen entfernen sperrt das Dokument für die betreffende Rolle – Admins sehen weiterhin alles.',
     },
     benutzer: {
       title: 'Benutzer',

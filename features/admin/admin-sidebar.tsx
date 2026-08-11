@@ -15,6 +15,7 @@ const SECTIONS = [
   { key: 'kategorien', label: texts.admin.tabs.kategorien },
   { key: 'module', label: texts.admin.tabs.module },
   { key: 'rollen', label: texts.admin.tabs.rollen },
+  { key: 'dokumentfreigaben', label: texts.admin.tabs.dokumentfreigaben },
   { key: 'benutzer', label: texts.admin.tabs.benutzer },
 ] as const;
 
