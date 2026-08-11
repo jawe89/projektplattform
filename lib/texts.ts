@@ -272,6 +272,7 @@ export const texts = {
     updatedToast: 'Eintrag geändert – noch nicht gespeichert.',
     leaveWarning: 'Es gibt ungespeicherte Änderungen.',
     dragHint: 'Zum Sortieren ziehen',
+    dragGroupHint: 'Unterkategorie zum Sortieren ziehen',
     searchPlaceholder: 'Dokument oder BKP-Nr. suchen…',
     searchClear: 'Suche leeren',
     searchNoResults: 'Keine Dokumente zur Suche gefunden.',
