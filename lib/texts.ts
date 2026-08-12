@@ -101,6 +101,8 @@ export const texts = {
     confirmDeleteContractor: 'Diesen Unternehmer löschen?',
     confirmDeleteContact: 'Diese Person löschen?',
     remove: 'Entfernen',
+    done: 'Fertig',
+    dragHint: 'Zum Sortieren ziehen',
   },
   bkk: {
     kpiOrig: 'KV orig.',
