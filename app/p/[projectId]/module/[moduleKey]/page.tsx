@@ -4,6 +4,7 @@ import { LogoutButton } from '@/features/auth/logout-button';
 import { BkkClient } from '@/features/bkk/bkk-client';
 import { LvClient, type WerkvertragDoc } from '@/features/lv/lv-client';
 import { OvClient, type OvDetail } from '@/features/offertenvergleich/ov-client';
+import { UnternehmerlisteClient } from '@/features/unternehmerliste/unternehmerliste-client';
 import { isModuleKey, MODULES } from '@/lib/modules';
 import { publicBrandingUrl } from '@/lib/storage';
 import { createClient } from '@/lib/supabase/server';
@@ -28,6 +29,9 @@ import type {
   OvVergabe,
   ProjectModule,
   RoleModuleAccess,
+  UlBauherrContact,
+  UlContractor,
+  UlEntry,
 } from '@/lib/types';
 
 export const dynamic = 'force-dynamic';
@@ -362,6 +366,47 @@ export default async function ModulePage({
         isActiveBaselineView={isActiveBaselineView}
         initialPositions={positions ?? []}
         initialEntries={entries ?? []}
+      />
+    );
+  }
+
+  if (moduleKey === 'unternehmerliste') {
+    const [{ data: bauherr }, { data: entries }, { data: contractors }] =
+      await Promise.all([
+        supabase
+          .from('ul_bauherr_contacts')
+          .select('*')
+          .eq('project_id', projectId)
+          .order('sort')
+          .returns<UlBauherrContact[]>(),
+        supabase
+          .from('ul_entries')
+          .select('*')
+          .eq('project_id', projectId)
+          .order('sort')
+          .returns<UlEntry[]>(),
+        supabase
+          .from('ul_contractors')
+          .select('*')
+          .eq('project_id', projectId)
+          .order('sort')
+          .returns<UlContractor[]>(),
+      ]);
+
+    return (
+      <UnternehmerlisteClient
+        projectId={projectId}
+        projectName={tenant?.project.name ?? ''}
+        managementName={tenant?.branding?.management_name ?? null}
+        managementLogoUrl={
+          tenant?.branding?.management_logo_path
+            ? publicBrandingUrl(tenant.branding.management_logo_path)
+            : null
+        }
+        canEdit={canEdit}
+        initialBauherr={bauherr ?? []}
+        initialEntries={entries ?? []}
+        initialContractors={contractors ?? []}
       />
     );
   }

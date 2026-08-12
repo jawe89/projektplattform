@@ -151,6 +151,45 @@ export interface RoleModuleAccess {
   can_edit: boolean;
 }
 
+// Modul Unternehmerliste (supabase/migrations/0016_unternehmerliste.sql)
+
+/** Zuständige Person der Bauherrschaft (projektweit, mehrere) */
+export interface UlBauherrContact {
+  id: string;
+  project_id: string;
+  name: string;
+  funktion: string;
+  mail: string;
+  telefon: string;
+  sort: number;
+  created_at?: string;
+}
+
+/** BKP-Eintrag (BKP-Nr. + Arbeitsgattung) */
+export interface UlEntry {
+  id: string;
+  project_id: string;
+  bkp: string;
+  arbeitsgattung: string;
+  sort: number;
+  created_at?: string;
+}
+
+/** Unternehmer eines BKP-Eintrags */
+export interface UlContractor {
+  id: string;
+  project_id: string;
+  entry_id: string;
+  firma: string;
+  adresse: string;
+  ort: string;
+  kontakt_person: string;
+  mail: string;
+  telefon: string;
+  sort: number;
+  created_at?: string;
+}
+
 // Modul Baukostenkontrolle (supabase/migrations/0007_bkk_schema.sql)
 
 export interface BkkGroup {

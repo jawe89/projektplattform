@@ -9,6 +9,7 @@ export const MODULE_KEYS = [
   'baukostenkontrolle',
   'leistungsverzeichnis',
   'offertenvergleich',
+  'unternehmerliste',
 ] as const;
 
 export type ModuleKey = (typeof MODULE_KEYS)[number];
