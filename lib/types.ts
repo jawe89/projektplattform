@@ -175,6 +175,24 @@ export interface UlEntry {
   created_at?: string;
 }
 
+// Modul Pendenzenliste (supabase/migrations/0017_pendenzenliste.sql)
+
+/** Pendenz; Kategorie «Erledigt» wird aus erledigt_datum abgeleitet (gesetzt = erledigt). */
+export interface PlItem {
+  id: string;
+  project_id: string;
+  /** Aufnahme Pendenz (ISO yyyy-mm-dd) oder null */
+  aufnahme_datum: string | null;
+  beschrieb: string;
+  verantwortlich: string;
+  /** Zu erledigen bis (ISO yyyy-mm-dd) oder null */
+  faellig_datum: string | null;
+  /** Erledigt am (ISO yyyy-mm-dd) oder null – gesetzt = Kategorie «Erledigt» */
+  erledigt_datum: string | null;
+  sort: number;
+  created_at?: string;
+}
+
 /** Unternehmer eines BKP-Eintrags */
 export interface UlContractor {
   id: string;

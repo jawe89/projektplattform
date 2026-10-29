@@ -76,6 +76,10 @@ export const texts = {
       label: 'Unternehmerliste',
       description: 'Kontaktverzeichnis · BKP / Unternehmer / Bauherrschaft',
     },
+    pendenzenliste: {
+      label: 'Pendenzenliste',
+      description: 'Offene und erledigte Pendenzen · Verantwortlich / Termine',
+    },
   },
   unternehmerliste: {
     bauherrTitle: 'Zuständige Personen der Bauherrschaft',
@@ -103,6 +107,22 @@ export const texts = {
     remove: 'Entfernen',
     done: 'Fertig',
     dragHint: 'Zum Sortieren ziehen',
+  },
+  pendenzenliste: {
+    openTitle: 'Offen',
+    doneTitle: 'Erledigt',
+    add: '+ Pendenz',
+    aufnahme: 'Aufnahme',
+    beschrieb: 'Pendenz',
+    verantwortlich: 'Verantwortlich',
+    faellig: 'Zu erledigen bis',
+    erledigt: 'Erledigt am',
+    noOpen: 'Keine offenen Pendenzen.',
+    noDone: 'Noch nichts erledigt.',
+    confirmDelete: 'Diese Pendenz löschen?',
+    remove: 'Entfernen',
+    done: 'Fertig',
+    erledigtHint: 'Datum «Erledigt am» setzen = Pendenz wandert nach «Erledigt».',
   },
   bkk: {
     kpiOrig: 'KV orig.',

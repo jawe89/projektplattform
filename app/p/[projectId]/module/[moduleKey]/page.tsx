@@ -4,6 +4,7 @@ import { LogoutButton } from '@/features/auth/logout-button';
 import { BkkClient } from '@/features/bkk/bkk-client';
 import { LvClient, type WerkvertragDoc } from '@/features/lv/lv-client';
 import { OvClient, type OvDetail } from '@/features/offertenvergleich/ov-client';
+import { PendenzenlisteClient } from '@/features/pendenzenliste/pendenzenliste-client';
 import { UnternehmerlisteClient } from '@/features/unternehmerliste/unternehmerliste-client';
 import { isModuleKey, MODULES } from '@/lib/modules';
 import { publicBrandingUrl } from '@/lib/storage';
@@ -27,6 +28,7 @@ import type {
   OvDokument,
   OvPositionRow,
   OvVergabe,
+  PlItem,
   ProjectModule,
   RoleModuleAccess,
   UlBauherrContact,
@@ -366,6 +368,30 @@ export default async function ModulePage({
         isActiveBaselineView={isActiveBaselineView}
         initialPositions={positions ?? []}
         initialEntries={entries ?? []}
+      />
+    );
+  }
+
+  if (moduleKey === 'pendenzenliste') {
+    const { data: items } = await supabase
+      .from('pl_items')
+      .select('*')
+      .eq('project_id', projectId)
+      .order('sort')
+      .returns<PlItem[]>();
+
+    return (
+      <PendenzenlisteClient
+        projectId={projectId}
+        projectName={tenant?.project.name ?? ''}
+        managementName={tenant?.branding?.management_name ?? null}
+        managementLogoUrl={
+          tenant?.branding?.management_logo_path
+            ? publicBrandingUrl(tenant.branding.management_logo_path)
+            : null
+        }
+        canEdit={canEdit}
+        initialItems={items ?? []}
       />
     );
   }
